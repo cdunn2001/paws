@@ -21,6 +21,11 @@ lint:
 	#go list ./... | grep -v /vendor/ | xargs -L1 golint -set_exit_status
 	golint --set_exit_status cmd/...
 	golint --set_exit_status pkg/...
+
+swag:
+	# go install github.com/swaggo/swag/cmd/swag@latest; which swg
+	swag init -g cmd/serve/serve.go --output docs/paws
+
 build: bin/try
 
 # try, serve, etc. (for now)
