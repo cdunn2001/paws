@@ -6,11 +6,9 @@ import (
 	"log" // log.Fatal()
 	// "pacb.com/seq/paws/pkg/stuff"
 	// "pacb.com/seq/paws/pkg/stiff"
-	//"github.com/gofiber/fiber/v2"
-	//_ "github.com/gofiber/fiber/v2/middleware/recover" // to trap panics
-	//"github.com/gofiber/fiber/v2/utils"
-	//"github.com/gofiber/template/html"
 	"github.com/gin-gonic/gin"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 	"runtime" // only for GOOS
 )
 
