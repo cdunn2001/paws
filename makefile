@@ -8,10 +8,10 @@ quick:
 all: test vet fmt lint build
 
 test:
-	go test ./...
+	go test ./pkg/...
 
 vet:
-	go vet ./...
+	go vet ./pkg/...
 
 fmt:
 	go list -f '{{.Dir}}' ./... | grep -v /vendor/ | xargs go fmt
@@ -21,11 +21,11 @@ lint:
 	#go list ./... | grep -v /vendor/ | xargs -L1 golint -set_exit_status
 	golint --set_exit_status cmd/...
 	golint --set_exit_status pkg/...
-build: bin/try
+build: bin/paws
 
-# try, serve, etc. (for now)
+# hello, try, paws, etc. (for now)
 bin/%: .FORCE
 	go build -o $@ ./cmd/$*
-serve: bin/serve
+serve: bin/paws
 	./$<
 .FORCE:
