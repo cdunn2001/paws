@@ -3,7 +3,7 @@ package main
 import (
 	"net/http"
 	//"fmt"
-	//"log" // log.Fatal()
+	"log" // log.Fatal()
 	// "pacb.com/seq/paws/pkg/stuff"
 	// "pacb.com/seq/paws/pkg/stiff"
 	//"github.com/gofiber/fiber/v2"
@@ -54,6 +54,7 @@ func getSockets(c *gin.Context) {
 
 // Returns the socket object indexed by the sock_id.
 func getSocketById(c *gin.Context) {
+	//panic("I AM LOST!")
 	//id := c.Param("id")
 
 	//var sockets []SocketObject = []SocketObject{}
@@ -166,7 +167,15 @@ func deletePostprimaryByMid(c *gin.Context) {
 func stopPostprimaryByMid(c *gin.Context) {
 }
 func main() {
-	router := gin.Default()
+	//router := gin.Default()
+	// Or explicitly:
+	router := gin.New()
+	router.Use(
+		//gin.Logger(),
+		gin.LoggerWithWriter(gin.DefaultWriter, "/pathsNotToLog/"), // useful!
+		//gin.Recovery(),
+	)
+
 	router.GET("/hello", func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"message": "Hello World!",
@@ -207,5 +216,5 @@ func main() {
 	router.DELETE("/postprimaries/:mid", deletePostprimaryByMid)
 	router.POST("/postprimaries/:mid/stop", stopPostprimaryByMid)
 
-	router.Run(":5000")
+	log.Fatal(router.Run(":5000")) // maybe not needed, but does not seem to hurt
 }
