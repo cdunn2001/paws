@@ -9,6 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
+	_ "pacb.com/seq/paws/docs/paws"
 	"runtime" // only for GOOS
 )
 
@@ -213,6 +214,9 @@ func main() {
 	router.GET("/postprimaries/:mid", getPostprimaryByMid)
 	router.DELETE("/postprimaries/:mid", deletePostprimaryByMid)
 	router.POST("/postprimaries/:mid/stop", stopPostprimaryByMid)
+
+	url := ginSwagger.URL("http://localhost:5000/swagger/doc.json") // url to API definition
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler, url))
 
 	log.Fatal(router.Run(":5000")) // maybe not needed, but does not seem to hurt
 }
