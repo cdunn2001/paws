@@ -215,7 +215,7 @@ func main() {
 	router.DELETE("/postprimaries/:mid", deletePostprimaryByMid)
 	router.POST("/postprimaries/:mid/stop", stopPostprimaryByMid)
 
-	url := ginSwagger.URL("http://localhost:5000/swagger/doc.json") // url to API definition
+	url := ginSwagger.URL("/swagger/doc.json") // url to API definition
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler, url))
 
 	log.Fatal(router.Run(":5000")) // maybe not needed, but does not seem to hurt
