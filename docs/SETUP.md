@@ -1,18 +1,24 @@
-Setting up a Go workspace at pacbio
-===================================
+# Using Go
+Until we have an up-to-date GNU module, use mine:
+
+    export GOROOT=/home/UNIXHOME/cdunn/local/go
+    export PATH=$PATH:$GOROOT/bin
+
+Because we use "go mod vendor" (see [vendor sub-dir](../vendor/)), you
+do not actually need a "workspace" nor "$GOPATH". But if you
+want to try that, read on.
+
+## Setting up a Go workspace at pacbio
 
 First, you need a workspace directory, and you set $GOPATH
 to that.
 
-With "go mod" I don't think you need to set $GOPATH, but
-I'm not sure yet.
-
-I use GOPATH=~/GO
+I use GOPATH=~/repo/gopath
 
 Then,
 
     cd $GOPATH/src
-    git checkout paws
+    git clone paws...
 
 Because of our go.mod definition, this acts like
 
@@ -23,7 +29,9 @@ git-remote.
 
     git remote add me ssh://....../cdunn/paws
 
-## Private local repos
+### Private local repos
+(Note: We use "go mod vendor", which is much simpler.)
+
 Go wants public access to all dependencies. That can be tough
 for enterprise development. There are lots of work-arounds,
 but the simplest is to have a single pacbio repo with
@@ -39,6 +47,19 @@ You would "import" those repos as usual.
 
 * https://github.com/golang/go/issues/26134#issuecomment-516272405
 
+## vendor directory
+We use go >= 1.17, which supports "go mod vendor". To update,
+
+Add imports to github.com etc. into your ".go" files. Then:
+
+    go mod vendor  # to copy current versions from the web into /vendor/ dirs
+    go mod tidy    # to remove unused vendor pkgs
+    go mod verify  # to double-check
+
+And of course:
+
+    git add .
+    git commit
 
 ## Resources
 
