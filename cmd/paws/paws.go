@@ -18,6 +18,7 @@ func main() {
 	//router := gin.Default()
 	// Or explicitly:
 	router := gin.New()
+	router.SetTrustedProxies(nil) // https://pkg.go.dev/github.com/gin-gonic/gin#readme-don-t-trust-all-proxies
 	router.Use(
 		//gin.Logger(),
 		gin.LoggerWithWriter(gin.DefaultWriter, "/pathsNotToLog/"), // useful!
