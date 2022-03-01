@@ -40,9 +40,9 @@ type ExecutionStatusEnum string
 
 const (
 	Unknown  ExecutionStatusEnum = "UNKNOWN"
-	Ready    ExecutionStatusEnum = "READY"
-	Running  ExecutionStatusEnum = "RUNNING"
-	Complete ExecutionStatusEnum = "COMPLETE"
+	Ready                        = "READY"
+	Running                      = "RUNNING"
+	Complete                     = "COMPLETE"
 )
 
 type ProcessStatusObject struct {
