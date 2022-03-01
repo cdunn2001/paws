@@ -21,7 +21,7 @@ lint:
 	#go list ./... | grep -v /vendor/ | xargs -L1 golint -set_exit_status
 	golint --set_exit_status cmd/...
 	golint --set_exit_status pkg/...
-build: bin/try
+build: bin/paws
 
 # hello, try, paws, etc. (for now)
 bin/%: .FORCE
