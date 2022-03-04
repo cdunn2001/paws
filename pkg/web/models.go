@@ -156,7 +156,7 @@ type SocketBasecallerObject struct {
 
 	// Reference SNR
 	// Example: 10
-	RefSnr int32 `json:"refSnr"1`
+	RefSnr int32 `json:"refSnr"`
 
 	// Source URL for the file to use for transmission of simulated data. Only local files are supported currently.
 	// Example: file://localhost/data/pa/sample_file.trc.h5
@@ -233,7 +233,7 @@ type PostprimaryStatusObject struct {
 
 	// The total number of ZMWs processed so far
 	// Example: 25000000
-	numZmws int64 `json:"numZmws"`
+	NumZmws int64 `json:"numZmws"`
 
 	// The peak RSS memory usage in GiB used by baz2bam
 	// Example: 5.6
