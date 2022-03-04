@@ -64,3 +64,4 @@ And of course:
 ## Resources
 
 * https://github.com/golang-standards/project-layout
+  - Very controversial. But our main goal is to separate go code (cmd, pkg, vendor) from non-go-cod directories.
