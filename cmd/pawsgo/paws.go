@@ -102,34 +102,6 @@ func main() {
 		msg = "Send done <- true\n"
 		fmt.Print(msg)
 		fmt.Fprint(f, msg)
-		//os.Exit(1)
-	} else {
-		delay := 1 * time.Second
-		fmt.Fprintf(f, "For timer, using delay='%s'\n", delay.Round(time.Microsecond))
-		timer2 := time.NewTicker(delay)
-		defer timer2.Stop()
-		fmt.Fprintf(f, "Created Ticker w/ arg='%s'\n", delay)
-		dunn := make(chan bool)
-		go func() {
-			fmt.Fprint(f, "gofunc started. Watiing on timer channel...\n")
-			for {
-				select {
-				case <-dunn:
-					fmt.Fprint(f, "Dunn!\n")
-					return
-				case current := <-timer2.C:
-					fmt.Fprint(f, "...Timer 2 fired!\n")
-					fmt.Fprintf(f, "current='%s'\n", current)
-				}
-			}
-		}()
-		time.Sleep(6 * time.Second)
-		dunn <- true
-		msg := "Send dunn <- true\n"
-		fmt.Print(msg)
-		fmt.Fprint(f, msg)
-		time.Sleep(1 * time.Second)
-		os.Exit(1)
 	}
 
 	log.Fatal(router.Run(":5000")) // logger maybe not needed, but does not seem to hurt
