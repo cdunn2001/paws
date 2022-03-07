@@ -24,6 +24,14 @@ NAME = 'wsgo'  # Call it "pa-wsgo" for now.
 subs = {
     "@V@": VERSION,
     "@NAME@": NAME,
+    "@SYSTEM_EXEC@": "QSYSTEM_EXECQ",
+    "@APP_VERSION@": "QAPP_VERSIONQ",
+    "@SOFTWARE_VERSION@": "QSOFTWARE_VERSIONQ",
+    "@SYSTEMD_DEPENDENCIES@": "",
+    "@SYSTEMD_CONF_PATH@": "", #opt/pacbio/pa-@NAME@-@V@/systemd/pacbio-pa-@NAME@.conf
+    "@SYSTEMD_PREEXEC1@": "",
+    "@SYSTEMD_COMMON_JSON@": "/etc/pacbio/pa-common.json",
+    "@SYSTEMD_ALIAS@": "pacbio-pa-wsgo",
 }
 statics = {
     '../bin/paws': './opt/pacbio/pa-@NAME@-@V@/bin/paws',
