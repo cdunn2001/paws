@@ -5,6 +5,7 @@ import (
 	"log" // log.Fatal()
 	"os"
 	"strconv"
+	"time"
 	// "pacb.com/seq/paws/pkg/stuff"
 	// "pacb.com/seq/paws/pkg/stiff"
 	//"github.com/gofiber/fiber/v2"
@@ -60,11 +61,29 @@ func main() {
 		check(err)
 		usec, err := strconv.Atoi(wusec)
 		check(err)
-		usec = usec / 2
-		fmt.Fprintf(f, "usec='%d', pid='%d'\n", usec, pid)
+		usec = usec
+		interval := time.Duration(usec) * time.Microsecond
+		fmt.Fprintf(f, "usec='%d', pid='%d', interval='%s'\n", usec, pid, interval)
 		if os.Getpid() != pid {
 			fmt.Fprintf(os.Stderr, "Wrong pid! '%s'\n", wpid)
 			os.Exit(1)
+		}
+		delay, err := daemon.SdWatchdogEnabled(false)
+		check(err)
+		delay = delay / 2
+		fmt.Fprintf(f, "Using delay='%s'", delay.Round(time.Microsecond))
+		timer2 := time.NewTimer(delay * time.Second)
+		go func() {
+			<-timer2.C
+			fmt.Println("Timer 2 fired")
+			supported_and_sent, err := daemon.SdNotify(false, daemon.SdNotifyWatchdog)
+			check(err)
+			fmt.Fprintf(f, "delay='%s', sent='%s'", delay.Round(time.Microsecond), supported_and_sent)
+		}()
+		time.Sleep(6 * time.Second)
+		stop2 := timer2.Stop()
+		if stop2 {
+			fmt.Println("Timer 2 stopped")
 		}
 	}
 
