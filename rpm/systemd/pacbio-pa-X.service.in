@@ -27,7 +27,7 @@
 [Unit]
 Description=PacBio Primary Analysis Webservice @SYSTEM_EXEC@ @APP_VERSION@
 Documentation=file:$RPM_INSTALL_PREFIX/doc/index.html
-PartOf=pacbio-pa-rt-@SOFTWARE_VERSION@.service
+#PartOf=pacbio-pa-rt-@SOFTWARE_VERSION@.service
 Requires=@SYSTEMD_DEPENDENCIES@
 After=@SYSTEMD_DEPENDENCIES@
 After=network-online.target
@@ -51,7 +51,7 @@ PermissionsStartOnly=true
 ExecStartPre=/usr/bin/ldd $RPM_INSTALL_PREFIX/bin/@SYSTEM_EXEC@
 ExecStartPre=$RPM_INSTALL_PREFIX/bin/precheck-pa-ws.sh
 ExecStartPre=/usr/bin/sleep 1
-ExecStart=/usr/bin/taskset $NUMA_WS $RPM_INSTALL_PREFIX/bin/@SYSTEM_EXEC@ --daemon=/var/run/pacbio/pa-ws.pid --logoutput=/var/log/pacbio/pa-ws/pa-ws $PA_WS_OPTIONS $PA_COMMON_CONFIG --config=@SYSTEMD_COMMON_JSON@
+ExecStart=/usr/bin/taskset $NUMA_WS $RPM_INSTALL_PREFIX/bin/@SYSTEM_EXEC@ --daemon=/var/run/pacbio/pa-wsgo.pid --logoutput=/var/log/pacbio/pa-wsgo/pa-wsgo $PA_WS_OPTIONS $PA_COMMON_CONFIG --config=@SYSTEMD_COMMON_JSON@
 PIDFile=/var/run/pacbio/pa-ws.pid
 #ExecReload=/bin/kill -HUP $MAINPID
 WatchdogSec=10s
