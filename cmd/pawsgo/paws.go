@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log" // log.Fatal()
 	"os"
+	"strconv"
 	// "pacb.com/seq/paws/pkg/stuff"
 	// "pacb.com/seq/paws/pkg/stiff"
 	//"github.com/gofiber/fiber/v2"
@@ -49,9 +50,23 @@ func main() {
 	check(err)
 	f.WriteString("CDUNN WAS HERE\n")
 	ns := os.Getenv("NOTIFY_SOCKET")
-	fmt.Fprintf(f, "NOTIFY_SOCKET='%s'\n", ns)
+	wusec := os.Getenv("WATCHDOG_USEC")
+	wpid := os.Getenv("WATCHDOG_PID")
+	fmt.Fprintf(f, "NOTIFY_SOCKET='%s', WATCHDOG_USEC='%s'\n", ns, wusec)
 	fmt.Printf("stdout wrote to '%s'\n", lfn)
 	fmt.Fprintf(os.Stderr, "stderr wrote to '%s'\n", lfn)
+	if wpid != "" {
+		pid, err := strconv.Atoi(wpid)
+		check(err)
+		usec, err := strconv.Atoi(wusec)
+		check(err)
+		usec = usec / 2
+		fmt.Fprintf(f, "usec='%d', pid='%d'\n", usec, pid)
+		if os.Getpid() != pid {
+			fmt.Fprintf(os.Stderr, "Wrong pid! '%s'\n", wpid)
+			os.Exit(1)
+		}
+	}
 
 	log.Fatal(router.Run(":5000")) // logger maybe not needed, but does not seem to hurt
 }
