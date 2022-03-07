@@ -48,6 +48,8 @@ func main() {
 	f, err := os.Create(lfn)
 	check(err)
 	f.WriteString("CDUNN WAS HERE\n")
+	ns := os.Getenv("NOTIFY_SOCKET")
+	fmt.Fprintf(f, "NOTIFY_SOCKET='%s'\n", ns)
 	fmt.Printf("stdout wrote to '%s'\n", lfn)
 	fmt.Fprintf(os.Stderr, "stderr wrote to '%s'\n", lfn)
 
