@@ -89,14 +89,14 @@ function spec {
     echo "rm -fr \$RPM_BUILD_ROOT"
     echo
     echo "%files"
-    echo "/"
-    while IFS='/' read -ra pathSegments; do
-        path=''
-        for pathSegment in "${pathSegments[@]}"; do
-            path="$path/$pathSegment"
-            echo "$path"
-        done
-    done <<< $TARGET
+    #echo "/"
+    #while IFS='/' read -ra pathSegments; do
+    #    path=''
+    #    for pathSegment in "${pathSegments[@]}"; do
+    #        path="$path/$pathSegment"
+    #        echo "$path"
+    #    done
+    #done <<< $TARGET
     while IFS= read -ra fileNames; do
         for fileName in "${fileNames[@]}"; do
             echo %attr\($FILEPERM, $FILEUSER, $FILEGROUP\) \""$TARGET/${fileName#./}"\"

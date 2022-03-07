@@ -9,11 +9,12 @@ files:
 	./generate_rpm_files.py
 tar:
 	rm -f ${RPM_BASENAME}.tar
-	tar cvf ${RPM_BASENAME}.tar ./opt
+	tar -C ./opt/pacbio -cvf ${RPM_BASENAME}.tar pa-wsgo-0.0.0
 	tar tvf ${RPM_BASENAME}.tar
 rpm:
-	./tar2rpm.sh --version 0.0.0 --arch x86_64 --target / ${RPM_BASENAME}.tar
-	#rm -rf BUILD/
+	./tar2rpm.sh --version 0.0.0 --arch x86_64 --target /opt/pacbio ${RPM_BASENAME}.tar
+spec:
+	./tar2rpm.sh --version 0.0.0 --arch x86_64 --target /opt/pacbio --print ${RPM_BASENAME}.tar > foo.spec
 clean:
 	rm -rf opt/
 	rm -rf /tmp/tar2rpm-*
