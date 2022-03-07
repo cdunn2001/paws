@@ -57,7 +57,7 @@ ExecStart=/opt/pacbio/pa-wsgo-0.0.0/bin/@SYSTEM_EXEC@ $PA_WS_OPTIONS $PA_COMMON_
 #ExecStart=/usr/bin/echo CDUNN_TRY2
 #PIDFile=/var/run/pacbio/pa-ws.pid
 #ExecReload=/bin/kill -HUP $MAINPID
-WatchdogSec=10s
+WatchdogSec=4s
 # allow daemon to send sd_notifications to systemd (STATUS, WATCHDOG, etc)
 NotifyAccess=all
 ## Restart the process if it fails (which means !=0 exit, abnormal termination, or abort or watchdog)
