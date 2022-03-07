@@ -34,7 +34,7 @@ subs = {
     "@SYSTEMD_ALIAS@": "pacbio-pa-wsgo",
 }
 statics = {
-    '../bin/paws': './opt/pacbio/pa-@NAME@-@V@/bin/paws',
+    '../bin/pawsgo': './opt/pacbio/pa-@NAME@-@V@/bin/pawsgo',
 }
 def Log(msg):
   print(msg + '\n', file=sys.stderr)

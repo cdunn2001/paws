@@ -21,11 +21,11 @@ lint:
 	#go list ./... | grep -v /vendor/ | xargs -L1 golint -set_exit_status
 	golint --set_exit_status cmd/...
 	golint --set_exit_status pkg/...
-build: bin/paws
+build: bin/pawsgo
 
 # hello, try, paws, etc. (for now)
 bin/%: .FORCE
 	go build -o $@ ./cmd/$*
-serve: bin/paws
+serve: bin/pawsgo
 	./$<
 .FORCE:
