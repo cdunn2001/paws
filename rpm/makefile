@@ -12,7 +12,7 @@ tar:
 	tar cvf ${RPM_BASENAME}.tar ./opt
 	tar tvf ${RPM_BASENAME}.tar
 rpm:
-	./tar2rpm.sh --version 0.0.0 --arch x86_64 --target ${CURDIR}/BUILD ${RPM_BASENAME}.tar
+	./tar2rpm.sh --version 0.0.0 --arch x86_64 --target / ${RPM_BASENAME}.tar
 	#rm -rf BUILD/
 clean:
 	rm -rf opt/
