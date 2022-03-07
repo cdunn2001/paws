@@ -93,9 +93,13 @@ func main() {
 			}
 			fmt.Fprint(f, "End of watchdog gofunc.\n")
 		}()
-		time.Sleep(6 * time.Second)
+		msg := ""
+		msg = fmt.Sprintf("Wait for %s delay.\n", delay)
+		fmt.Print(msg)
+		fmt.Fprint(f, msg)
+		time.Sleep(16 * time.Second)
 		done <- true
-		msg := "Send done <- true\n"
+		msg = "Send done <- true\n"
 		fmt.Print(msg)
 		fmt.Fprint(f, msg)
 		os.Exit(1)
