@@ -1,8 +1,9 @@
 package main
 
 import (
-	//"fmt"
+	"fmt"
 	"log" // log.Fatal()
+	"os"
 	// "pacb.com/seq/paws/pkg/stuff"
 	// "pacb.com/seq/paws/pkg/stiff"
 	//"github.com/gofiber/fiber/v2"
@@ -15,6 +16,11 @@ import (
 	"runtime" // only for GOOS
 )
 
+func check(e error) {
+	if e != nil {
+		panic(e)
+	}
+}
 func main() {
 	//router := gin.Default()
 	// Or explicitly:
@@ -37,6 +43,13 @@ func main() {
 	})
 
 	web.AddRoutes(router)
+	//lfn := "/var/log/pacbio/pa-wsgo/pa-wsgo.log"
+	lfn := "/tmp/pa-wsgo.log"
+	f, err := os.Create(lfn)
+	check(err)
+	f.WriteString("CDUNN WAS HERE\n")
+	fmt.Printf("stdout wrote to '%s'\n", lfn)
+	fmt.Fprintf(os.Stderr, "stderr wrote to '%s'\n", lfn)
 
 	log.Fatal(router.Run(":5000")) // logger maybe not needed, but does not seem to hurt
 }
