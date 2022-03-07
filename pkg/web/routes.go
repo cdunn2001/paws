@@ -37,6 +37,11 @@ func AddRoutes(router *gin.Engine) {
 	router.POST("/postprimaries/:mid/stop", stopPostprimaryByMid)
 }
 
+const (
+	// We might use this someday. This is how to use 'const'.
+	SocketIdNotFoundMsg = "The socket id was not found in the list of attached sensor FPGA boards."
+)
+
 // Returns top level status of the pa-ws process.
 func getStatus(c *gin.Context) {
 	var status PawsStatusObject
@@ -62,14 +67,18 @@ func getSocketById(c *gin.Context) {
 
 // Resets all "one shot" app resources for each of the sockets.
 func resetSockets(c *gin.Context) {
+	c.Status(http.StatusOK)
 }
 
 // Resets all "one shot" app resources for the socket.
 func resetSocketById(c *gin.Context) {
+	c.Status(http.StatusOK)
+	//c.String(http.StatusNotFound, "The socket id was not found in the list of attached sensor FPGA boards.")
 }
 
 // Returns a single image from the socket.
 func getImageBySocketId(c *gin.Context) {
+	c.String(http.StatusNotFound, "The socket id was not found in the list of attached sensor FPGA boards.")
 }
 
 // Returns the basecaller object indexed by the socket {id}.
@@ -80,14 +89,25 @@ func getBasecallerBySocketId(c *gin.Context) {
 
 // Start the basecaller process on socket {id}.
 func startBasecallerBySocketId(c *gin.Context) {
+	var obj SocketBasecallerObject
+	if err := c.BindJSON(&obj); err != nil {
+		c.Writer.WriteString("Could not parse body into struct.\n")
+		return
+	}
+	c.IndentedJSON(http.StatusOK, obj)
 }
 
 // Gracefully aborts the basecalling process on socket {id}. This must be called before a POST to "reset". Note The the process will not stop immediately. The client must poll the endpoint until the "process_status.execution_status" is "COMPLETE".
 func stopBasecallerBySocketId(c *gin.Context) {
+	c.Status(http.StatusOK)
+	//c.String(http.StatusNotFound, "The socket id was not found in the list of attached sensor FPGA boards.")
 }
 
 // Resets the basecaller resource on socket {id}.
 func resetBasecallerBySocketId(c *gin.Context) {
+	c.Status(http.StatusOK)
+	//c.String(http.StatusNotFound, "The socket id was not found in the list of attached sensor FPGA boards.")
+	//c.String(http.StatusConflict, "basecaller was not in the READY or COMPLETE state.")
 }
 
 // Returns the darkcal object indexed by socket {id}.
@@ -98,14 +118,25 @@ func getDarkcalBySocketId(c *gin.Context) {
 
 // Starts a darkcal process on socket {id}.
 func startDarkcalBySocketId(c *gin.Context) {
+	var obj SocketDarkcalObject
+	if err := c.BindJSON(&obj); err != nil {
+		c.Writer.WriteString("Could not parse body into struct.\n")
+		return
+	}
+	c.IndentedJSON(http.StatusOK, obj)
 }
 
 // Gracefully aborts the darkcal process on socket {id}.
 func stopDarkcalBySocketId(c *gin.Context) {
+	c.Status(http.StatusOK)
+	//c.String(http.StatusNotFound, "The socket id was not found in the list of attached sensor FPGA boards.")
 }
 
 // Resets the darkcal resource on socket {id}.
 func resetDarkcalBySocketId(c *gin.Context) {
+	c.Status(http.StatusOK)
+	//c.String(http.StatusNotFound, "The socket id was not found in the list of attached sensor FPGA boards.")
+	//c.String(http.StatusConflict, "Fails if darkcal is still in progress. POST to stop first.")
 }
 
 // Returns the loadingcal object indexed by socket {id}.
@@ -116,56 +147,94 @@ func getLoadingcalBySocketId(c *gin.Context) {
 
 // Starts a loadingcal process on socket {id}.
 func startLoadingcalBySocketId(c *gin.Context) {
+	var obj SocketLoadingcalObject
+	if err := c.BindJSON(&obj); err != nil {
+		c.Writer.WriteString("Could not parse body into struct.\n")
+		return
+	}
+	c.IndentedJSON(http.StatusOK, obj)
 }
 
 // Gracefully aborts the loadingcal process on socket {id}.
 func stopLoadingcalBySocketId(c *gin.Context) {
+	c.Status(http.StatusOK)
+	//c.String(http.StatusNotFound, "The socket id was not found in the list of attached sensor FPGA boards.")
 }
 
 // Resets the loadingcal resource on socket {id}.
 func resetLoadingcalBySocketId(c *gin.Context) {
+	c.Status(http.StatusOK)
+	//c.String(http.StatusNotFound, "The socket id was not found in the list of attached sensor FPGA boards.")
+	//c.String(http.StatusConflict, "Fails if loadingcal is still in progress. POST to stop first.")
 }
 
 // Returns a list of MIDs for each storage object.
 func listStorageMids(c *gin.Context) {
+	found := []string{"NOT", "IMPLEMENTED"}
+	c.IndentedJSON(http.StatusOK, found)
 }
 
 // Creates a storages resource for a movie.
 func createStorage(c *gin.Context) {
+	var obj StorageObject
+	if err := c.BindJSON(&obj); err != nil {
+		c.Writer.WriteString("Could not parse body into struct.\n")
+		return
+	}
+	c.IndentedJSON(http.StatusOK, obj)
 }
 
 // Returns the storage object by MID.
 func getStorageByMid(c *gin.Context) {
+	var obj StorageObject
+	c.IndentedJSON(http.StatusOK, obj)
 }
 
 // Deletes the storages resource for the provided movie context name (MID).
 func deleteStorageByMid(c *gin.Context) {
+	c.String(http.StatusConflict, "If all files have not been freed, the DELETE will fail.")
 }
 
 // Frees all directories and files associated with the storages resources and reclaims disk space.
 func freeStorageByMid(c *gin.Context) {
+	c.Status(http.StatusOK)
 }
 
 // Returns a list of MIDs for each postprimary object.
 func listPostprimaryMids(c *gin.Context) {
+	found := []string{"NOT", "IMPLEMENTED"}
+	c.IndentedJSON(http.StatusOK, found)
 }
 
 // Starts a postprimary process on the provided urls to basecalling artifacts files.
 func startPostprimary(c *gin.Context) {
+	var obj PostprimaryObject
+	if err := c.BindJSON(&obj); err != nil {
+		c.Writer.WriteString("Could not parse body into struct.\n")
+		return
+	}
+	c.IndentedJSON(http.StatusOK, obj)
 }
 
 // Deletes all existing postprimaries resources.
 func deletePostprimaries(c *gin.Context) {
+	c.String(http.StatusOK, "All postprimary resources were successfully deleted.")
+	//c.String(http.StatusConflict, "One or more of the postprimaries processes were not stopped.")
 }
 
 // Returns the postprimary object by MID.
 func getPostprimaryByMid(c *gin.Context) {
+	var obj PostprimaryObject
+	c.IndentedJSON(http.StatusOK, obj)
 }
 
 // Deletes the postprimary resource.
 func deletePostprimaryByMid(c *gin.Context) {
+	// Maybe we do not need StatusConflict.
+	c.String(http.StatusConflict, "The postprimaries processes were not stopped. POST to the stop endpoint first.")
 }
 
 // Gracefully aborts the postprimary proces associated with MID.
 func stopPostprimaryByMid(c *gin.Context) {
+	c.String(http.StatusOK, "The process was stopped, and now the resource can be DELETEd.")
 }
