@@ -9,6 +9,7 @@ import (
 	//_ "github.com/gofiber/fiber/v2/middleware/recover" // to trap panics
 	//"github.com/gofiber/fiber/v2/utils"
 	//"github.com/gofiber/template/html"
+	"github.com/coreos/go-systemd/v22/daemon"
 	"github.com/gin-gonic/gin"
 	"pacb.com/seq/paws/pkg/web"
 	"runtime" // only for GOOS
