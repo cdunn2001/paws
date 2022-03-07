@@ -49,6 +49,7 @@ func main() {
 	lfn := "/tmp/pa-wsgo.log"
 	f, err := os.Create(lfn)
 	check(err)
+	//defer f.Close()
 	f.WriteString("CDUNN WAS HERE\n")
 	ns := os.Getenv("NOTIFY_SOCKET")
 	wusec := os.Getenv("WATCHDOG_USEC")
@@ -71,20 +72,24 @@ func main() {
 		delay, err := daemon.SdWatchdogEnabled(false)
 		check(err)
 		delay = delay / 2
-		fmt.Fprintf(f, "Using delay='%s'", delay.Round(time.Microsecond))
+		fmt.Fprintf(f, "For timer, using delay='%s'\n", delay.Round(time.Microsecond))
 		timer2 := time.NewTimer(delay * time.Second)
 		go func() {
 			<-timer2.C
-			fmt.Println("Timer 2 fired")
+			fmt.Fprint(f, "Timer 2 fired\n")
 			supported_and_sent, err := daemon.SdNotify(false, daemon.SdNotifyWatchdog)
 			check(err)
-			fmt.Fprintf(f, "delay='%s', sent='%s'", delay.Round(time.Microsecond), supported_and_sent)
+			fmt.Fprintf(f, "delay='%s', sent='%s'\n", delay.Round(time.Microsecond), supported_and_sent)
 		}()
 		time.Sleep(6 * time.Second)
 		stop2 := timer2.Stop()
 		if stop2 {
 			fmt.Println("Timer 2 stopped")
+			fmt.Fprint(f, "Timer 2 stopped, really.\n")
+			f.Close()
+			os.Exit(1)
 		}
+		time.Sleep(3 * time.Second)
 	}
 
 	log.Fatal(router.Run(":5000")) // logger maybe not needed, but does not seem to hurt
