@@ -49,7 +49,7 @@ func main() {
 	lfn := "/tmp/pa-wsgo.log"
 	f, err := os.Create(lfn)
 	check(err)
-	//defer f.Close()
+	defer f.Close()
 	f.WriteString("CDUNN WAS HERE\n")
 	ns := os.Getenv("NOTIFY_SOCKET")
 	wusec := os.Getenv("WATCHDOG_USEC")
@@ -73,23 +73,59 @@ func main() {
 		check(err)
 		delay = delay / 2
 		fmt.Fprintf(f, "For timer, using delay='%s'\n", delay.Round(time.Microsecond))
-		timer2 := time.NewTimer(delay * time.Second)
+		timer2 := time.NewTicker(delay)
+		defer timer2.Stop()
+		fmt.Fprintf(f, "Created Ticker w/ arg='%s'\n", delay)
+		done := make(chan bool)
 		go func() {
-			<-timer2.C
-			fmt.Fprint(f, "Timer 2 fired\n")
-			supported_and_sent, err := daemon.SdNotify(false, daemon.SdNotifyWatchdog)
-			check(err)
-			fmt.Fprintf(f, "delay='%s', sent='%s'\n", delay.Round(time.Microsecond), supported_and_sent)
+			fmt.Fprint(f, "gofunc started. Watiing on ticker/done channels...\n")
+			for {
+				select {
+				case <-done:
+					fmt.Fprint(f, "Done!\n")
+					return
+				case current := <-timer2.C:
+					fmt.Fprintf(f, "...Timer 2 fired! current='%s'\n", current)
+					supported_and_sent, err := daemon.SdNotify(false, daemon.SdNotifyWatchdog)
+					check(err)
+					fmt.Fprintf(f, "delay='%s', sent='%s'\n", delay.Round(time.Microsecond), supported_and_sent)
+				}
+			}
+			fmt.Fprint(f, "End of watchdog gofunc.\n")
 		}()
 		time.Sleep(6 * time.Second)
-		stop2 := timer2.Stop()
-		if stop2 {
-			fmt.Println("Timer 2 stopped")
-			fmt.Fprint(f, "Timer 2 stopped, really.\n")
-			f.Close()
-			os.Exit(1)
-		}
-		time.Sleep(3 * time.Second)
+		done <- true
+		msg := "Send done <- true\n"
+		fmt.Print(msg)
+		fmt.Fprint(f, msg)
+		os.Exit(1)
+	} else {
+		delay := 1 * time.Second
+		fmt.Fprintf(f, "For timer, using delay='%s'\n", delay.Round(time.Microsecond))
+		timer2 := time.NewTicker(delay)
+		defer timer2.Stop()
+		fmt.Fprintf(f, "Created Ticker w/ arg='%s'\n", delay)
+		dunn := make(chan bool)
+		go func() {
+			fmt.Fprint(f, "gofunc started. Watiing on timer channel...\n")
+			for {
+				select {
+				case <-dunn:
+					fmt.Fprint(f, "Dunn!\n")
+					return
+				case current := <-timer2.C:
+					fmt.Fprint(f, "...Timer 2 fired!\n")
+					fmt.Fprintf(f, "current='%s'\n", current)
+				}
+			}
+		}()
+		time.Sleep(6 * time.Second)
+		dunn <- true
+		msg := "Send dunn <- true\n"
+		fmt.Print(msg)
+		fmt.Fprint(f, msg)
+		time.Sleep(1 * time.Second)
+		os.Exit(1)
 	}
 
 	log.Fatal(router.Run(":5000")) // logger maybe not needed, but does not seem to hurt
