@@ -12,6 +12,7 @@ tar:
 	tar -C ./opt/pacbio -cvf ${RPM_BASENAME}.tar pa-wsgo-0.0.0
 	tar tvf ${RPM_BASENAME}.tar
 rpm:
+	rm -rf ~/rpmbuild
 	./tar2rpm.sh --version 0.0.0 --arch x86_64 --target /opt/pacbio ${RPM_BASENAME}.tar
 spec:
 	./tar2rpm.sh --version 0.0.0 --arch x86_64 --target /opt/pacbio --print ${RPM_BASENAME}.tar > foo.spec
