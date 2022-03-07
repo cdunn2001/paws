@@ -102,7 +102,7 @@ func main() {
 		msg = "Send done <- true\n"
 		fmt.Print(msg)
 		fmt.Fprint(f, msg)
-		os.Exit(1)
+		//os.Exit(1)
 	} else {
 		delay := 1 * time.Second
 		fmt.Fprintf(f, "For timer, using delay='%s'\n", delay.Round(time.Microsecond))
