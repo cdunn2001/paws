@@ -3,6 +3,22 @@ package web
 import (
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"sort"
+)
+
+// fixtures (TEMPORARY)
+var (
+	Sockets = map[string]SocketObject{
+		"1": SocketObject{},
+		"2": SocketObject{},
+		"3": SocketObject{},
+		"4": SocketObject{},
+	}
+	Storages      = make(map[string]StorageObject)
+	Basecallers   = make(map[string]SocketBasecallerObject)
+	Darkcals      = make(map[string]SocketDarkcalObject)
+	Loadingcals   = make(map[string]SocketLoadingcalObject)
+	Postprimaries = make(map[string]PostprimaryObject)
 )
 
 func AddRoutes(router *gin.Engine) {
@@ -45,7 +61,11 @@ func getStatus(c *gin.Context) {
 
 // Returns a list of socket ids.
 func getSockets(c *gin.Context) {
-	var socketIds []string = []string{"1", "2", "3", "4"}
+	var socketIds = []string{}
+	for k := range Sockets {
+		socketIds = append(socketIds, k)
+	}
+	sort.Strings(socketIds)
 	c.IndentedJSON(http.StatusOK, socketIds)
 }
 
@@ -53,8 +73,11 @@ func getSockets(c *gin.Context) {
 func getSocketById(c *gin.Context) {
 	id := c.Param("id")
 
-	var obj SocketObject
-	obj.SocketId = id
+	obj, found := Sockets[id]
+	if !found {
+		c.String(http.StatusNotFound, "The socket '%s' was not found in the list of attached sensor FPGA boards.\n", id)
+		return
+	}
 	c.IndentedJSON(http.StatusOK, obj)
 }
 
@@ -80,7 +103,11 @@ func getImageBySocketId(c *gin.Context) {
 func getBasecallerBySocketId(c *gin.Context) {
 	id := c.Param("id")
 	var obj SocketBasecallerObject
-	obj.Mid = "Mid-for-" + id
+	obj, found := Basecallers[id]
+	if !found {
+		c.String(http.StatusNotFound, "The basecaller process for socket '%s' was not found.\n", id)
+		return
+	}
 	c.IndentedJSON(http.StatusOK, obj)
 }
 
@@ -92,7 +119,7 @@ func startBasecallerBySocketId(c *gin.Context) {
 		c.Writer.WriteString("Could not parse body into struct.\n")
 		return
 	}
-	obj.Mid = "Mid-for-" + id
+	Basecallers[id] = obj
 	c.IndentedJSON(http.StatusOK, obj)
 }
 
@@ -115,7 +142,11 @@ func resetBasecallerBySocketId(c *gin.Context) {
 func getDarkcalBySocketId(c *gin.Context) {
 	id := c.Param("id")
 	var obj SocketDarkcalObject
-	obj.Mid = "Mid-for-" + id
+	obj, found := Darkcals[id]
+	if !found {
+		c.String(http.StatusNotFound, "The darkcal process for socket '%s' was not found.\n", id)
+		return
+	}
 	c.IndentedJSON(http.StatusOK, obj)
 }
 
@@ -127,7 +158,7 @@ func startDarkcalBySocketId(c *gin.Context) {
 		c.Writer.WriteString("Could not parse body into struct.\n")
 		return
 	}
-	obj.Mid = "Mid-for-" + id
+	Darkcals[id] = obj
 	c.IndentedJSON(http.StatusOK, obj)
 }
 
@@ -150,7 +181,11 @@ func resetDarkcalBySocketId(c *gin.Context) {
 func getLoadingcalBySocketId(c *gin.Context) {
 	id := c.Param("id")
 	var obj SocketLoadingcalObject
-	obj.Mid = "Mid-for-" + id
+	obj, found := Loadingcals[id]
+	if !found {
+		c.String(http.StatusNotFound, "The loadingcal process for socket '%s' was not found.\n", id)
+		return
+	}
 	c.IndentedJSON(http.StatusOK, obj)
 }
 
@@ -162,7 +197,7 @@ func startLoadingcalBySocketId(c *gin.Context) {
 		c.Writer.WriteString("Could not parse body into struct.\n")
 		return
 	}
-	obj.Mid = "Mid-for-" + id
+	Loadingcals[id] = obj
 	c.IndentedJSON(http.StatusOK, obj)
 }
 
@@ -195,6 +230,8 @@ func createStorage(c *gin.Context) {
 		c.Writer.WriteString("Could not parse body into struct.\n")
 		return
 	}
+	mid := obj.Mid
+	Storages[mid] = obj
 	c.IndentedJSON(http.StatusOK, obj)
 }
 
@@ -202,7 +239,11 @@ func createStorage(c *gin.Context) {
 func getStorageByMid(c *gin.Context) {
 	mid := c.Param("mid")
 	var obj StorageObject
-	obj.Mid = mid
+	obj, found := Storages[mid]
+	if !found {
+		c.String(http.StatusNotFound, "The storage for mid '%s' was not found.\n", mid)
+		return
+	}
 	c.IndentedJSON(http.StatusOK, obj)
 }
 
@@ -231,6 +272,8 @@ func startPostprimary(c *gin.Context) {
 		c.Writer.WriteString("Could not parse body into struct.\n")
 		return
 	}
+	mid := obj.Mid
+	Postprimaries[mid] = obj
 	c.IndentedJSON(http.StatusOK, obj)
 }
 
@@ -245,7 +288,11 @@ func deletePostprimaries(c *gin.Context) {
 func getPostprimaryByMid(c *gin.Context) {
 	mid := c.Param("mid")
 	var obj PostprimaryObject
-	obj.Mid = mid
+	obj, found := Postprimaries[mid]
+	if !found {
+		c.String(http.StatusNotFound, "The postprimary process for mid '%s' was not found.\n", mid)
+		return
+	}
 	c.IndentedJSON(http.StatusOK, obj)
 }
 
