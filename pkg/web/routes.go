@@ -5,6 +5,21 @@ import (
 	"net/http"
 )
 
+// fixtures (TEMPORARY)
+var (
+	Sockets = map[string]SocketObject{
+		"1": SocketObject{},
+		"2": SocketObject{},
+		"3": SocketObject{},
+		"4": SocketObject{},
+	}
+	Storages      = make(map[string]StorageObject)
+	Basecallers   = make(map[string]SocketBasecallerObject)
+	Darcals       = make(map[string]SocketDarkcalObject)
+	Loadingcals   = make(map[string]SocketLoadingcalObject)
+	Postprimaries = make(map[string]PostprimaryObject)
+)
+
 func AddRoutes(router *gin.Engine) {
 	router.GET("/status", getStatus)
 	router.GET("/sockets", getSockets)
