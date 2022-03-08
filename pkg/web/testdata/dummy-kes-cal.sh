@@ -73,9 +73,9 @@ function count {
     done
 }
 
-report_status 2 "fini" 0 1
-
 count
+
+report_status 2 "fini" 0 1
 
 touch ${LOG_OUTPUT}
 touch ${OUTPUT_FILE}

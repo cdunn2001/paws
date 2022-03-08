@@ -13,6 +13,8 @@ while [[ $# -gt 0 ]]; do
       ;;
     -*|--*)
       echo "Unknown option $1"
+      shift
+      shift # Assume we know all boolen flags.
       #exit 1 # Fine.
       ;;
     *)
@@ -28,6 +30,7 @@ set -- "${POSITIONAL_ARGS[@]}" # restore positional parameters
 : "${STATUS_COUNT:=0}"
 : "${STATUS_DELAY_SECONDS:=0.0}"
 
+# date --utc +%Y-%m-%dT%TZ
 TIMESTAMP="20220223T146198.099Z" # arbitrary
 STAGE_WEIGHTING="[0, 100, 0]"
 
@@ -49,9 +52,9 @@ function count {
     done
 }
 
-report_status 2 "fini" 0 1
-
 count
+
+report_status 2 "fini" 0 1
 
 # Close the file-descriptor, to tell the parent we are done.
 # This might be required, so we need to think about how to avoid hanging.
