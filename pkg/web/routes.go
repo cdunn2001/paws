@@ -15,7 +15,7 @@ var (
 	}
 	Storages      = make(map[string]StorageObject)
 	Basecallers   = make(map[string]SocketBasecallerObject)
-	Darcals       = make(map[string]SocketDarkcalObject)
+	Darkcals      = make(map[string]SocketDarkcalObject)
 	Loadingcals   = make(map[string]SocketLoadingcalObject)
 	Postprimaries = make(map[string]PostprimaryObject)
 )
@@ -107,7 +107,7 @@ func startBasecallerBySocketId(c *gin.Context) {
 		c.Writer.WriteString("Could not parse body into struct.\n")
 		return
 	}
-	obj.Mid = "Mid-for-" + id
+	Basecallers[id] = obj
 	c.IndentedJSON(http.StatusOK, obj)
 }
 
@@ -142,7 +142,7 @@ func startDarkcalBySocketId(c *gin.Context) {
 		c.Writer.WriteString("Could not parse body into struct.\n")
 		return
 	}
-	obj.Mid = "Mid-for-" + id
+	Darkcals[id] = obj
 	c.IndentedJSON(http.StatusOK, obj)
 }
 
@@ -177,7 +177,7 @@ func startLoadingcalBySocketId(c *gin.Context) {
 		c.Writer.WriteString("Could not parse body into struct.\n")
 		return
 	}
-	obj.Mid = "Mid-for-" + id
+	Loadingcals[id] = obj
 	c.IndentedJSON(http.StatusOK, obj)
 }
 
@@ -210,6 +210,8 @@ func createStorage(c *gin.Context) {
 		c.Writer.WriteString("Could not parse body into struct.\n")
 		return
 	}
+	mid := obj.Mid
+	Storages[mid] = obj
 	c.IndentedJSON(http.StatusOK, obj)
 }
 
@@ -246,6 +248,8 @@ func startPostprimary(c *gin.Context) {
 		c.Writer.WriteString("Could not parse body into struct.\n")
 		return
 	}
+	mid := obj.Mid
+	Postprimaries[mid] = obj
 	c.IndentedJSON(http.StatusOK, obj)
 }
 
