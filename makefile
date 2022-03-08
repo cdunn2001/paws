@@ -8,7 +8,7 @@ quick:
 all: test vet fmt lint build
 
 test:
-	go test ./pkg/...
+	go test ./pkg/... -v
 
 vet:
 	go vet ./pkg/...
