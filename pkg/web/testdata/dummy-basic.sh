@@ -30,7 +30,7 @@ set -- "${POSITIONAL_ARGS[@]}" # restore positional parameters
 : "${STATUS_COUNT:=0}"
 : "${STATUS_DELAY_SECONDS:=0.0}"
 
-# date --utc +%Y-%m-%dT%TZ
+# date --utc +%Y%m%dT%TZ
 TIMESTAMP="20220223T146198.099Z" # arbitrary
 STAGE_WEIGHTING="[0, 100, 0]"
 

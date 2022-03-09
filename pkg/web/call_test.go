@@ -15,11 +15,6 @@ func init() {
 	fmt.Printf("testdata='%s'\n", testdataDir)
 	requireFile(testdataDir)
 }
-func check(e error) {
-	if e != nil {
-		panic(e)
-	}
-}
 func requireFile(fn string) {
 	_, err := os.Stat(fn)
 	check(err)
@@ -48,10 +43,18 @@ func TestWatchBash(t *testing.T) {
 	bash := testdataDir + "/dummy-basic.sh --status-fd 3"
 	env := []string{
 		"STATUS_COUNT=3",
-		"STATUS_DELAY_SECONDS=.05",
+		"STATUS_DELAY_SECONDS=0.05", // Note: ".05" would not be valid.
 	}
 	got := WatchBash(bash, env)
 	if got != nil {
 		t.Errorf("Got %d", got)
 	}
+}
+func TestString2StatusReport(t *testing.T) {
+	sr, err := String2StatusReport(`_STATUS {"counter": 123}`)
+	check(err)
+	if sr.normal.Counter != 123 {
+		t.Errorf("Got %d", sr.normal.Counter)
+	}
+
 }
