@@ -95,7 +95,7 @@ func WatchBash(bash string, env []string) error {
 		done := false
 		for !done && !timedout {
 			select {
-			case <-time.After(time.Duration(timeout * float64(time.Second))):
+			case <-time.After(time.Duration((timeout + 0.01) * float64(time.Second))):
 				timedout = true
 				fmt.Println("Timed out!")
 			case <-doneChan:
