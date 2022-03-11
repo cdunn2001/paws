@@ -24,7 +24,7 @@ func check(e error) {
 		panic(e)
 	}
 }
-func listen() {
+func listen(port int) {
 	//router := gin.Default()
 	// Or explicitly:
 	router := gin.New()
@@ -105,11 +105,13 @@ func listen() {
 		fmt.Fprint(f, msg)
 	}
 
-	log.Fatal(router.Run(":5000")) // logger maybe not needed, but does not seem to hurt
+	portStr := fmt.Sprintf(":%d", port)
+	log.Fatal(router.Run(portStr)) // logger maybe not needed, but does not seem to hurt
 }
 func main() {
-	//help := flag.Bool("help", false, " Help text.")
+	portPtr := flag.Int("port", 5000, "Listen on this port.")
 	flag.Parse()
-	//fmt.Printf("help='%v'\n", help)
-	flag.PrintDefaults()
+	fmt.Printf("port='%v'\n", *portPtr)
+	//flag.PrintDefaults()
+	listen(*portPtr)
 }
