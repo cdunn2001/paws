@@ -3,7 +3,6 @@
 export GOROOT=/home/UNIXHOME/cdunn/local/go
 export PATH=$GOROOT/bin:$PATH
 
-# These do not work in Bamboo on vm-styx* machines. Asking Mj...
 set +vx
 type module >& /dev/null || . /mnt/software/Modules/current/init/bash
 set -vx
