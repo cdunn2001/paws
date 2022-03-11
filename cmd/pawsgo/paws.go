@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log" // log.Fatal()
 	"os"
@@ -23,7 +24,7 @@ func check(e error) {
 		panic(e)
 	}
 }
-func main() {
+func listen() {
 	//router := gin.Default()
 	// Or explicitly:
 	router := gin.New()
@@ -105,4 +106,10 @@ func main() {
 	}
 
 	log.Fatal(router.Run(":5000")) // logger maybe not needed, but does not seem to hurt
+}
+func main() {
+	//help := flag.Bool("help", false, " Help text.")
+	flag.Parse()
+	//fmt.Printf("help='%v'\n", help)
+	flag.PrintDefaults()
 }
