@@ -219,8 +219,12 @@ func resetLoadingcalBySocketId(c *gin.Context) {
 
 // Returns a list of MIDs for each storage object.
 func listStorageMids(c *gin.Context) {
-	found := []string{"NOT", "IMPLEMENTED"}
-	c.IndentedJSON(http.StatusOK, found)
+	mids := []string{}
+	for mid, _ := range Storages {
+		mids = append(mids, mid)
+	}
+	sort.Strings(mids)
+	c.IndentedJSON(http.StatusOK, mids)
 }
 
 // Creates a storages resource for a movie.
