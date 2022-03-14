@@ -9,10 +9,18 @@ import (
 // fixtures (TEMPORARY)
 var (
 	Sockets = map[string]SocketObject{
-		"1": SocketObject{},
-		"2": SocketObject{},
-		"3": SocketObject{},
-		"4": SocketObject{},
+		"1": SocketObject{
+			SocketId: "1",
+		},
+		"2": SocketObject{
+			SocketId: "2",
+		},
+		"3": SocketObject{
+			SocketId: "3",
+		},
+		"4": SocketObject{
+			SocketId: "4",
+		},
 	}
 	Storages      = make(map[string]StorageObject)
 	Basecallers   = make(map[string]SocketBasecallerObject)
