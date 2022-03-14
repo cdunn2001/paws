@@ -17,7 +17,7 @@ import os, sys
 in_files = {
     'systemd/pacbio-pa-X.conf.in': './opt/pacbio/pa-@NAME@-@V@/systemd/pacbio-pa-@NAME@.conf',
     'systemd/pacbio-pa-X.service.in': './opt/pacbio/pa-@NAME@-@V@/systemd/pacbio-pa-@NAME@-@V@.service',
-    'systemd/precheck-pa-ws.sh.in': './opt/pacbio/pa-@NAME@-@V@/bin/precheck-pa-@NAME@.sh',
+    'systemd/precheck-pa-wsgo.sh.in': './opt/pacbio/pa-@NAME@-@V@/bin/precheck-pa-@NAME@.sh',
 }
 VERSION = '0.0.0'
 NAME = 'wsgo'  # Call it "pa-wsgo" for now.
@@ -34,7 +34,7 @@ subs = {
     "@SYSTEMD_ALIAS@": "pacbio-pa-wsgo",
 }
 statics = {
-    '../bin/pawsgo': './opt/pacbio/pa-@NAME@-@V@/bin/pawsgo',
+    '../bin/pawsgo': './opt/pacbio/pa-@NAME@-@V@/bin/pa-wsgo', # Note dash.
 }
 def Log(msg):
   print(msg + '\n', file=sys.stderr)
