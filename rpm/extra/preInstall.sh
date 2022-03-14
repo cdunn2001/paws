@@ -4,11 +4,11 @@
 # if $1 == 2, this is an upgrade.
 
 
-if systemctl status pacbio-pa-ws-0.0.0.service >/dev/null
+if systemctl status pacbio-pa-wsgo-0.0.0.service >/dev/null
 then
-  echo "    ERROR pacbio-pa-ws-0.0.0.service is RUNNING, won't install."
+  echo "    ERROR pacbio-pa-wsgo-0.0.0.service is RUNNING, won't install."
   echo "       Please issue the following commands before installing this package."
-  echo "           sudo systemctl stop    pacbio-pa-ws-0.0.0.service"
+  echo "           sudo systemctl stop    pacbio-pa-wsgo-0.0.0.service"
   exit 1
 fi
 
