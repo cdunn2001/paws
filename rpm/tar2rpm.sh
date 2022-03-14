@@ -88,6 +88,18 @@ function spec {
     echo "%clean"
     echo "rm -fr \$RPM_BUILD_ROOT"
     echo
+    if []; then
+        echo "%pre"
+    fi
+    if []; then
+        echo "%preun"
+    fi
+    if []; then
+        echo "%post"
+    fi
+    if []; then
+        echo "%postun"
+    fi
     echo "%files"
     #echo "/"
     #while IFS='/' read -ra pathSegments; do
