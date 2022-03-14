@@ -18,7 +18,8 @@ function ReservePort {
     fi
 }
 
-ports="23632"
+#ports="23632"
+ports="23633"
 for port in $ports
 do
   ReservePort $port
