@@ -97,8 +97,13 @@ func resetSockets(c *gin.Context) {
 // Resets all "one shot" app resources for the socket.
 func resetSocketById(c *gin.Context) {
 	id := c.Param("id")
-	//c.Status(http.StatusOK)
-	c.String(http.StatusNotFound, "The socket '%s' was not found in the list of attached sensor FPGA boards.\n", id)
+
+	_, found := Sockets[id]
+	if !found {
+		c.String(http.StatusNotFound, "The socket '%s' was not found in the list of attached sensor FPGA boards.\n", id)
+		return
+	}
+	c.Status(http.StatusOK)
 }
 
 // Returns a single image from the socket.
