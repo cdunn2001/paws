@@ -9,7 +9,7 @@ files:
 	./generate_rpm_files.py
 tar:
 	rm -f ${RPM_BASENAME}.tar
-	tar -C ./opt/pacbio/pa-wsgo-0.0.0 -cvf ${RPM_BASENAME}.tar .
+	tar -C ./tard -cvf ${RPM_BASENAME}.tar .
 	tar tvf ${RPM_BASENAME}.tar
 rpm:
 	rm -rf ~/rpmbuild
