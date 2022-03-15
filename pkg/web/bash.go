@@ -164,6 +164,7 @@ func WriteBaz2bamBash(wr io.Writer, obj PostprimaryObject) error {
 	t := CreateTemplate(Template_baz2bam, "")
 	kv := make(map[string]string)
 	kv["acqId"] = obj.Uuid
+	kv["bazFile"] = obj.BazFileUrl // TODO
 	// kv["metadataFile"] = obj.SubreadsetMetadataXml // written into a file?
 	// kv["baz2bamComputingThreads"] = ?
 	// kv["bamThreads"] = ?
@@ -205,6 +206,7 @@ var Template_reduce_stats = `
 func WriteReduceStatsBash(wr io.Writer, obj PostprimaryObject, job Job) error {
 	t := CreateTemplate(Template_reduce_stats, "")
 	kv := make(map[string]string)
+	job.outputPrefix = obj.OutputPrefixUrl // TODO
 	UpdateJob(kv, job)
 	kv["Binary_reduce_stats"] = Binary_reduce_stats
 	//obj.OutputReduceStatsH5Url
