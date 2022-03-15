@@ -88,6 +88,21 @@ function spec {
     echo "%clean"
     echo "rm -fr \$RPM_BUILD_ROOT"
     echo
+    if [ 1 ]; then
+        echo "%pre"
+        cat extra/preInstall.sh
+        echo
+    fi
+    if [ 1 ]; then
+        echo "%preun"
+        cat extra/preUninstall.sh
+        echo
+    fi
+    if [ 1 ]; then
+        echo "%post"
+        cat extra/postInstall.sh
+        echo
+    fi
     echo "%files"
     #echo "/"
     #while IFS='/' read -ra pathSegments; do

@@ -3,9 +3,7 @@
 export GOROOT=/home/UNIXHOME/cdunn/local/go
 export PATH=$GOROOT/bin:$PATH
 
-set +vx
 type module >& /dev/null || . /mnt/software/Modules/current/init/bash
-set -vx
 module use /mnt/software/modulefiles
 module unload python
 module load python/3

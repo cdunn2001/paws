@@ -4,7 +4,7 @@ errors=0
 
 root=`realpath $0`
 root=`dirname $root`
-if [ -e "$root/pa-ws" ]
+if [ -e "$root/pa-wsgo" ]
 then
     # port numbers are defined in PaWsConstants.h
     # please verify that this list is consistent with the header file.
@@ -17,12 +17,12 @@ then
         fi
     done
 else
-    echo "$root/pa-ws not found, continuing checks..."
+    echo "$root/pa-wsgo not found, continuing checks..."
     let "errors++"
 fi
 
 # Create log directory and set permissions
-logdir=/var/log/pacbio/pa-ws
+logdir=/var/log/pacbio/pa-wsgo
 mkdir -p      $logdir
 chown pbi:pbi $logdir
 chmod 1777    $logdir
