@@ -9,7 +9,7 @@ import (
 var (
 	Binary_baz2bam         = "baz2bam"
 	Binary_smrt_basecaller = "smrt-basecaller"
-	Binary_pa_cal          = "kes-cal"
+	Binary_pa_cal          = "pa-cal"
 	Binary_reduce_stats    = "reduce-stats"
 )
 

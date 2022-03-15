@@ -69,7 +69,7 @@ report_status 0 "init" 0 1
 function count {
     for i in $(seq 1 ${STATUS_COUNT}); do
         sleep $STATUS_DELAY_SECONDS
-        report_status 1 "kes-cal" $i $STATUS_DELAY_SECONDS
+        report_status 1 "pa-cal" $i $STATUS_DELAY_SECONDS
     done
 }
 
