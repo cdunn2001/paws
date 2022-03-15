@@ -6,11 +6,13 @@ import (
 	"text/template"
 )
 
+// TODO: These should be configurable.
 var (
 	Binary_baz2bam         = "baz2bam"
 	Binary_smrt_basecaller = "smrt-basecaller"
 	Binary_pa_cal          = "pa-cal"
 	Binary_reduce_stats    = "reduce-stats"
+	defaultFrameRate       = 100.0 // fps
 )
 
 func CreateTemplate(source string, name string) *template.Template {
@@ -30,6 +32,7 @@ var Template_darkcal = `
   --numFrames {{.numFrames}} \
   --cal Dark \
   --outputFile {{.outputFile}}  \
+  --timeoutseconds {{.timeoutseconds}} \
 `
 
 func WriteDarkcalBash(wr io.Writer, obj SocketDarkcalObject, SocketId string) error {
@@ -46,13 +49,19 @@ func WriteDarkcalBash(wr io.Writer, obj SocketDarkcalObject, SocketId string) er
 	kv["movieNum"] = "0" // for now
 	// assert if obj.movieNum not nil, then it is 0.
 
-	kv["numFrames"] = strconv.Itoa(int(obj.MaxMovieFrames))
+	numFrames := int(obj.MaxMovieFrames)
+	kv["numFrames"] = strconv.Itoa(numFrames)
 	// --numFrames # gets overridden w/ 128 or 512 for now, but setting prevents warning
 
 	kv["outputFile"] = obj.CalibFileUrl // TODO: Convert from URL!
 	kv["logoutput"] = obj.LogUrl        // TODO: Convert from URL!
 
-	// Skip --timeoutseconds for now. # but ask MarkL about this; might not need it anymore
+	timeout := int(float64(numFrames) * 1.1 / defaultFrameRate) // default
+	if obj.MaxMovieSeconds != 0 {
+		timeout = int(obj.MaxMovieSeconds)
+	}
+	kv["timeoutseconds"] = strconv.Itoa(timeout)
+
 	// Skip --inputDarkCalFile can be skipped for now.
 	return t.Execute(wr, kv)
 }
@@ -67,6 +76,7 @@ var Template_loadingcal = `
   --cal Loading \
   --outputFile {{.outputFile}}  \
   --inputDarkCalFile {{.inputDarkCalFile}} \
+  --timeoutseconds {{.timeoutseconds}} \
 `
 
 func WriteLoadingcalBash(wr io.Writer, obj SocketLoadingcalObject, SocketId string) error {
@@ -83,14 +93,19 @@ func WriteLoadingcalBash(wr io.Writer, obj SocketLoadingcalObject, SocketId stri
 	kv["movieNum"] = "0" // for now
 	// assert if obj.movieNum not nil, then it is 0.
 
-	kv["numFrames"] = strconv.Itoa(int(obj.MaxMovieFrames))
+	numFrames := int(obj.MaxMovieFrames)
+	kv["numFrames"] = strconv.Itoa(numFrames)
 	// --numFrames # gets overridden w/ 128 or 512 for now, but setting prevents warning
 
 	kv["outputFile"] = obj.CalibFileUrl           // TODO: Convert from URL!
 	kv["logoutput"] = obj.LogUrl                  // TODO: Convert from URL!
 	kv["inputDarkcalFile"] = obj.DarkFrameFileUrl // TODO: Convert from URL!
 
-	// Skip --timeoutseconds for now. # but ask MarkL about this; might not need it anymore
+	timeout := int(float64(numFrames) * 1.1 / defaultFrameRate) // default
+	if obj.MaxMovieSeconds != 0 {
+		timeout = int(obj.MaxMovieSeconds)
+	}
+	kv["timeoutseconds"] = strconv.Itoa(timeout)
 
 	return t.Execute(wr, kv)
 }
