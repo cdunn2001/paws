@@ -126,7 +126,7 @@ type SocketBasecallerObject struct {
 
 	// Source URL for the dark calibration file
 	// Example: http://localhost:23632/storages/m123456_987654/darkcal.h5
-	DarkCalFileUrl string `json:"darkCalFileUrl"`
+	DarkCalFileUrl string `json:"darkcalFileUrl"`
 
 	// This is required and a function of the sensor NFC tag
 	// Example: List [ List [ 0, 0.1, 0 ], List [ 0.1, 0.6, 0.1 ], List [ 0, 0.1, 0 ] ]
