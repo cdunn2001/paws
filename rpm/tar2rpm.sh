@@ -88,17 +88,20 @@ function spec {
     echo "%clean"
     echo "rm -fr \$RPM_BUILD_ROOT"
     echo
-    if []; then
+    if [ 1 ]; then
         echo "%pre"
+        cat extra/preInstall.sh
+        echo
     fi
-    if []; then
+    if [ 1 ]; then
         echo "%preun"
+        cat extra/preUninstall.sh
+        echo
     fi
-    if []; then
+    if [ 1 ]; then
         echo "%post"
-    fi
-    if []; then
-        echo "%postun"
+        cat extra/postInstall.sh
+        echo
     fi
     echo "%files"
     #echo "/"

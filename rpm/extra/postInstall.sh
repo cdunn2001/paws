@@ -78,4 +78,4 @@ then
 fi    
 
 
-exit 0
+#exit 0 # Must not exit the scriptlet.
