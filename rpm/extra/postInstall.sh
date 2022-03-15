@@ -18,6 +18,9 @@ function ReservePort {
     fi
 }
 
+# Debug problem with envsubst.
+set -vx
+
 #ports="23632"
 ports="23633"
 for port in $ports

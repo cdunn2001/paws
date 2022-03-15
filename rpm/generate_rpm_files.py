@@ -24,7 +24,7 @@ NAME = 'wsgo'  # Call it "pa-wsgo" for now.
 subs = {
     "@V@": VERSION,
     "@NAME@": NAME,
-    "@SYSTEM_EXEC@": "pawsgo",
+    "@SYSTEM_EXEC@": "pa-wsgo",
     "@APP_VERSION@": "QAPP_VERSIONQ",
     "@SOFTWARE_VERSION@": "QSOFTWARE_VERSIONQ",
     "@SYSTEMD_DEPENDENCIES@": "",
