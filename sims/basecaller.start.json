@@ -1,0 +1,9 @@
+{
+    "Uuid": "MyUuid",
+    "darkCalFileUrl": "tmp/darkcal.h5",
+    "BazUrl": "tmp/foo.baz",
+    "TraceFileUrl": "tmp/foo.trc.h5",
+    "smrtBasecallerConfig": "SmrtBasecaller.config",
+    "logUrl": "tmp/log.basecaller.txt",
+    "LogLevel": "INFO"
+}

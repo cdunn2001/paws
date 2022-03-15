@@ -164,6 +164,7 @@ func WriteBaz2bamBash(wr io.Writer, obj PostprimaryObject) error {
 	t := CreateTemplate(Template_baz2bam, "")
 	kv := make(map[string]string)
 	kv["acqId"] = obj.Uuid
+	kv["bazFile"] = obj.BazFileUrl // TODO
 	// kv["metadataFile"] = obj.SubreadsetMetadataXml // written into a file?
 	// kv["baz2bamComputingThreads"] = ?
 	// kv["bamThreads"] = ?
