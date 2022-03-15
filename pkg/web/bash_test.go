@@ -13,7 +13,9 @@ reduce-stats \
   --config=common.chipClass=CHIP \
   --config=common.platform=PLATFORM \
 `
-	obj := PostprimaryObject{}
+	obj := PostprimaryObject{
+		OutputPrefixUrl: "PREFIX",
+	}
 	job := Job{
 		outputPrefix: "PREFIX",
 		chipClass:    "CHIP",

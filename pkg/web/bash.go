@@ -205,6 +205,7 @@ var Template_reduce_stats = `
 func WriteReduceStatsBash(wr io.Writer, obj PostprimaryObject, job Job) error {
 	t := CreateTemplate(Template_reduce_stats, "")
 	kv := make(map[string]string)
+	job.outputPrefix = obj.OutputPrefixUrl // TODO
 	UpdateJob(kv, job)
 	kv["Binary_reduce_stats"] = Binary_reduce_stats
 	//obj.OutputReduceStatsH5Url
