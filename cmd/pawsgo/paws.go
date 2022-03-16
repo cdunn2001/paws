@@ -4,6 +4,8 @@ import (
 	"flag"
 	"fmt"
 	"log" // log.Fatal()
+	"net/http"
+	//"net/http/httputil"
 	"os"
 	"strconv"
 	"time"
@@ -24,6 +26,13 @@ func check(e error) {
 		panic(e)
 	}
 }
+
+// Someday, keep panic message in response, maybe.
+func PanicHandleRecovery(c *gin.Context, err interface{}) {
+	//c.AbortWithStatus(http.StatusInternalServerError)
+	msg := fmt.Sprintf("Panic:'%+v'\n", err)
+	c.String(http.StatusInternalServerError, msg)
+}
 func listen(port int) {
 	//router := gin.Default()
 	// Or explicitly:
@@ -32,6 +41,7 @@ func listen(port int) {
 	router.Use(
 		//gin.Logger(),
 		gin.LoggerWithWriter(gin.DefaultWriter, "/pathsNotToLog/"), // useful!
+		gin.CustomRecovery(PanicHandleRecovery),
 		//gin.Recovery(),
 	)
 
