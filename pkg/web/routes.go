@@ -79,14 +79,13 @@ var (
 	Postprimaries = make(map[string]PostprimaryObject)
 )
 
-type StateHandlerFunc func(*gin.Context) //, *State)
+type StateHandlerFunc func(*gin.Context, *State)
 
 func SafeState(h StateHandlerFunc) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		_, l := top.Get()
+		state, l := top.Get()
 		defer l.Unlock()
-		h(c)
-		//h(c, state)
+		h(c, state)
 	}
 }
 
@@ -123,13 +122,13 @@ func AddRoutes(router *gin.Engine) {
 }
 
 // Returns top level status of the pa-ws process.
-func getStatus(c *gin.Context) {
+func getStatus(c *gin.Context, state *State) {
 	var status PawsStatusObject // TODO
 	c.IndentedJSON(http.StatusOK, status)
 }
 
 // Returns a list of socket ids.
-func getSockets(c *gin.Context) {
+func getSockets(c *gin.Context, state *State) {
 	var socketIds = []string{}
 	for k := range Sockets {
 		socketIds = append(socketIds, k)
@@ -139,7 +138,7 @@ func getSockets(c *gin.Context) {
 }
 
 // Returns the socket object indexed by the sock_id.
-func getSocketById(c *gin.Context) {
+func getSocketById(c *gin.Context, state *State) {
 	id := c.Param("id")
 
 	obj, found := Sockets[id]
@@ -151,12 +150,12 @@ func getSocketById(c *gin.Context) {
 }
 
 // Resets all "one shot" app resources for each of the sockets.
-func resetSockets(c *gin.Context) {
+func resetSockets(c *gin.Context, state *State) {
 	c.Status(http.StatusOK) // TODO: Should reset all 3.
 }
 
 // Resets all "one shot" app resources for the socket.
-func resetSocketById(c *gin.Context) {
+func resetSocketById(c *gin.Context, state *State) {
 	id := c.Param("id")
 
 	_, found := Sockets[id]
@@ -168,13 +167,13 @@ func resetSocketById(c *gin.Context) {
 }
 
 // Returns a single image from the socket.
-func getImageBySocketId(c *gin.Context) {
+func getImageBySocketId(c *gin.Context, state *State) {
 	id := c.Param("id")
 	c.String(http.StatusNotFound, "The socket '%s' was not found in the list of attached sensor FPGA boards.\n", id)
 }
 
 // Returns the basecaller object indexed by the socket {id}.
-func getBasecallerBySocketId(c *gin.Context) {
+func getBasecallerBySocketId(c *gin.Context, state *State) {
 	id := c.Param("id")
 	var obj SocketBasecallerObject
 	obj, found := Basecallers[id]
@@ -186,7 +185,7 @@ func getBasecallerBySocketId(c *gin.Context) {
 }
 
 // Start the basecaller process on socket {id}.
-func startBasecallerBySocketId(c *gin.Context) {
+func startBasecallerBySocketId(c *gin.Context, state *State) {
 	id := c.Param("id")
 	var obj SocketBasecallerObject
 	if err := c.BindJSON(&obj); err != nil {
@@ -199,7 +198,7 @@ func startBasecallerBySocketId(c *gin.Context) {
 }
 
 // Gracefully aborts the basecalling process on socket {id}. This must be called before a POST to "reset". Note The the process will not stop immediately. The client must poll the endpoint until the "process_status.execution_status" is "COMPLETE".
-func stopBasecallerBySocketId(c *gin.Context) {
+func stopBasecallerBySocketId(c *gin.Context, state *State) {
 	id := c.Param("id")
 	obj, found := Basecallers[id]
 	if !found {
@@ -217,7 +216,7 @@ func stopBasecallerBySocketId(c *gin.Context) {
 }
 
 // Resets the basecaller resource on socket {id}.
-func resetBasecallerBySocketId(c *gin.Context) {
+func resetBasecallerBySocketId(c *gin.Context, state *State) {
 	id := c.Param("id")
 	obj, found := Basecallers[id]
 	if !found {
@@ -235,7 +234,7 @@ func resetBasecallerBySocketId(c *gin.Context) {
 }
 
 // Returns the darkcal object indexed by socket {id}.
-func getDarkcalBySocketId(c *gin.Context) {
+func getDarkcalBySocketId(c *gin.Context, state *State) {
 	id := c.Param("id")
 	var obj SocketDarkcalObject
 	obj, found := Darkcals[id]
@@ -247,7 +246,7 @@ func getDarkcalBySocketId(c *gin.Context) {
 }
 
 // Starts a darkcal process on socket {id}.
-func startDarkcalBySocketId(c *gin.Context) {
+func startDarkcalBySocketId(c *gin.Context, state *State) {
 	id := c.Param("id")
 	var obj SocketDarkcalObject
 	if err := c.BindJSON(&obj); err != nil {
@@ -260,7 +259,7 @@ func startDarkcalBySocketId(c *gin.Context) {
 }
 
 // Gracefully aborts the darkcal process on socket {id}.
-func stopDarkcalBySocketId(c *gin.Context) {
+func stopDarkcalBySocketId(c *gin.Context, state *State) {
 	id := c.Param("id")
 	obj, found := Darkcals[id]
 	if !found {
@@ -278,7 +277,7 @@ func stopDarkcalBySocketId(c *gin.Context) {
 }
 
 // Resets the darkcal resource on socket {id}.
-func resetDarkcalBySocketId(c *gin.Context) {
+func resetDarkcalBySocketId(c *gin.Context, state *State) {
 	id := c.Param("id")
 	obj, found := Darkcals[id]
 	if !found {
@@ -294,7 +293,7 @@ func resetDarkcalBySocketId(c *gin.Context) {
 }
 
 // Returns the loadingcal object indexed by socket {id}.
-func getLoadingcalBySocketId(c *gin.Context) {
+func getLoadingcalBySocketId(c *gin.Context, state *State) {
 	id := c.Param("id")
 	var obj SocketLoadingcalObject
 	obj, found := Loadingcals[id]
@@ -306,7 +305,7 @@ func getLoadingcalBySocketId(c *gin.Context) {
 }
 
 // Starts a loadingcal process on socket {id}.
-func startLoadingcalBySocketId(c *gin.Context) {
+func startLoadingcalBySocketId(c *gin.Context, state *State) {
 	id := c.Param("id")
 	var obj SocketLoadingcalObject
 	if err := c.BindJSON(&obj); err != nil {
@@ -319,7 +318,7 @@ func startLoadingcalBySocketId(c *gin.Context) {
 }
 
 // Gracefully aborts the loadingcal process on socket {id}.
-func stopLoadingcalBySocketId(c *gin.Context) {
+func stopLoadingcalBySocketId(c *gin.Context, state *State) {
 	id := c.Param("id")
 	obj, found := Loadingcals[id]
 	if !found {
@@ -337,7 +336,7 @@ func stopLoadingcalBySocketId(c *gin.Context) {
 }
 
 // Resets the loadingcal resource on socket {id}.
-func resetLoadingcalBySocketId(c *gin.Context) {
+func resetLoadingcalBySocketId(c *gin.Context, state *State) {
 	id := c.Param("id")
 	obj, found := Loadingcals[id]
 	if !found {
@@ -353,7 +352,7 @@ func resetLoadingcalBySocketId(c *gin.Context) {
 }
 
 // Returns a list of MIDs for each storage object.
-func listStorageMids(c *gin.Context) {
+func listStorageMids(c *gin.Context, state *State) {
 	mids := []string{}
 	for mid := range Storages {
 		mids = append(mids, mid)
@@ -363,7 +362,7 @@ func listStorageMids(c *gin.Context) {
 }
 
 // Creates a storages resource for a movie.
-func createStorage(c *gin.Context) {
+func createStorage(c *gin.Context, state *State) {
 	var obj StorageObject
 	if err := c.BindJSON(&obj); err != nil {
 		c.Writer.WriteString("Could not parse body into struct.\n")
@@ -375,7 +374,7 @@ func createStorage(c *gin.Context) {
 }
 
 // Returns the storage object by MID.
-func getStorageByMid(c *gin.Context) {
+func getStorageByMid(c *gin.Context, state *State) {
 	mid := c.Param("mid")
 	var obj StorageObject
 	obj, found := Storages[mid]
@@ -387,19 +386,19 @@ func getStorageByMid(c *gin.Context) {
 }
 
 // Deletes the storages resource for the provided movie context name (MID).
-func deleteStorageByMid(c *gin.Context) {
+func deleteStorageByMid(c *gin.Context, state *State) {
 	mid := c.Param("mid")
 	c.String(http.StatusConflict, "For mid '%s', if all files have not been freed, the DELETE will fail.\n", mid)
 }
 
 // Frees all directories and files associated with the storages resources and reclaims disk space.
-func freeStorageByMid(c *gin.Context) {
+func freeStorageByMid(c *gin.Context, state *State) {
 	//mid := c.Param("mid")
 	c.Status(http.StatusOK)
 }
 
 // Returns a list of MIDs, one for each postprimary object.
-func listPostprimaryMids(c *gin.Context) {
+func listPostprimaryMids(c *gin.Context, state *State) {
 	mids := []string{}
 	for mid := range Postprimaries { // TODO: thread-safety
 		mids = append(mids, mid)
@@ -409,7 +408,7 @@ func listPostprimaryMids(c *gin.Context) {
 }
 
 // Starts a postprimary process on the provided urls to basecalling artifacts files.
-func startPostprimary(c *gin.Context) {
+func startPostprimary(c *gin.Context, state *State) {
 	var obj PostprimaryObject
 	if err := c.BindJSON(&obj); err != nil {
 		c.Writer.WriteString("Could not parse body into struct.\n")
@@ -431,7 +430,7 @@ func startPostprimary(c *gin.Context) {
 }
 
 // Deletes all existing postprimaries resources.
-func deletePostprimaries(c *gin.Context) {
+func deletePostprimaries(c *gin.Context, state *State) {
 	mids := []string{}
 	for mid := range Postprimaries { // TODO: thread-safety
 		mids = append(mids, mid)
@@ -453,7 +452,7 @@ func deletePostprimaries(c *gin.Context) {
 }
 
 // Returns the postprimary object by MID.
-func getPostprimaryByMid(c *gin.Context) {
+func getPostprimaryByMid(c *gin.Context, state *State) {
 	mid := c.Param("mid")
 	var obj PostprimaryObject
 	obj, found := Postprimaries[mid]
@@ -465,7 +464,7 @@ func getPostprimaryByMid(c *gin.Context) {
 }
 
 // Deletes the postprimary resource.
-func deletePostprimaryByMid(c *gin.Context) {
+func deletePostprimaryByMid(c *gin.Context, state *State) {
 	mid := c.Param("mid")
 	var obj PostprimaryObject
 	obj, found := Postprimaries[mid]
@@ -483,7 +482,7 @@ func deletePostprimaryByMid(c *gin.Context) {
 }
 
 // Gracefully aborts the postprimary proces associated with MID.
-func stopPostprimaryByMid(c *gin.Context) {
+func stopPostprimaryByMid(c *gin.Context, state *State) {
 	mid := c.Param("mid")
 	obj, found := Postprimaries[mid]
 	if !found {
@@ -499,5 +498,3 @@ func stopPostprimaryByMid(c *gin.Context) {
 	Postprimaries[mid] = obj // TODO: not thread-safe!!!
 	c.String(http.StatusOK, "The process for mid '%s' was stopped, and now the resource can be DELETEd.\n", mid)
 }
-
-// TODO: Is StatusConflict appropriate?
