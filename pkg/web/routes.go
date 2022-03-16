@@ -56,26 +56,41 @@ func init() {
 		Postprimaries: make(map[string]PostprimaryObject),
 	}
 	topconfig = TopConfig{
-		Binaries: FindBinaries(),
-		Values: ValuesConfig{
+		binaries: FindBinaries(),
+		values: ValuesConfig{
 			defaultFrameRate: 100.0, // fps
 		},
 	}
+	topconfig.flat = make(map[string]string)
+	topconfig.flat["Binary_baz2bam"] = topconfig.binaries.Binary_baz2bam
+	topconfig.flat["Binary_pa_cal"] = topconfig.binaries.Binary_pa_cal
+	topconfig.flat["Binary_reduce_stats"] = topconfig.binaries.Binary_reduce_stats
+	topconfig.flat["Binary_smrt_basecaller"] = topconfig.binaries.Binary_smrt_basecaller
 }
 
 type BinaryPaths struct {
 	Binary_baz2bam         string
-	Binary_smrt_basecaller string
 	Binary_pa_cal          string
 	Binary_reduce_stats    string
-}
-type TopConfig struct {
-	Values   ValuesConfig
-	Binaries BinaryPaths
+	Binary_smrt_basecaller string
 }
 
 type ValuesConfig struct {
 	defaultFrameRate float64 // fps
+}
+
+//type StringMap map[string]string // would hide map as 'reference' type
+
+type TopConfig struct {
+	values   ValuesConfig
+	binaries BinaryPaths
+	flat     map[string]string // someday maybe put all here?
+}
+
+func UpdateWithConfig(kv map[string]string, tc *TopConfig) {
+	for k, v := range tc.flat {
+		kv[k] = v
+	}
 }
 
 var topconfig TopConfig // Should be considered "const", as changes would not be thread-safe.

@@ -29,8 +29,7 @@ var Template_darkcal = `
 func WriteDarkcalBash(wr io.Writer, tc *TopConfig, obj SocketDarkcalObject, SocketId string) error {
 	t := CreateTemplate(Template_darkcal, "")
 	kv := make(map[string]string)
-
-	kv["Binary_pa_cal"] = tc.Binaries.Binary_pa_cal
+	UpdateWithConfig(kv, tc)
 
 	socketIdInt, err := strconv.Atoi(SocketId)
 	if err != nil {
@@ -49,7 +48,7 @@ func WriteDarkcalBash(wr io.Writer, tc *TopConfig, obj SocketDarkcalObject, Sock
 	kv["outputFile"] = obj.CalibFileUrl // TODO: Convert from URL!
 	kv["logoutput"] = obj.LogUrl        // TODO: Convert from URL!
 
-	timeout := int(float64(numFrames) * 1.1 / tc.Values.defaultFrameRate) // default
+	timeout := int(float64(numFrames) * 1.1 / tc.values.defaultFrameRate) // default
 	if obj.MaxMovieSeconds != 0 {
 		timeout = int(obj.MaxMovieSeconds)
 	}
@@ -76,7 +75,7 @@ func WriteLoadingcalBash(wr io.Writer, tc *TopConfig, obj SocketLoadingcalObject
 	t := CreateTemplate(Template_loadingcal, "")
 	kv := make(map[string]string)
 
-	kv["Binary_pa_cal"] = tc.Binaries.Binary_pa_cal
+	UpdateWithConfig(kv, tc)
 
 	socketIdInt, err := strconv.Atoi(SocketId)
 	if err != nil {
@@ -96,7 +95,7 @@ func WriteLoadingcalBash(wr io.Writer, tc *TopConfig, obj SocketLoadingcalObject
 	kv["logoutput"] = obj.LogUrl                  // TODO: Convert from URL!
 	kv["inputDarkcalFile"] = obj.DarkFrameFileUrl // TODO: Convert from URL!
 
-	timeout := int(float64(numFrames) * 1.1 / tc.Values.defaultFrameRate) // default
+	timeout := int(float64(numFrames) * 1.1 / tc.values.defaultFrameRate) // default
 	if obj.MaxMovieSeconds != 0 {
 		timeout = int(obj.MaxMovieSeconds)
 	}
@@ -124,7 +123,7 @@ func WriteBasecallerBash(wr io.Writer, tc *TopConfig, obj SocketBasecallerObject
 	t := CreateTemplate(Template_basecaller, "")
 	kv := make(map[string]string)
 
-	kv["Binary_smrt_basecaller"] = tc.Binaries.Binary_smrt_basecaller
+	UpdateWithConfig(kv, tc)
 
 	socketIdInt, err := strconv.Atoi(SocketId)
 	if err != nil {
@@ -160,7 +159,7 @@ var Template_baz2bam = `
 func WriteBaz2bamBash(wr io.Writer, tc *TopConfig, obj PostprimaryObject) error {
 	t := CreateTemplate(Template_baz2bam, "")
 	kv := make(map[string]string)
-	kv["Binary_baz2bam"] = tc.Binaries.Binary_baz2bam
+	UpdateWithConfig(kv, tc)
 	kv["acqId"] = obj.Uuid
 	kv["bazFile"] = obj.BazFileUrl // TODO
 	// kv["metadataFile"] = obj.SubreadsetMetadataXml // written into a file?
@@ -204,9 +203,9 @@ var Template_reduce_stats = `
 func WriteReduceStatsBash(wr io.Writer, tc *TopConfig, obj PostprimaryObject, job Job) error {
 	t := CreateTemplate(Template_reduce_stats, "")
 	kv := make(map[string]string)
+	UpdateWithConfig(kv, tc)
 	job.outputPrefix = obj.OutputPrefixUrl // TODO
 	UpdateJob(kv, job)
-	kv["Binary_reduce_stats"] = tc.Binaries.Binary_reduce_stats
 	//obj.OutputReduceStatsH5Url
 	return t.Execute(wr, kv)
 }
