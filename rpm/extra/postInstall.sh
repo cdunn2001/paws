@@ -22,7 +22,7 @@ function ReservePort {
 set -vx
 
 #ports="23632"
-ports="23633"
+ports="23632"
 for port in $ports
 do
   ReservePort $port
