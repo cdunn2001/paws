@@ -1,6 +1,7 @@
 package web
 
 import (
+	"bytes"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
@@ -281,6 +282,13 @@ func startDarkcalBySocketId(c *gin.Context, state *State) {
 	}
 	obj.ProcessStatus.ExecutionStatus = Running
 	state.Darkcals[id] = obj
+	wr := new(bytes.Buffer)
+	err := WriteDarkcalBash(wr, &topconfig, obj, id)
+	if err != nil {
+		c.Writer.WriteString("Could not parse body into struct.\n")
+		return
+	}
+	fmt.Printf("Wrote:'%s'", wr.String())
 	c.IndentedJSON(http.StatusOK, obj)
 }
 
