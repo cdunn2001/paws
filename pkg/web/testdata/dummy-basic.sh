@@ -11,10 +11,15 @@ while [[ $# -gt 0 ]]; do
       shift # past argument
       shift # past value
       ;;
-    -*|--*)
-      echo "Unknown option $1"
-      shift
-      shift # Assume we know all boolen flags.
+    --*)
+      echo "Unknown option $1 $2"
+      shift # past argument
+      shift # past value
+      #exit 1 # Fine.
+      ;;
+    -*)
+      echo "Unknown flag $1"
+      shift # past argument
       #exit 1 # Fine.
       ;;
     *)
@@ -43,8 +48,6 @@ INFO | BASIC_STATUS {"state": "progress", "stageNumber": $1, "stageName": "$2", 
 EOF
 }
 
-report_status 0 "init" 0 1
-
 function count {
     for i in $(seq 1 ${STATUS_COUNT}); do
         sleep $STATUS_DELAY_SECONDS
@@ -52,8 +55,10 @@ function count {
     done
 }
 
-count
+set -vex
 
+report_status 0 "init" 0 1
+count
 report_status 2 "fini" 0 1
 
 # Close the file-descriptor, to tell the parent we are done.

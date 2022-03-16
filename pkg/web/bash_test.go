@@ -7,7 +7,7 @@ import (
 
 func TestWriteReduceStatsBash(t *testing.T) {
 	expected := `
-reduce-stats \
+dummy-reduce-stats.sh \
   --input PREFIX.sts.h5 \
   --output PREFIX.rsts.h5 \
   --config=common.chipClass=CHIP \
@@ -22,7 +22,8 @@ reduce-stats \
 		platform:     "PLATFORM",
 	}
 	var b bytes.Buffer
-	err := WriteReduceStatsBash(&b, obj, job)
+	tc := &topconfig
+	err := WriteReduceStatsBash(&b, tc, obj, job)
 	check(err)
 	got := b.String()
 	if got != expected {

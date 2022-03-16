@@ -6,15 +6,6 @@ import (
 	"text/template"
 )
 
-// TODO: These should be configurable.
-var (
-	Binary_baz2bam         = "baz2bam"
-	Binary_smrt_basecaller = "smrt-basecaller"
-	Binary_pa_cal          = "pa-cal"
-	Binary_reduce_stats    = "reduce-stats"
-	defaultFrameRate       = 100.0 // fps
-)
-
 func CreateTemplate(source string, name string) *template.Template {
 	result := template.Must(template.
 		New(name).
@@ -35,9 +26,10 @@ var Template_darkcal = `
   --timeoutseconds {{.timeoutseconds}} \
 `
 
-func WriteDarkcalBash(wr io.Writer, obj SocketDarkcalObject, SocketId string) error {
+func WriteDarkcalBash(wr io.Writer, tc *TopConfig, obj SocketDarkcalObject, SocketId string) error {
 	t := CreateTemplate(Template_darkcal, "")
 	kv := make(map[string]string)
+	UpdateWithConfig(kv, tc)
 
 	socketIdInt, err := strconv.Atoi(SocketId)
 	if err != nil {
@@ -56,7 +48,7 @@ func WriteDarkcalBash(wr io.Writer, obj SocketDarkcalObject, SocketId string) er
 	kv["outputFile"] = obj.CalibFileUrl // TODO: Convert from URL!
 	kv["logoutput"] = obj.LogUrl        // TODO: Convert from URL!
 
-	timeout := int(float64(numFrames) * 1.1 / defaultFrameRate) // default
+	timeout := int(float64(numFrames) * 1.1 / tc.values.defaultFrameRate) // default
 	if obj.MaxMovieSeconds != 0 {
 		timeout = int(obj.MaxMovieSeconds)
 	}
@@ -79,9 +71,11 @@ var Template_loadingcal = `
   --timeoutseconds {{.timeoutseconds}} \
 `
 
-func WriteLoadingcalBash(wr io.Writer, obj SocketLoadingcalObject, SocketId string) error {
+func WriteLoadingcalBash(wr io.Writer, tc *TopConfig, obj SocketLoadingcalObject, SocketId string) error {
 	t := CreateTemplate(Template_loadingcal, "")
 	kv := make(map[string]string)
+
+	UpdateWithConfig(kv, tc)
 
 	socketIdInt, err := strconv.Atoi(SocketId)
 	if err != nil {
@@ -101,7 +95,7 @@ func WriteLoadingcalBash(wr io.Writer, obj SocketLoadingcalObject, SocketId stri
 	kv["logoutput"] = obj.LogUrl                  // TODO: Convert from URL!
 	kv["inputDarkcalFile"] = obj.DarkFrameFileUrl // TODO: Convert from URL!
 
-	timeout := int(float64(numFrames) * 1.1 / defaultFrameRate) // default
+	timeout := int(float64(numFrames) * 1.1 / tc.values.defaultFrameRate) // default
 	if obj.MaxMovieSeconds != 0 {
 		timeout = int(obj.MaxMovieSeconds)
 	}
@@ -125,9 +119,11 @@ var Template_basecaller = `
 `
 
 // Doesn't this need the darkcalfile?
-func WriteBasecallerBash(wr io.Writer, obj SocketBasecallerObject, SocketId string) error {
+func WriteBasecallerBash(wr io.Writer, tc *TopConfig, obj SocketBasecallerObject, SocketId string) error {
 	t := CreateTemplate(Template_basecaller, "")
 	kv := make(map[string]string)
+
+	UpdateWithConfig(kv, tc)
 
 	socketIdInt, err := strconv.Atoi(SocketId)
 	if err != nil {
@@ -160,9 +156,10 @@ var Template_baz2bam = `
   --maxOutputQueueMB {{.baz2BamMaxOutputQueueMB}} \
 `
 
-func WriteBaz2bamBash(wr io.Writer, obj PostprimaryObject) error {
+func WriteBaz2bamBash(wr io.Writer, tc *TopConfig, obj PostprimaryObject) error {
 	t := CreateTemplate(Template_baz2bam, "")
 	kv := make(map[string]string)
+	UpdateWithConfig(kv, tc)
 	kv["acqId"] = obj.Uuid
 	kv["bazFile"] = obj.BazFileUrl // TODO
 	// kv["metadataFile"] = obj.SubreadsetMetadataXml // written into a file?
@@ -203,12 +200,12 @@ var Template_reduce_stats = `
   --config=common.platform={{.job_platform}} \
 `
 
-func WriteReduceStatsBash(wr io.Writer, obj PostprimaryObject, job Job) error {
+func WriteReduceStatsBash(wr io.Writer, tc *TopConfig, obj PostprimaryObject, job Job) error {
 	t := CreateTemplate(Template_reduce_stats, "")
 	kv := make(map[string]string)
+	UpdateWithConfig(kv, tc)
 	job.outputPrefix = obj.OutputPrefixUrl // TODO
 	UpdateJob(kv, job)
-	kv["Binary_reduce_stats"] = Binary_reduce_stats
 	//obj.OutputReduceStatsH5Url
 	return t.Execute(wr, kv)
 }

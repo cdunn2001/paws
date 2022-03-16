@@ -1,6 +1,7 @@
 package web
 
 import (
+	"bytes"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
@@ -54,6 +55,63 @@ func init() {
 		Darkcals:      make(map[string]SocketDarkcalObject),
 		Loadingcals:   make(map[string]SocketLoadingcalObject),
 		Postprimaries: make(map[string]PostprimaryObject),
+	}
+	// TODO: These should be configurable.
+	topconfig = TopConfig{
+		binaries: FindBinaries(),
+		values: ValuesConfig{
+			defaultFrameRate: 100.0, // fps
+		},
+	}
+	topconfig.flat = make(map[string]string)
+	topconfig.flat["Binary_baz2bam"] = topconfig.binaries.Binary_baz2bam
+	topconfig.flat["Binary_pa_cal"] = topconfig.binaries.Binary_pa_cal
+	topconfig.flat["Binary_reduce_stats"] = topconfig.binaries.Binary_reduce_stats
+	topconfig.flat["Binary_smrt_basecaller"] = topconfig.binaries.Binary_smrt_basecaller
+}
+
+type BinaryPaths struct {
+	Binary_baz2bam         string
+	Binary_pa_cal          string
+	Binary_reduce_stats    string
+	Binary_smrt_basecaller string
+}
+
+type ValuesConfig struct {
+	defaultFrameRate float64 // fps
+}
+
+//type StringMap map[string]string // would hide map as 'reference' type
+
+type TopConfig struct {
+	values   ValuesConfig
+	binaries BinaryPaths
+	flat     map[string]string // someday maybe put all here?
+}
+
+func UpdateWithConfig(kv map[string]string, tc *TopConfig) {
+	for k, v := range tc.flat {
+		kv[k] = v
+	}
+}
+
+var topconfig TopConfig // Should be considered "const", as changes would not be thread-safe.
+
+func FindBinaries() BinaryPaths {
+	if true {
+		return BinaryPaths{
+			Binary_baz2bam:         "dummy-baz2bam.sh",
+			Binary_smrt_basecaller: "dummy-smrt-basecaller.sh",
+			Binary_pa_cal:          "dummy-pa-cal.sh",
+			Binary_reduce_stats:    "dummy-reduce-stats.sh",
+		}
+	} else {
+		return BinaryPaths{
+			Binary_baz2bam:         "baz2bam",
+			Binary_smrt_basecaller: "smrt-basecaller",
+			Binary_pa_cal:          "pa-cal",
+			Binary_reduce_stats:    "reduce-stats",
+		}
 	}
 }
 
@@ -233,6 +291,13 @@ func startDarkcalBySocketId(c *gin.Context, state *State) {
 	}
 	obj.ProcessStatus.ExecutionStatus = Running
 	state.Darkcals[id] = obj
+	wr := new(bytes.Buffer)
+	err := WriteDarkcalBash(wr, &topconfig, obj, id)
+	if err != nil {
+		c.Writer.WriteString("Could not parse body into struct.\n")
+		return
+	}
+	fmt.Printf("Wrote:'%s'", wr.String())
 	c.IndentedJSON(http.StatusOK, obj)
 }
 
