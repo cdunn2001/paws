@@ -6,6 +6,8 @@ E=localhost:$P
 curl -i -f -X GET $E/sockets
 # Should print [1,2,3,4] quoted.
 
+curl -i -f -X GET $E/sockets/1/darkcal
+
 # darkcalFileUrl=file:/data/nrta/0/darkcal.h5
 curl -i -f -X POST -d @sims/darkcal.start.json $E/sockets/1/darkcal/start
 #curl -i -X POST -d '{"calibFileUrl": ""}' $E/sockets/1/darkcal/start

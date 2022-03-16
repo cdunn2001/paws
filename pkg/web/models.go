@@ -358,3 +358,16 @@ type StorageObject struct {
 	Space         []StorageDiskReportObject `json:"space"`
 	ProcessStatus ProcessStatusObject       `json:"processStatus"`
 }
+
+func CreateSocketBasecallerObject() (result SocketBasecallerObject) {
+	result.ProcessStatus.ExecutionStatus = Ready
+	return result
+}
+func CreateSocketDarkcalObject() (result SocketDarkcalObject) {
+	result.ProcessStatus.ExecutionStatus = Ready
+	return result
+}
+func CreateSocketLoadingcalObject() (result SocketLoadingcalObject) {
+	result.ProcessStatus.ExecutionStatus = Ready
+	return result
+}

@@ -56,6 +56,11 @@ func init() {
 		Loadingcals:   make(map[string]SocketLoadingcalObject),
 		Postprimaries: make(map[string]PostprimaryObject),
 	}
+	for k := range top.state.Sockets {
+		top.state.Basecallers[k] = CreateSocketBasecallerObject()
+		top.state.Darkcals[k] = CreateSocketDarkcalObject()
+		top.state.Loadingcals[k] = CreateSocketLoadingcalObject()
+	}
 	// TODO: These should be configurable.
 	topconfig = TopConfig{
 		binaries: FindBinaries(),
