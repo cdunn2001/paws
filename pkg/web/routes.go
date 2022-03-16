@@ -1,6 +1,7 @@
 package web
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"sort"
@@ -31,7 +32,31 @@ func (s *LockableState) Get() (*State, *sync.Mutex) {
 
 var top LockableState
 
-// fixtures (TEMPORARY)
+func init() {
+	fmt.Println("Initializing fixtures")
+	top.state = State{
+		Sockets: map[string]SocketObject{
+			"1": SocketObject{
+				SocketId: "1",
+			},
+			"2": SocketObject{
+				SocketId: "2",
+			},
+			"3": SocketObject{
+				SocketId: "3",
+			},
+			"4": SocketObject{
+				SocketId: "4",
+			},
+		},
+		Storages:      make(map[string]StorageObject),
+		Basecallers:   make(map[string]SocketBasecallerObject),
+		Darkcals:      make(map[string]SocketDarkcalObject),
+		Loadingcals:   make(map[string]SocketLoadingcalObject),
+		Postprimaries: make(map[string]PostprimaryObject),
+	}
+}
+
 var (
 	Sockets = map[string]SocketObject{
 		"1": SocketObject{
