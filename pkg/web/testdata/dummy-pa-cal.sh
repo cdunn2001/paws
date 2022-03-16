@@ -6,7 +6,7 @@ FD=2
 
 while [[ $# -gt 0 ]]; do
   case $1 in
-    --status-fd)
+    --statusfd)
       FD="$2"
       shift # past argument
       shift # past value
@@ -35,8 +35,15 @@ while [[ $# -gt 0 ]]; do
       VERSION=1
       shift # past argument
       ;;
-    -*|--*)
-      echo "Unknown option $1"
+    --*)
+      echo "Unknown option $1 $2"
+      shift # past argument
+      shift # past value
+      #exit 1 # Fine.
+      ;;
+    -*)
+      echo "Unknown flag $1"
+      shift # past argument
       #exit 1 # Fine.
       ;;
     *)
@@ -64,8 +71,6 @@ INFO | PA_CAL_STATUS {"state": "progress", "stageNumber": $1, "stageName": "$2",
 EOF
 }
 
-report_status 0 "init" 0 1
-
 function count {
     for i in $(seq 1 ${STATUS_COUNT}); do
         sleep $STATUS_DELAY_SECONDS
@@ -73,8 +78,10 @@ function count {
     done
 }
 
-count
+set -vex
 
+report_status 0 "init" 0 1
+count
 report_status 2 "fini" 0 1
 
 touch ${LOG_OUTPUT}
