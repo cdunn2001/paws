@@ -57,28 +57,6 @@ func init() {
 	}
 }
 
-var (
-	Sockets = map[string]SocketObject{
-		"1": SocketObject{
-			SocketId: "1",
-		},
-		"2": SocketObject{
-			SocketId: "2",
-		},
-		"3": SocketObject{
-			SocketId: "3",
-		},
-		"4": SocketObject{
-			SocketId: "4",
-		},
-	}
-	Storages      = make(map[string]StorageObject)
-	Basecallers   = make(map[string]SocketBasecallerObject)
-	Darkcals      = make(map[string]SocketDarkcalObject)
-	Loadingcals   = make(map[string]SocketLoadingcalObject)
-	Postprimaries = make(map[string]PostprimaryObject)
-)
-
 type StateHandlerFunc func(*gin.Context, *State)
 
 func SafeState(h StateHandlerFunc) gin.HandlerFunc {
@@ -130,7 +108,7 @@ func getStatus(c *gin.Context, state *State) {
 // Returns a list of socket ids.
 func getSockets(c *gin.Context, state *State) {
 	var socketIds = []string{}
-	for k := range Sockets {
+	for k := range state.Sockets {
 		socketIds = append(socketIds, k)
 	}
 	sort.Strings(socketIds)
@@ -141,7 +119,7 @@ func getSockets(c *gin.Context, state *State) {
 func getSocketById(c *gin.Context, state *State) {
 	id := c.Param("id")
 
-	obj, found := Sockets[id]
+	obj, found := state.Sockets[id]
 	if !found {
 		c.String(http.StatusNotFound, "The socket '%s' was not found in the list of attached sensor FPGA boards.\n", id)
 		return
@@ -158,7 +136,7 @@ func resetSockets(c *gin.Context, state *State) {
 func resetSocketById(c *gin.Context, state *State) {
 	id := c.Param("id")
 
-	_, found := Sockets[id]
+	_, found := state.Sockets[id]
 	if !found {
 		c.String(http.StatusNotFound, "The socket '%s' was not found in the list of attached sensor FPGA boards.\n", id)
 		return
@@ -176,7 +154,7 @@ func getImageBySocketId(c *gin.Context, state *State) {
 func getBasecallerBySocketId(c *gin.Context, state *State) {
 	id := c.Param("id")
 	var obj SocketBasecallerObject
-	obj, found := Basecallers[id]
+	obj, found := state.Basecallers[id]
 	if !found {
 		c.String(http.StatusNotFound, "The basecaller process for socket '%s' was not found.\n", id)
 		return
@@ -193,14 +171,14 @@ func startBasecallerBySocketId(c *gin.Context, state *State) {
 		return
 	}
 	obj.ProcessStatus.ExecutionStatus = Running
-	Basecallers[id] = obj
+	state.Basecallers[id] = obj
 	c.IndentedJSON(http.StatusOK, obj)
 }
 
 // Gracefully aborts the basecalling process on socket {id}. This must be called before a POST to "reset". Note The the process will not stop immediately. The client must poll the endpoint until the "process_status.execution_status" is "COMPLETE".
 func stopBasecallerBySocketId(c *gin.Context, state *State) {
 	id := c.Param("id")
-	obj, found := Basecallers[id]
+	obj, found := state.Basecallers[id]
 	if !found {
 		//c.String(http.StatusNotFound, "The socket '%s' was not found in the list of attached sensor FPGA boards.\n", id)
 		c.String(http.StatusNotFound, "The basecaller process for socket '%s' was not found.\n", id)
@@ -211,14 +189,14 @@ func stopBasecallerBySocketId(c *gin.Context, state *State) {
 		c.String(http.StatusConflict, "Fails if basecaller is not still in progress (was %s). Do not call after /reset. Call after /start.\n", obj.ProcessStatus.ExecutionStatus)
 	}
 	obj.ProcessStatus.ExecutionStatus = Complete
-	Basecallers[id] = obj // TODO: not thread-safe!!!
+	state.Basecallers[id] = obj
 	c.Status(http.StatusOK)
 }
 
 // Resets the basecaller resource on socket {id}.
 func resetBasecallerBySocketId(c *gin.Context, state *State) {
 	id := c.Param("id")
-	obj, found := Basecallers[id]
+	obj, found := state.Basecallers[id]
 	if !found {
 		c.String(http.StatusNotFound, "The basecaller process for socket '%s' was not found.\n", id)
 		return
@@ -229,7 +207,7 @@ func resetBasecallerBySocketId(c *gin.Context, state *State) {
 		return
 	}
 	obj.ProcessStatus.ExecutionStatus = Ready
-	Basecallers[id] = obj // TODO: not thread-safe!!!
+	state.Basecallers[id] = obj
 	c.Status(http.StatusOK)
 }
 
@@ -237,7 +215,7 @@ func resetBasecallerBySocketId(c *gin.Context, state *State) {
 func getDarkcalBySocketId(c *gin.Context, state *State) {
 	id := c.Param("id")
 	var obj SocketDarkcalObject
-	obj, found := Darkcals[id]
+	obj, found := state.Darkcals[id]
 	if !found {
 		c.String(http.StatusNotFound, "The darkcal process for socket '%s' was not found.\n", id)
 		return
@@ -254,14 +232,14 @@ func startDarkcalBySocketId(c *gin.Context, state *State) {
 		return
 	}
 	obj.ProcessStatus.ExecutionStatus = Running
-	Darkcals[id] = obj
+	state.Darkcals[id] = obj
 	c.IndentedJSON(http.StatusOK, obj)
 }
 
 // Gracefully aborts the darkcal process on socket {id}.
 func stopDarkcalBySocketId(c *gin.Context, state *State) {
 	id := c.Param("id")
-	obj, found := Darkcals[id]
+	obj, found := state.Darkcals[id]
 	if !found {
 		//c.String(http.StatusNotFound, "The socket '%s' was not found in the list of attached sensor FPGA boards.\n", id)
 		c.String(http.StatusNotFound, "The darkcal process for socket '%s' was not found.\n", id)
@@ -272,14 +250,14 @@ func stopDarkcalBySocketId(c *gin.Context, state *State) {
 		c.String(http.StatusConflict, "Fails if darkcal is not still in progress (was %s). Do not call after /reset. Call after /start.\n", obj.ProcessStatus.ExecutionStatus)
 	}
 	obj.ProcessStatus.ExecutionStatus = Complete
-	Darkcals[id] = obj // TODO: not thread-safe!!!
+	state.Darkcals[id] = obj // TODO: not thread-safe!!!
 	c.Status(http.StatusOK)
 }
 
 // Resets the darkcal resource on socket {id}.
 func resetDarkcalBySocketId(c *gin.Context, state *State) {
 	id := c.Param("id")
-	obj, found := Darkcals[id]
+	obj, found := state.Darkcals[id]
 	if !found {
 		c.String(http.StatusNotFound, "The darkcal process for socket '%s' was not found.\n", id)
 		return
@@ -296,7 +274,7 @@ func resetDarkcalBySocketId(c *gin.Context, state *State) {
 func getLoadingcalBySocketId(c *gin.Context, state *State) {
 	id := c.Param("id")
 	var obj SocketLoadingcalObject
-	obj, found := Loadingcals[id]
+	obj, found := state.Loadingcals[id]
 	if !found {
 		c.String(http.StatusNotFound, "The loadingcal process for socket '%s' was not found.\n", id)
 		return
@@ -313,14 +291,14 @@ func startLoadingcalBySocketId(c *gin.Context, state *State) {
 		return
 	}
 	obj.ProcessStatus.ExecutionStatus = Running
-	Loadingcals[id] = obj
+	state.Loadingcals[id] = obj
 	c.IndentedJSON(http.StatusOK, obj)
 }
 
 // Gracefully aborts the loadingcal process on socket {id}.
 func stopLoadingcalBySocketId(c *gin.Context, state *State) {
 	id := c.Param("id")
-	obj, found := Loadingcals[id]
+	obj, found := state.Loadingcals[id]
 	if !found {
 		//c.String(http.StatusNotFound, "The socket '%s' was not found in the list of attached sensor FPGA boards.\n", id)
 		c.String(http.StatusNotFound, "The loadingcal process for socket '%s' was not found.\n", id)
@@ -331,14 +309,14 @@ func stopLoadingcalBySocketId(c *gin.Context, state *State) {
 		c.String(http.StatusConflict, "Fails if loadingcal is not still in progress. Do not call after /reset. Call after /start.\n")
 	}
 	obj.ProcessStatus.ExecutionStatus = Complete
-	Loadingcals[id] = obj // TODO: not thread-safe!!!
+	state.Loadingcals[id] = obj // TODO: not thread-safe!!!
 	c.Status(http.StatusOK)
 }
 
 // Resets the loadingcal resource on socket {id}.
 func resetLoadingcalBySocketId(c *gin.Context, state *State) {
 	id := c.Param("id")
-	obj, found := Loadingcals[id]
+	obj, found := state.Loadingcals[id]
 	if !found {
 		c.String(http.StatusNotFound, "The loadingcal process for socket '%s' was not found.\n", id)
 		return
@@ -354,7 +332,7 @@ func resetLoadingcalBySocketId(c *gin.Context, state *State) {
 // Returns a list of MIDs for each storage object.
 func listStorageMids(c *gin.Context, state *State) {
 	mids := []string{}
-	for mid := range Storages {
+	for mid := range state.Storages {
 		mids = append(mids, mid)
 	}
 	sort.Strings(mids)
@@ -369,7 +347,7 @@ func createStorage(c *gin.Context, state *State) {
 		return
 	}
 	mid := obj.Mid
-	Storages[mid] = obj
+	state.Storages[mid] = obj
 	c.IndentedJSON(http.StatusOK, obj)
 }
 
@@ -377,7 +355,7 @@ func createStorage(c *gin.Context, state *State) {
 func getStorageByMid(c *gin.Context, state *State) {
 	mid := c.Param("mid")
 	var obj StorageObject
-	obj, found := Storages[mid]
+	obj, found := state.Storages[mid]
 	if !found {
 		c.String(http.StatusNotFound, "The storage for mid '%s' was not found.\n", mid)
 		return
@@ -400,7 +378,7 @@ func freeStorageByMid(c *gin.Context, state *State) {
 // Returns a list of MIDs, one for each postprimary object.
 func listPostprimaryMids(c *gin.Context, state *State) {
 	mids := []string{}
-	for mid := range Postprimaries { // TODO: thread-safety
+	for mid := range state.Postprimaries { // TODO: thread-safety
 		mids = append(mids, mid)
 	}
 	sort.Strings(mids)
@@ -419,25 +397,25 @@ func startPostprimary(c *gin.Context, state *State) {
 		c.String(http.StatusBadRequest, "Must provide mid to start a postprimary process.\n")
 		return
 	}
-	_, found := Storages[mid]
+	_, found := state.Storages[mid]
 	if found {
 		c.String(http.StatusConflict, "The postprimary process for mid '%s' already exists. (But maybe we should allow a duplicate call?)\n", mid)
 		return
 	}
 	obj.ProcessStatus.ExecutionStatus = Running
-	Postprimaries[mid] = obj
+	state.Postprimaries[mid] = obj
 	c.IndentedJSON(http.StatusOK, obj)
 }
 
 // Deletes all existing postprimaries resources.
 func deletePostprimaries(c *gin.Context, state *State) {
 	mids := []string{}
-	for mid := range Postprimaries { // TODO: thread-safety
+	for mid := range state.Postprimaries {
 		mids = append(mids, mid)
 	}
 	sort.Strings(mids)
 	for _, mid := range mids {
-		obj, found := Postprimaries[mid]
+		obj, found := state.Postprimaries[mid]
 		if !found {
 			panic("This is not possible unless we have a race condition.")
 		}
@@ -446,7 +424,7 @@ func deletePostprimaries(c *gin.Context, state *State) {
 			c.String(http.StatusConflict, "Failed to delete postprimary process for mid '%s', still in progress (%s). Either call /stop first, or wait for Complete.\n", mid, obj.ProcessStatus.ExecutionStatus)
 			return
 		}
-		delete(Postprimaries, mid) // TODO: thread-safety (as elsewhere)
+		delete(state.Postprimaries, mid)
 	}
 	c.String(http.StatusOK, "All postprimary resources were successfully deleted.\n")
 }
@@ -455,7 +433,7 @@ func deletePostprimaries(c *gin.Context, state *State) {
 func getPostprimaryByMid(c *gin.Context, state *State) {
 	mid := c.Param("mid")
 	var obj PostprimaryObject
-	obj, found := Postprimaries[mid]
+	obj, found := state.Postprimaries[mid]
 	if !found {
 		c.String(http.StatusNotFound, "The postprimary process for mid '%s' was not found.\n", mid)
 		return
@@ -467,7 +445,7 @@ func getPostprimaryByMid(c *gin.Context, state *State) {
 func deletePostprimaryByMid(c *gin.Context, state *State) {
 	mid := c.Param("mid")
 	var obj PostprimaryObject
-	obj, found := Postprimaries[mid]
+	obj, found := state.Postprimaries[mid]
 	if !found {
 		c.String(http.StatusOK, "The postprimary process for mid '%s' was not found, which is fine.\n", mid)
 		return
@@ -477,14 +455,14 @@ func deletePostprimaryByMid(c *gin.Context, state *State) {
 		c.String(http.StatusConflict, "Fails if postprimary for mid '%s' is not still in progress. Either call /stop first, or wait for Complete.\n", mid)
 		return
 	}
-	delete(Postprimaries, mid) // TODO: thread-safety (as elsewhere)
+	delete(state.Postprimaries, mid)
 	c.String(http.StatusOK, "The postprimary resource for mid '%s' was successfully deleted.\n", mid)
 }
 
 // Gracefully aborts the postprimary proces associated with MID.
 func stopPostprimaryByMid(c *gin.Context, state *State) {
 	mid := c.Param("mid")
-	obj, found := Postprimaries[mid]
+	obj, found := state.Postprimaries[mid]
 	if !found {
 		//c.String(http.StatusNotFound, "The socket '%s' was not found in the list of attached sensor FPGA boards.\n", id)
 		c.String(http.StatusNotFound, "The postprimary process for mid '%s' was not found.\n", mid)
@@ -495,6 +473,6 @@ func stopPostprimaryByMid(c *gin.Context, state *State) {
 		c.String(http.StatusConflict, "Fails if postprimary is not still in progress. Do not call after /reset. Call after /start.")
 	}
 	obj.ProcessStatus.ExecutionStatus = Complete
-	Postprimaries[mid] = obj // TODO: not thread-safe!!!
+	state.Postprimaries[mid] = obj
 	c.String(http.StatusOK, "The process for mid '%s' was stopped, and now the resource can be DELETEd.\n", mid)
 }
