@@ -56,6 +56,7 @@ func init() {
 		Loadingcals:   make(map[string]SocketLoadingcalObject),
 		Postprimaries: make(map[string]PostprimaryObject),
 	}
+	// TODO: These should be configurable.
 	topconfig = TopConfig{
 		binaries: FindBinaries(),
 		values: ValuesConfig{
@@ -97,12 +98,20 @@ func UpdateWithConfig(kv map[string]string, tc *TopConfig) {
 var topconfig TopConfig // Should be considered "const", as changes would not be thread-safe.
 
 func FindBinaries() BinaryPaths {
-	// TODO: These should be configurable.
-	return BinaryPaths{
-		Binary_baz2bam:         "baz2bam",
-		Binary_smrt_basecaller: "smrt-basecaller",
-		Binary_pa_cal:          "pa-cal",
-		Binary_reduce_stats:    "reduce-stats",
+	if true {
+		return BinaryPaths{
+			Binary_baz2bam:         "dummy-baz2bam.sh",
+			Binary_smrt_basecaller: "dummy-smrt-basecaller.sh",
+			Binary_pa_cal:          "dummy-pa-cal.sh",
+			Binary_reduce_stats:    "dummy-reduce-stats.sh",
+		}
+	} else {
+		return BinaryPaths{
+			Binary_baz2bam:         "baz2bam",
+			Binary_smrt_basecaller: "smrt-basecaller",
+			Binary_pa_cal:          "pa-cal",
+			Binary_reduce_stats:    "reduce-stats",
+		}
 	}
 }
 
