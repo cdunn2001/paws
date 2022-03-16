@@ -55,6 +55,39 @@ func init() {
 		Loadingcals:   make(map[string]SocketLoadingcalObject),
 		Postprimaries: make(map[string]PostprimaryObject),
 	}
+	topconfig = TopConfig{
+		Binaries: FindBinaries(),
+		Values: ValuesConfig{
+			defaultFrameRate: 100.0, // fps
+		},
+	}
+}
+
+type BinaryPaths struct {
+	Binary_baz2bam         string
+	Binary_smrt_basecaller string
+	Binary_pa_cal          string
+	Binary_reduce_stats    string
+}
+type TopConfig struct {
+	Values   ValuesConfig
+	Binaries BinaryPaths
+}
+
+type ValuesConfig struct {
+	defaultFrameRate float64 // fps
+}
+
+var topconfig TopConfig // Should be considered "const", as changes would not be thread-safe.
+
+func FindBinaries() BinaryPaths {
+	// TODO: These should be configurable.
+	return BinaryPaths{
+		Binary_baz2bam:         "baz2bam",
+		Binary_smrt_basecaller: "smrt-basecaller",
+		Binary_pa_cal:          "pa-cal",
+		Binary_reduce_stats:    "reduce-stats",
+	}
 }
 
 type StateHandlerFunc func(*gin.Context, *State)
