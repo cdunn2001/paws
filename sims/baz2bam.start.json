@@ -1,6 +1,7 @@
 {
-    "Uuid": "MyUuid",
-    "BazFileUrl": "tmp/foo.baz",
+    "mid": "m123",
+    "uuid": "MyUuid",
+    "bazFileUrl": "tmp/foo.baz",
     "logUrl": "tmp/log.loadingcal.txt",
-    "LogLevel": "INFO"
+    "logLevel": "INFO"
 }

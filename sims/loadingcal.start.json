@@ -6,5 +6,5 @@
     "maxMovieSeconds": 0,
     "movieNumber": 0,
     "logUrl": "tmp/log.loadingcal.txt",
-    "LogLevel": "INFO"
+    "logLevel": "INFO"
 }
