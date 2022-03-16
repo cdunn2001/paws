@@ -4,7 +4,32 @@ import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"sort"
+	"sync"
 )
+
+type State struct {
+	Sockets       map[string]SocketObject
+	Storages      map[string]StorageObject
+	Basecallers   map[string]SocketBasecallerObject
+	Darkcals      map[string]SocketDarkcalObject
+	Loadingcals   map[string]SocketLoadingcalObject
+	Postprimaries map[string]PostprimaryObject
+}
+
+// Someday, move this to separate package, for privacy.
+type LockableState struct {
+	state State
+	lock  sync.Mutex
+}
+
+// Caller must *unlock* Mutex later (with 'defer').
+// Also, caller must avoid deadlocks!
+func (s *LockableState) Get() (*State, *sync.Mutex) {
+	s.lock.Lock()
+	return &s.state, &s.lock
+}
+
+var top LockableState
 
 // fixtures (TEMPORARY)
 var (
@@ -31,6 +56,8 @@ var (
 
 func Safe(h gin.HandlerFunc) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		_, l := top.Get()
+		defer l.Unlock()
 		h(c)
 	}
 }
