@@ -19,3 +19,9 @@ curl -f -X POST $E/sockets/1/loadingcal/reset
 curl -f -X POST -d @sims/basecaller.start.json $E/sockets/1/basecaller/start
 curl -f -X POST $E/sockets/1/basecaller/stop
 curl -f -X POST $E/sockets/1/basecaller/reset
+
+curl -f -X GET $E/postprimaries
+curl -f -X POST -d @sims/baz2bam.start.json $E/postprimaries
+curl -f -X GET $E/postprimaries
+curl -f -X POST $E/postprimaries/m123/stop
+curl -f -X DELETE $E/postprimaries/m123

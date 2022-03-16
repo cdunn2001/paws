@@ -63,7 +63,7 @@ func AddRoutes(router *gin.Engine) {
 
 // Returns top level status of the pa-ws process.
 func getStatus(c *gin.Context) {
-	var status PawsStatusObject
+	var status PawsStatusObject // TODO
 	c.IndentedJSON(http.StatusOK, status)
 }
 
@@ -91,7 +91,7 @@ func getSocketById(c *gin.Context) {
 
 // Resets all "one shot" app resources for each of the sockets.
 func resetSockets(c *gin.Context) {
-	c.Status(http.StatusOK)
+	c.Status(http.StatusOK) // TODO: Should reset all 3.
 }
 
 // Resets all "one shot" app resources for the socket.
@@ -148,7 +148,7 @@ func stopBasecallerBySocketId(c *gin.Context) {
 	}
 	if obj.ProcessStatus.ExecutionStatus != Running &&
 		obj.ProcessStatus.ExecutionStatus != Complete {
-		c.String(http.StatusConflict, "Fails if basecaller is not still in progress. Do not call after /reset. Call after /start.")
+		c.String(http.StatusConflict, "Fails if basecaller is not still in progress (was %s). Do not call after /reset. Call after /start.\n", obj.ProcessStatus.ExecutionStatus)
 	}
 	obj.ProcessStatus.ExecutionStatus = Complete
 	Basecallers[id] = obj // TODO: not thread-safe!!!
@@ -165,7 +165,7 @@ func resetBasecallerBySocketId(c *gin.Context) {
 	}
 	if obj.ProcessStatus.ExecutionStatus != Complete &&
 		obj.ProcessStatus.ExecutionStatus != Ready {
-		c.String(http.StatusConflict, "Fails if basecaller is still in progress. POST to stop first.")
+		c.String(http.StatusConflict, "Fails if basecaller is still in progress (was %s). POST to stop first.\n", obj.ProcessStatus.ExecutionStatus)
 		return
 	}
 	obj.ProcessStatus.ExecutionStatus = Ready
@@ -209,7 +209,7 @@ func stopDarkcalBySocketId(c *gin.Context) {
 	}
 	if obj.ProcessStatus.ExecutionStatus != Running &&
 		obj.ProcessStatus.ExecutionStatus != Complete {
-		c.String(http.StatusConflict, "Fails if darkcal is not still in progress. Do not call after /reset. Call after /start.")
+		c.String(http.StatusConflict, "Fails if darkcal is not still in progress (was %s). Do not call after /reset. Call after /start.\n", obj.ProcessStatus.ExecutionStatus)
 	}
 	obj.ProcessStatus.ExecutionStatus = Complete
 	Darkcals[id] = obj // TODO: not thread-safe!!!
@@ -226,7 +226,7 @@ func resetDarkcalBySocketId(c *gin.Context) {
 	}
 	if obj.ProcessStatus.ExecutionStatus != Complete &&
 		obj.ProcessStatus.ExecutionStatus != Ready {
-		c.String(http.StatusConflict, "Fails if darkcal is still in progress. POST to stop first. State:%s", obj.ProcessStatus.ExecutionStatus)
+		c.String(http.StatusConflict, "Fails if darkcal is still in progress. POST to stop first. State:'%s'\n", obj.ProcessStatus.ExecutionStatus)
 		return
 	}
 	c.Status(http.StatusOK)
@@ -268,7 +268,7 @@ func stopLoadingcalBySocketId(c *gin.Context) {
 	}
 	if obj.ProcessStatus.ExecutionStatus != Running &&
 		obj.ProcessStatus.ExecutionStatus != Complete {
-		c.String(http.StatusConflict, "Fails if loadingcal is not still in progress. Do not call after /reset. Call after /start.")
+		c.String(http.StatusConflict, "Fails if loadingcal is not still in progress. Do not call after /reset. Call after /start.\n")
 	}
 	obj.ProcessStatus.ExecutionStatus = Complete
 	Loadingcals[id] = obj // TODO: not thread-safe!!!
@@ -285,7 +285,7 @@ func resetLoadingcalBySocketId(c *gin.Context) {
 	}
 	if obj.ProcessStatus.ExecutionStatus != Complete &&
 		obj.ProcessStatus.ExecutionStatus != Ready {
-		c.String(http.StatusConflict, "Fails if loadingcal is still in progress. POST to stop first.")
+		c.String(http.StatusConflict, "Fails if loadingcal is still in progress. POST to stop first.\n")
 		return
 	}
 	c.Status(http.StatusOK)
@@ -294,11 +294,11 @@ func resetLoadingcalBySocketId(c *gin.Context) {
 // Returns a list of MIDs for each storage object.
 func listStorageMids(c *gin.Context) {
 	mids := []string{}
-	for mid, _ := range Storages {
+	for mid := range Storages {
 		mids = append(mids, mid)
 	}
 	sort.Strings(mids)
-	c.IndentedJSON(http.StatusOK, mids)
+	c.JSON(http.StatusOK, mids)
 }
 
 // Creates a storages resource for a movie.
@@ -337,10 +337,14 @@ func freeStorageByMid(c *gin.Context) {
 	c.Status(http.StatusOK)
 }
 
-// Returns a list of MIDs for each postprimary object.
+// Returns a list of MIDs, one for each postprimary object.
 func listPostprimaryMids(c *gin.Context) {
-	found := []string{"NOT", "IMPLEMENTED"}
-	c.IndentedJSON(http.StatusOK, found)
+	mids := []string{}
+	for mid := range Postprimaries { // TODO: thread-safety
+		mids = append(mids, mid)
+	}
+	sort.Strings(mids)
+	c.JSON(http.StatusOK, mids)
 }
 
 // Starts a postprimary process on the provided urls to basecalling artifacts files.
@@ -351,6 +355,15 @@ func startPostprimary(c *gin.Context) {
 		return
 	}
 	mid := obj.Mid
+	if mid == "" {
+		c.String(http.StatusBadRequest, "Must provide mid to start a postprimary process.\n")
+		return
+	}
+	_, found := Storages[mid]
+	if found {
+		c.String(http.StatusConflict, "The postprimary process for mid '%s' already exists. (But maybe we should allow a duplicate call?)\n", mid)
+		return
+	}
 	obj.ProcessStatus.ExecutionStatus = Running
 	Postprimaries[mid] = obj
 	c.IndentedJSON(http.StatusOK, obj)
@@ -358,9 +371,24 @@ func startPostprimary(c *gin.Context) {
 
 // Deletes all existing postprimaries resources.
 func deletePostprimaries(c *gin.Context) {
-	mid := c.Param("mid")
-	//c.String(http.StatusOK, "All postprimary resources were successfully deleted.")
-	c.String(http.StatusConflict, "For mid '%s', one or more of the postprimaries processes were not stopped.\n", mid)
+	mids := []string{}
+	for mid := range Postprimaries { // TODO: thread-safety
+		mids = append(mids, mid)
+	}
+	sort.Strings(mids)
+	for _, mid := range mids {
+		obj, found := Postprimaries[mid]
+		if !found {
+			panic("This is not possible unless we have a race condition.")
+		}
+		if obj.ProcessStatus.ExecutionStatus != Ready && // Should we ever allow Ready?
+			obj.ProcessStatus.ExecutionStatus != Complete {
+			c.String(http.StatusConflict, "Failed to delete postprimary process for mid '%s', still in progress (%s). Either call /stop first, or wait for Complete.\n", mid, obj.ProcessStatus.ExecutionStatus)
+			return
+		}
+		delete(Postprimaries, mid) // TODO: thread-safety (as elsewhere)
+	}
+	c.String(http.StatusOK, "All postprimary resources were successfully deleted.\n")
 }
 
 // Returns the postprimary object by MID.
@@ -378,7 +406,19 @@ func getPostprimaryByMid(c *gin.Context) {
 // Deletes the postprimary resource.
 func deletePostprimaryByMid(c *gin.Context) {
 	mid := c.Param("mid")
-	c.String(http.StatusConflict, "The postprimaries processes for mid '%s' were not stopped. POST to the stop endpoint first.\n", mid)
+	var obj PostprimaryObject
+	obj, found := Postprimaries[mid]
+	if !found {
+		c.String(http.StatusOK, "The postprimary process for mid '%s' was not found, which is fine.\n", mid)
+		return
+	}
+	if obj.ProcessStatus.ExecutionStatus != Ready && // Should we ever allow Ready?
+		obj.ProcessStatus.ExecutionStatus != Complete {
+		c.String(http.StatusConflict, "Fails if postprimary for mid '%s' is not still in progress. Either call /stop first, or wait for Complete.\n", mid)
+		return
+	}
+	delete(Postprimaries, mid) // TODO: thread-safety (as elsewhere)
+	c.String(http.StatusOK, "The postprimary resource for mid '%s' was successfully deleted.\n", mid)
 }
 
 // Gracefully aborts the postprimary proces associated with MID.

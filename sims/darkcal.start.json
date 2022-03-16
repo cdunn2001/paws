@@ -5,5 +5,5 @@
     "maxMovieSeconds": 0,
     "movieNumber": 0,
     "logUrl": "tmp/log.darkcal.txt",
-    "LogLevel": "INFO"
+    "logLevel": "INFO"
 }
