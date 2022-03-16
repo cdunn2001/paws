@@ -140,11 +140,11 @@ type SocketBasecallerObject struct {
 
 	// ROI of the ZMWs that will be used for basecalling
 	// 0,0,2048,1980
-	SequencingRoi []int32 `json:"sequencingRoi"`
+	SequencingRoi [][]int32 `json:"sequencingRoi"`
 
 	// ROI of the ZMWs that will be used for trace file writing
 	// 0,0,256,32
-	TraceFileRoi []int32 `json:"traceFileRoi"`
+	TraceFileRoi [][]int32 `json:"traceFileRoi"`
 
 	// The expected (not measured) canonical frame rate
 	// Example: 100

@@ -1,9 +1,31 @@
 {
+    "mid": "m123",
     "uuid": "MyUuid",
     "darkCalFileUrl": "tmp/darkcal.h5",
     "bazUrl": "tmp/foo.baz",
     "traceFileUrl": "tmp/foo.trc.h5",
-    "smrtBasecallerConfig": "SmrtBasecaller.config",
     "logUrl": "tmp/log.basecaller.txt",
-    "logLevel": "INFO"
+    "logLevel": "INFO",
+  "movieMaxFrames": 3600000,
+  "movieMaxSeconds": 36000,
+  "movieNumber": 567,
+  "chiplayout": "Minesweeper1.0",
+  "sequencingRoi": [
+    [
+      0,0,2048,1980
+    ]
+  ],
+  "traceFileRoi": [
+    [
+      0,0,256,32
+    ]
+  ],
+  "expectedFrameRate": 100,
+  "photoelectronSensitivity": 1.4,
+  "refSnr": 10,
+  "simulationFileUrl": "file://localhost/data/pa/sample_file.trc.h5",
+  "smrtBasecallerConfig": null,
+  "rtMetrics": {
+    "url": "http://localhost:23632/storages/m123456_987654/rtmetrics_20210625_123456.xml"
+  }
 }
