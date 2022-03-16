@@ -1,6 +1,6 @@
 #!/bin/bash
 set -vex
-P=23633
+P=23632
 E=localhost:$P
 
 curl -i -f -X GET $E/sockets
