@@ -251,6 +251,7 @@ func stopBasecallerBySocketId(c *gin.Context, state *State) {
 		c.String(http.StatusConflict, "Fails if basecaller is not still in progress (was %s). Do not call after /reset. Call after /start.\n", obj.ProcessStatus.ExecutionStatus)
 	}
 	obj.ProcessStatus.ExecutionStatus = Complete
+	obj.ProcessStatus.CompletionStatus = Aborted
 	state.Basecallers[id] = obj
 	c.Status(http.StatusOK)
 }
@@ -269,6 +270,7 @@ func resetBasecallerBySocketId(c *gin.Context, state *State) {
 		return
 	}
 	obj.ProcessStatus.ExecutionStatus = Ready
+	obj.ProcessStatus.CompletionStatus = Incomplete
 	state.Basecallers[id] = obj
 	c.Status(http.StatusOK)
 }
@@ -318,6 +320,7 @@ func stopDarkcalBySocketId(c *gin.Context, state *State) {
 		c.String(http.StatusConflict, "Fails if darkcal is not still in progress (was %s). Do not call after /reset. Call after /start.\n", obj.ProcessStatus.ExecutionStatus)
 	}
 	obj.ProcessStatus.ExecutionStatus = Complete
+	obj.ProcessStatus.CompletionStatus = Aborted
 	state.Darkcals[id] = obj // TODO: not thread-safe!!!
 	c.Status(http.StatusOK)
 }
@@ -335,6 +338,9 @@ func resetDarkcalBySocketId(c *gin.Context, state *State) {
 		c.String(http.StatusConflict, "Fails if darkcal is still in progress. POST to stop first. State:'%s'\n", obj.ProcessStatus.ExecutionStatus)
 		return
 	}
+	obj.ProcessStatus.ExecutionStatus = Ready
+	obj.ProcessStatus.CompletionStatus = Incomplete
+	state.Darkcals[id] = obj
 	c.Status(http.StatusOK)
 }
 
@@ -376,6 +382,7 @@ func stopLoadingcalBySocketId(c *gin.Context, state *State) {
 		c.String(http.StatusConflict, "Fails if loadingcal is not still in progress. Do not call after /reset. Call after /start.\n")
 	}
 	obj.ProcessStatus.ExecutionStatus = Complete
+	obj.ProcessStatus.CompletionStatus = Aborted
 	state.Loadingcals[id] = obj // TODO: not thread-safe!!!
 	c.Status(http.StatusOK)
 }
@@ -393,6 +400,9 @@ func resetLoadingcalBySocketId(c *gin.Context, state *State) {
 		c.String(http.StatusConflict, "Fails if loadingcal is still in progress. POST to stop first.\n")
 		return
 	}
+	obj.ProcessStatus.ExecutionStatus = Ready
+	obj.ProcessStatus.CompletionStatus = Incomplete
+	state.Loadingcals[id] = obj
 	c.Status(http.StatusOK)
 }
 
@@ -492,6 +502,7 @@ func stopPostprimaryByMid(c *gin.Context, state *State) {
 		c.String(http.StatusConflict, "Fails if postprimary is not still in progress. Do not call after /reset. Call after /start.")
 	}
 	obj.ProcessStatus.ExecutionStatus = Complete
+	obj.ProcessStatus.CompletionStatus = Aborted
 	state.Postprimaries[mid] = obj
 	c.String(http.StatusOK, "The process for mid '%s' was stopped, and now the resource can be DELETEd.\n", mid)
 }

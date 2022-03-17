@@ -40,7 +40,7 @@ const (
 type ExecutionStatusEnum string
 
 const (
-	Unknown  ExecutionStatusEnum = "UNKNOWN"
+	Unknown  ExecutionStatusEnum = ""
 	Ready                        = "READY"
 	Running                      = "RUNNING"
 	Complete                     = "COMPLETE"
@@ -49,7 +49,7 @@ const (
 type CompletionStatusEnum string
 
 const (
-	Incomplete CompletionStatusEnum = "UNKNOWN"
+	Incomplete CompletionStatusEnum = ""
 	Success                         = "SUCCESS"
 	Failed                          = "FAILED"
 	Aborted                         = "ABORTED"
