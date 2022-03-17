@@ -428,7 +428,7 @@ func startPostprimary(c *gin.Context, state *State) {
 		c.String(http.StatusBadRequest, "Must provide mid to start a postprimary process.\n")
 		return
 	}
-	_, found := state.Storages[mid]
+	_, found := state.Postprimaries[mid]
 	if found {
 		c.String(http.StatusConflict, "The postprimary process for mid '%s' already exists. (But maybe we should allow a duplicate call?)\n", mid)
 		return
