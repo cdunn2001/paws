@@ -2,6 +2,7 @@ package web
 
 import (
 	"errors"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"sort"
@@ -53,12 +54,33 @@ func freeStorageByMid(c *gin.Context, state *State) {
 }
 
 func StorageUrlToLinuxPath(url string, state *State) (string, error) {
-	rootUrl := "http://localhost:23632/storages/m1234/files"
-	filepath := "/somefile.txt"
+	fmt.Println("Converting:", url)
+	lenUrl := len(url)
+	if lenUrl >= 1 {
+		if url[0:1] == "/" {
+			//fmt.Println("Already linuxed: ",url)
+			return url, nil
+		}
+	}
+	if lenUrl >= 5 {
+		if url[0:5] == "file:" {
+			//fmt.Println("Removing file: prefix from ",url)
+			return url[5:], nil
+		}
+	}
 	for _, so := range state.Storages {
-		if so.RootUrl == rootUrl {
-			linuxPath := so.LinuxPath + filepath
-			return linuxPath, nil
+		//fmt.Printf("StorageUrlToLinuxPath so:%v\n", *so)
+		// r, _ := regexp.Compile("^" + so.RootUrl)
+		l := len(so.RootUrl)
+		//fmt.Println("l:",l)
+		if lenUrl >= l {
+			//fmt.Println("url[0:l]:",url[0:l])
+			if url[0:l] == so.RootUrl {
+				filepath := url[l:]
+				linuxPath := so.LinuxPath + filepath
+				//fmt.Println("Found match, linux path:",linuxPath)
+				return linuxPath, nil
+			}
 		}
 	}
 	return "/dev/null", errors.New("Could not convert " + url)
