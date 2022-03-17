@@ -27,11 +27,7 @@ func check(e error) {
 }
 
 type StatusReport struct {
-	normal      NormalStatusReport
-	exceptional ExceptionalStatusReport
-}
-type NormalStatusReport struct {
-	State            string  // e.g. "progress"
+	State            string  // e.g. "progress" or "exception"
 	Ready            bool    // turns to true when ICS can resume execution for providing sensor data
 	StageNumber      int32   // number starting at 0 representing the stage
 	StageName        string  // human readable description of the stage
@@ -40,17 +36,15 @@ type NormalStatusReport struct {
 	TimeToNextStatus float64 // maximum time in seconds until the next status update. If there is no status message within the alloted time, pa-ws should kill the process
 	StageWeights     []int32 // weights for each stage. Does not need to be normalized to any number
 	Timestamp        string  // ISO8601 time stamp with millisecond precision (see PacBio::Utilities::ISO8601)
-}
-type ExceptionalStatusReport struct {
-	State     string // "exception"
-	Message   string
-	Timestamp string // ISO8601
+
+	// Only for exceptions:
+	Message string
 }
 
 func Json2StatusReport(raw []byte) (result StatusReport) {
-	err := json.Unmarshal(raw, &result.normal)
+	err := json.Unmarshal(raw, &result)
 	if err != nil {
-		err = json.Unmarshal(raw, &result.exceptional)
+		// TODO: Ignore errors. Assume a heartbeat.
 		check(err)
 	}
 	return result
@@ -85,9 +79,9 @@ func WatchBash(bash string, env []string) error {
 	for _, f := range extraFiles {
 		mustClose(f)
 	}
-	timeToNextStatusChan := make(chan float64)
-	doneChan := make(chan bool)
-	completeChan := make(chan bool)
+	chanStatusReportText := make(chan string)
+	chanDone := make(chan bool)
+	chanComplete := make(chan bool)
 	go func() {
 		fmt.Println("Started timeout go-func")
 		var timeout float64 = 2.0
@@ -98,11 +92,19 @@ func WatchBash(bash string, env []string) error {
 			case <-time.After(time.Duration((timeout + 0.01) * float64(time.Second))):
 				timedout = true
 				fmt.Println("Timed out!")
-			case <-doneChan:
+			case <-chanDone:
 				done = true
-				fmt.Println("Go done chan!")
-			case timeout = <-timeToNextStatusChan:
-				fmt.Println("timeout is now", timeout)
+				fmt.Println("Got chanDone!")
+			case srText := <-chanStatusReportText:
+				sr, err := String2StatusReport(srText)
+				if err != nil {
+					// TODO: Log unexpected line?
+				} else if sr.State == "exception" {
+					// TODO: Got an exception. Log and ignore?
+				} else {
+					timeout = sr.TimeToNextStatus
+					fmt.Println("timeout is now", timeout)
+				}
 			}
 		}
 		if timedout {
@@ -112,7 +114,7 @@ func WatchBash(bash string, env []string) error {
 		} else {
 			fmt.Println("Not sure!!!")
 		}
-		completeChan <- true
+		chanComplete <- true
 	}()
 	go func() {
 		fmt.Println("Started scanner go-func")
@@ -124,7 +126,6 @@ func WatchBash(bash string, env []string) error {
 			isPrefix := true
 			for isPrefix && err != io.EOF {
 				line, isPrefix, err = breader.ReadLine()
-				timeToNextStatusChan <- 0.1
 				if err != nil && err != io.EOF {
 					check(err)
 				}
@@ -134,17 +135,12 @@ func WatchBash(bash string, env []string) error {
 			if err == io.EOF {
 				break
 			}
-			sr, err := String2StatusReport(text)
-			if err != nil {
-				// TODO: Log unexpected line?
-				continue
-			}
-			timeToNextStatusChan <- sr.normal.TimeToNextStatus
+			chanStatusReportText <- text
 		}
-		doneChan <- true
+		chanDone <- true
 	}()
 	select {
-	case <-completeChan:
+	case <-chanComplete:
 	}
 	return nil
 }
