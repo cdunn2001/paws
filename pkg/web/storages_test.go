@@ -9,6 +9,7 @@ import (
 func TestStorage1(t *testing.T) {
 	var state State
 	state.Storages = make(map[string]*StorageObject)
+	state.Storages["m1234"] = new(StorageObject)
 	state.Storages["m1234"].Mid = "m1234"
 	state.Storages["m1234"].RootUrl = "http://localhost:23632/storages/m1234/files"
 	state.Storages["m1234"].LinuxPath = "/data/nrta/0/m1234"

@@ -29,3 +29,4 @@ bin/%: .FORCE
 serve: bin/pawsgo
 	./$<
 .FORCE:
+.PHONY: test
