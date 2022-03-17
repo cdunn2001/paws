@@ -2,6 +2,8 @@
 set -vex
 P=23632
 E=localhost:$P
+mkdir -p tmp
+rm -f tmp/*
 
 curl -i -f -X GET $E/sockets
 # Should print [1,2,3,4] quoted.
