@@ -51,10 +51,22 @@ func TestWatchBash(t *testing.T) {
 	}
 }
 func TestString2StatusReport(t *testing.T) {
-	sr, err := String2StatusReport(`_STATUS {"counter": 123}`)
-	check(err)
-	if sr.normal.Counter != 123 {
-		t.Errorf("Got %d", sr.normal.Counter)
+	{
+		sr, err := String2StatusReport(`_STATUS {"counter": 123}`)
+		check(err)
+		if sr.State == "exception" {
+			t.Errorf("Got %v", sr)
+		} else if sr.Counter != 123 {
+			t.Errorf("Got %d", sr.Counter)
+		}
 	}
-
+	{
+		sr, err := String2StatusReport(`_STATUS {"state": "exception", "message": "HELLO"}`)
+		check(err)
+		if sr.State != "exception" {
+			t.Errorf("Got %v", sr)
+		} else if sr.Message != "HELLO" {
+			t.Errorf("Got %s", sr.Message)
+		}
+	}
 }
