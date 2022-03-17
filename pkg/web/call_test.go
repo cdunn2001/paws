@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"testing"
+	//"time"
 )
 
 var testdataDir string
@@ -45,9 +46,42 @@ func TestWatchBash(t *testing.T) {
 		"STATUS_COUNT=3",
 		"STATUS_DELAY_SECONDS=0.05", // Note: ".05" would not be valid.
 	}
-	got := WatchBash(bash, env)
-	if got != nil {
-		t.Errorf("Got %d", got)
+	ps := &ProcessStatusObject{}
+	cp, err := WatchBash(bash, ps, env)
+	if err != nil {
+		t.Errorf("Got %d", err)
+	}
+	fmt.Printf("Waiting for chanComplete '%s'?", cp.cmd)
+	select {
+	case <-cp.chanComplete:
+	}
+	fmt.Printf("Done '%s'!\n", cp.cmd)
+	code := ps.ExitCode
+	if code != 0 {
+		t.Errorf("Expected 0, got exit-code %d", code)
+	}
+}
+func TestWatchBashKill(t *testing.T) {
+	bash := testdataDir + "/dummy-basic.sh --status-fd 3"
+	env := []string{
+		"STATUS_COUNT=3",
+		"STATUS_DELAY_SECONDS=0.05", // Note: ".05" would not be valid.
+	}
+	ps := &ProcessStatusObject{}
+	cp, err := WatchBash(bash, ps, env)
+	if err != nil {
+		t.Errorf("Got %d", err)
+	}
+	fmt.Printf("Sending to chanKill\n")
+	cp.chanKill <- true
+	fmt.Printf("Waiting for chanComplete '%s'?", cp.cmd)
+	select {
+	case <-cp.chanComplete:
+	}
+	fmt.Printf("Done '%s'!\n", cp.cmd)
+	code := ps.ExitCode
+	if code != -1 {
+		t.Errorf("Expected -1, got exit-code %d", code)
 	}
 }
 func TestString2StatusReport(t *testing.T) {
