@@ -26,7 +26,7 @@ var Template_darkcal = `
   --timeoutseconds {{.timeoutseconds}} \
 `
 
-func WriteDarkcalBash(wr io.Writer, tc *TopConfig, obj SocketDarkcalObject, SocketId string) error {
+func WriteDarkcalBash(wr io.Writer, tc *TopConfig, obj *SocketDarkcalObject, SocketId string) error {
 	t := CreateTemplate(Template_darkcal, "")
 	kv := make(map[string]string)
 	UpdateWithConfig(kv, tc)
@@ -71,7 +71,7 @@ var Template_loadingcal = `
   --timeoutseconds {{.timeoutseconds}} \
 `
 
-func WriteLoadingcalBash(wr io.Writer, tc *TopConfig, obj SocketLoadingcalObject, SocketId string) error {
+func WriteLoadingcalBash(wr io.Writer, tc *TopConfig, obj *SocketLoadingcalObject, SocketId string) error {
 	t := CreateTemplate(Template_loadingcal, "")
 	kv := make(map[string]string)
 
@@ -119,7 +119,7 @@ var Template_basecaller = `
 `
 
 // Doesn't this need the darkcalfile?
-func WriteBasecallerBash(wr io.Writer, tc *TopConfig, obj SocketBasecallerObject, SocketId string) error {
+func WriteBasecallerBash(wr io.Writer, tc *TopConfig, obj *SocketBasecallerObject, SocketId string) error {
 	t := CreateTemplate(Template_basecaller, "")
 	kv := make(map[string]string)
 
@@ -156,7 +156,7 @@ var Template_baz2bam = `
   --maxOutputQueueMB {{.baz2BamMaxOutputQueueMB}} \
 `
 
-func WriteBaz2bamBash(wr io.Writer, tc *TopConfig, obj PostprimaryObject) error {
+func WriteBaz2bamBash(wr io.Writer, tc *TopConfig, obj *PostprimaryObject) error {
 	t := CreateTemplate(Template_baz2bam, "")
 	kv := make(map[string]string)
 	UpdateWithConfig(kv, tc)
@@ -200,7 +200,7 @@ var Template_reduce_stats = `
   --config=common.platform={{.job_platform}} \
 `
 
-func WriteReduceStatsBash(wr io.Writer, tc *TopConfig, obj PostprimaryObject, job Job) error {
+func WriteReduceStatsBash(wr io.Writer, tc *TopConfig, obj *PostprimaryObject, job Job) error {
 	t := CreateTemplate(Template_reduce_stats, "")
 	kv := make(map[string]string)
 	UpdateWithConfig(kv, tc)
@@ -209,7 +209,7 @@ func WriteReduceStatsBash(wr io.Writer, tc *TopConfig, obj PostprimaryObject, jo
 	//obj.OutputReduceStatsH5Url
 	return t.Execute(wr, kv)
 }
-func CopyRsts(obj PostprimaryObject, job Job) error {
+func CopyRsts(obj *PostprimaryObject, job Job) error {
 	// obj.OutputStatsH5Url
 	// obj.OutputStatsXmlUrl
 	/*

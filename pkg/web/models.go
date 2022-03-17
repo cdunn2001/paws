@@ -359,15 +359,18 @@ type StorageObject struct {
 	ProcessStatus ProcessStatusObject       `json:"processStatus"`
 }
 
-func CreateSocketBasecallerObject() (result SocketBasecallerObject) {
+func CreateSocketBasecallerObject() (result *SocketBasecallerObject) {
+	result = new(SocketBasecallerObject)
 	result.ProcessStatus.ExecutionStatus = Ready
 	return result
 }
-func CreateSocketDarkcalObject() (result SocketDarkcalObject) {
+func CreateSocketDarkcalObject() (result *SocketDarkcalObject) {
+	result = new(SocketDarkcalObject)
 	result.ProcessStatus.ExecutionStatus = Ready
 	return result
 }
-func CreateSocketLoadingcalObject() (result SocketLoadingcalObject) {
+func CreateSocketLoadingcalObject() (result *SocketLoadingcalObject) {
+	result = new(SocketLoadingcalObject)
 	result.ProcessStatus.ExecutionStatus = Ready
 	return result
 }
