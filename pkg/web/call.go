@@ -59,10 +59,10 @@ func String2StatusReport(text string) (result StatusReport, err error) {
 	return result, nil
 }
 
-func WatchBash(bash string, env []string) error {
+func WatchBash(bash string, ps *ProcessStatusObject, env []string) (*ControlledProcess, error) {
 	rpipe, wpipe, err := os.Pipe()
 	if err != nil {
-		return err
+		return nil, err
 	}
 	extraFiles := []*os.File{wpipe} // becomes fd 3 in child
 	fmt.Println("bash:", bash)
@@ -81,6 +81,16 @@ func WatchBash(bash string, env []string) error {
 	chanStatusReportText := make(chan string)
 	chanDone := make(chan bool)
 	chanComplete := make(chan bool)
+	chanKill := make(chan bool)
+
+	cbp := &ControlledProcess{
+		cmd:          cmd,
+		status:       ps,
+		chanKill:     chanKill,
+		chanComplete: chanComplete,
+	}
+	cbp.status.ExecutionStatus = Running // TODO: Make this thread-safe!!!
+
 	go func() {
 		fmt.Println("Started timeout go-func")
 		var timeout float64 = 2.0
@@ -91,6 +101,14 @@ func WatchBash(bash string, env []string) error {
 			case <-time.After(time.Duration((timeout + 0.01) * float64(time.Second))):
 				timedout = true
 				fmt.Println("Timed out!")
+				fmt.Printf("Killing pid %d\n", cmd.Process.Pid)
+				cmd.Process.Kill() // TODO: What happens if not running? Also, check sub-children, or maybe ssid.
+			case <-chanKill:
+				fmt.Printf("Got chanKill.\n")
+				fmt.Printf("Killing pid %d\n", cmd.Process.Pid)
+				cmd.Process.Kill() // TODO: What happens if not running? Also, check sub-children, or maybe ssid.
+				done = true
+				fmt.Println("Called Kill()")
 			case <-chanDone:
 				done = true
 				fmt.Println("Got chanDone!")
@@ -103,6 +121,9 @@ func WatchBash(bash string, env []string) error {
 				} else {
 					timeout = sr.TimeToNextStatus
 					fmt.Println("timeout is now", timeout)
+
+					// TODO: Make this thread-safe!!!
+					cbp.status.Timestamp = sr.Timestamp
 				}
 			}
 		}
@@ -112,6 +133,22 @@ func WatchBash(bash string, env []string) error {
 			fmt.Println("Done?")
 		} else {
 			fmt.Println("Not sure!!!")
+		}
+		fmt.Printf("Now waiting for pid %d\n", cmd.Process.Pid)
+		err := cmd.Wait()
+		fmt.Printf("Done waiting for pid %d. Exit:%v\n", cmd.Process.Pid, err)
+
+		// TODO: Make these thread-safe!!!
+		cbp.status.ExecutionStatus = Complete
+		cbp.status.ExitCode = int32(cmd.ProcessState.ExitCode())
+
+		if !cmd.ProcessState.Exited() {
+			// Must have been signaled.
+			cbp.status.CompletionStatus = Aborted
+		} else if !cmd.ProcessState.Success() {
+			cbp.status.CompletionStatus = Failed
+		} else {
+			cbp.status.CompletionStatus = Success
 		}
 		chanComplete <- true
 	}()
@@ -124,10 +161,16 @@ func WatchBash(bash string, env []string) error {
 			text := ""
 			line := []byte{}
 			isPrefix := true
-			for isPrefix && err != io.EOF {
+			for isPrefix {
 				line, isPrefix, err = breader.ReadLine()
-				if err != nil && err != io.EOF {
-					check(err)
+				if err != nil {
+					if err != io.EOF {
+						// Unexpected error. // TODO: What else is ok here?
+						fmt.Printf("Unexpected error from Readline():'%+v'\n", err)
+						//check(err)
+					}
+					fmt.Println("End of file. Done reading status-reports.")
+					break
 				}
 				text = text + string(line)
 			}
@@ -138,11 +181,10 @@ func WatchBash(bash string, env []string) error {
 			chanStatusReportText <- text
 		}
 		chanDone <- true
+		//close(chanStatusReportText) // TODO? Somehow?
 	}()
-	select {
-	case <-chanComplete:
-	}
-	return nil
+
+	return cbp, nil
 }
 func RunBash(bash string, env []string) error {
 	cmd := exec.Command("bash", "-c", bash)

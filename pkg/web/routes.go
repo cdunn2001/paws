@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"os/exec"
 	"sort"
 	"sync"
 )
@@ -286,6 +287,23 @@ func getDarkcalBySocketId(c *gin.Context, state *State) {
 	c.IndentedJSON(http.StatusOK, obj)
 }
 
+type ControlledProcess struct {
+	cmd          *exec.Cmd
+	status       *ProcessStatusObject
+	chanKill     chan bool
+	chanComplete chan bool
+}
+
+func StartControlledBashProcess(bash string, ps *ProcessStatusObject) {
+	cp, err := WatchBash(bash, ps, nil)
+	if err != nil {
+		panic(err) // TODO: Check if panics are working.
+	}
+	select {
+	case <-cp.chanComplete:
+	}
+}
+
 // Starts a darkcal process on socket {id}.
 func startDarkcalBySocketId(c *gin.Context, state *State) {
 	id := c.Param("id")
@@ -295,14 +313,16 @@ func startDarkcalBySocketId(c *gin.Context, state *State) {
 		return
 	}
 	obj.ProcessStatus.ExecutionStatus = Running
-	state.Darkcals[id] = obj
+	state.Darkcals[id] = obj // TODO: Error if already running?
 	wr := new(bytes.Buffer)
 	err := WriteDarkcalBash(wr, &topconfig, obj, id)
 	if err != nil {
 		c.Writer.WriteString("Could not parse body into struct.\n")
 		return
 	}
-	fmt.Printf("Wrote:'%s'", wr.String())
+	fmt.Printf("Wrote:'%s'\n", wr.String())
+	StartControlledBashProcess(wr.String(), &obj.ProcessStatus)
+	fmt.Printf("Ran it\n")
 	c.IndentedJSON(http.StatusOK, obj)
 }
 
@@ -319,9 +339,10 @@ func stopDarkcalBySocketId(c *gin.Context, state *State) {
 		obj.ProcessStatus.ExecutionStatus != Complete {
 		c.String(http.StatusConflict, "Fails if darkcal is not still in progress (was %s). Do not call after /reset. Call after /start.\n", obj.ProcessStatus.ExecutionStatus)
 	}
+	// TODO: Do this elsewhere?
 	obj.ProcessStatus.ExecutionStatus = Complete
 	obj.ProcessStatus.CompletionStatus = Aborted
-	state.Darkcals[id] = obj // TODO: not thread-safe!!!
+	state.Darkcals[id] = obj // TODO: Invalidates ProcessStatus pointer?
 	c.Status(http.StatusOK)
 }
 
