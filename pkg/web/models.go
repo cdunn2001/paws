@@ -46,13 +46,22 @@ const (
 	Complete                     = "COMPLETE"
 )
 
+type CompletionStatusEnum string
+
+const (
+	Incomplete CompletionStatusEnum = "UNKNOWN"
+	Success                         = "SUCCESS"
+	Failed                          = "FAILED"
+	Aborted                         = "ABORTED"
+)
+
 type ProcessStatusObject struct {
 
 	// Status of the execution of the process
 	ExecutionStatus ExecutionStatusEnum `json:"executionStatus"`
 
 	// Status of the completion of the process after it exits. Only valid if the executionStatus is COMPLETE
-	CompletionStatus string `json:"completionStatus"`
+	CompletionStatus CompletionStatusEnum `json:"completionStatus"`
 
 	// ISO8601 timestamp (with milliseconds) of the latest status update
 	// Example: 2017-01-31T01:59:49.103Z
