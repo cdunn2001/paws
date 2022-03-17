@@ -11,11 +11,11 @@ import (
 
 type State struct {
 	Sockets       map[string]SocketObject
-	Storages      map[string]StorageObject
-	Basecallers   map[string]SocketBasecallerObject
-	Darkcals      map[string]SocketDarkcalObject
-	Loadingcals   map[string]SocketLoadingcalObject
-	Postprimaries map[string]PostprimaryObject
+	Storages      map[string]*StorageObject
+	Basecallers   map[string]*SocketBasecallerObject
+	Darkcals      map[string]*SocketDarkcalObject
+	Loadingcals   map[string]*SocketLoadingcalObject
+	Postprimaries map[string]*PostprimaryObject
 }
 
 // Someday, move this to separate package, for privacy.
@@ -50,11 +50,11 @@ func init() {
 				SocketId: "4",
 			},
 		},
-		Storages:      make(map[string]StorageObject),
-		Basecallers:   make(map[string]SocketBasecallerObject),
-		Darkcals:      make(map[string]SocketDarkcalObject),
-		Loadingcals:   make(map[string]SocketLoadingcalObject),
-		Postprimaries: make(map[string]PostprimaryObject),
+		Storages:      make(map[string]*StorageObject),
+		Basecallers:   make(map[string]*SocketBasecallerObject),
+		Darkcals:      make(map[string]*SocketDarkcalObject),
+		Loadingcals:   make(map[string]*SocketLoadingcalObject),
+		Postprimaries: make(map[string]*PostprimaryObject),
 	}
 	for k := range top.state.Sockets {
 		top.state.Basecallers[k] = CreateSocketBasecallerObject()
@@ -216,7 +216,6 @@ func getImageBySocketId(c *gin.Context, state *State) {
 // Returns the basecaller object indexed by the socket {id}.
 func getBasecallerBySocketId(c *gin.Context, state *State) {
 	id := c.Param("id")
-	var obj SocketBasecallerObject
 	obj, found := state.Basecallers[id]
 	if !found {
 		c.String(http.StatusNotFound, "The basecaller process for socket '%s' was not found.\n", id)
@@ -228,8 +227,8 @@ func getBasecallerBySocketId(c *gin.Context, state *State) {
 // Start the basecaller process on socket {id}.
 func startBasecallerBySocketId(c *gin.Context, state *State) {
 	id := c.Param("id")
-	var obj SocketBasecallerObject
-	if err := c.BindJSON(&obj); err != nil {
+	obj := &SocketBasecallerObject{}
+	if err := c.BindJSON(obj); err != nil {
 		c.Writer.WriteString("Could not parse body into struct.\n")
 		return
 	}
@@ -277,7 +276,6 @@ func resetBasecallerBySocketId(c *gin.Context, state *State) {
 // Returns the darkcal object indexed by socket {id}.
 func getDarkcalBySocketId(c *gin.Context, state *State) {
 	id := c.Param("id")
-	var obj SocketDarkcalObject
 	obj, found := state.Darkcals[id]
 	if !found {
 		c.String(http.StatusNotFound, "The darkcal process for socket '%s' was not found.\n", id)
@@ -289,8 +287,8 @@ func getDarkcalBySocketId(c *gin.Context, state *State) {
 // Starts a darkcal process on socket {id}.
 func startDarkcalBySocketId(c *gin.Context, state *State) {
 	id := c.Param("id")
-	var obj SocketDarkcalObject
-	if err := c.BindJSON(&obj); err != nil {
+	obj := &SocketDarkcalObject{}
+	if err := c.BindJSON(obj); err != nil {
 		c.Writer.WriteString("Could not parse body into struct.\n")
 		return
 	}
@@ -343,7 +341,6 @@ func resetDarkcalBySocketId(c *gin.Context, state *State) {
 // Returns the loadingcal object indexed by socket {id}.
 func getLoadingcalBySocketId(c *gin.Context, state *State) {
 	id := c.Param("id")
-	var obj SocketLoadingcalObject
 	obj, found := state.Loadingcals[id]
 	if !found {
 		c.String(http.StatusNotFound, "The loadingcal process for socket '%s' was not found.\n", id)
@@ -355,8 +352,8 @@ func getLoadingcalBySocketId(c *gin.Context, state *State) {
 // Starts a loadingcal process on socket {id}.
 func startLoadingcalBySocketId(c *gin.Context, state *State) {
 	id := c.Param("id")
-	var obj SocketLoadingcalObject
-	if err := c.BindJSON(&obj); err != nil {
+	obj := &SocketLoadingcalObject{}
+	if err := c.BindJSON(obj); err != nil {
 		c.Writer.WriteString("Could not parse body into struct.\n")
 		return
 	}
@@ -399,52 +396,6 @@ func resetLoadingcalBySocketId(c *gin.Context, state *State) {
 	c.Status(http.StatusOK)
 }
 
-// Returns a list of MIDs for each storage object.
-func listStorageMids(c *gin.Context, state *State) {
-	mids := []string{}
-	for mid := range state.Storages {
-		mids = append(mids, mid)
-	}
-	sort.Strings(mids)
-	c.JSON(http.StatusOK, mids)
-}
-
-// Creates a storages resource for a movie.
-func createStorage(c *gin.Context, state *State) {
-	var obj StorageObject
-	if err := c.BindJSON(&obj); err != nil {
-		c.Writer.WriteString("Could not parse body into struct.\n")
-		return
-	}
-	mid := obj.Mid
-	state.Storages[mid] = obj
-	c.IndentedJSON(http.StatusOK, obj)
-}
-
-// Returns the storage object by MID.
-func getStorageByMid(c *gin.Context, state *State) {
-	mid := c.Param("mid")
-	var obj StorageObject
-	obj, found := state.Storages[mid]
-	if !found {
-		c.String(http.StatusNotFound, "The storage for mid '%s' was not found.\n", mid)
-		return
-	}
-	c.IndentedJSON(http.StatusOK, obj)
-}
-
-// Deletes the storages resource for the provided movie context name (MID).
-func deleteStorageByMid(c *gin.Context, state *State) {
-	mid := c.Param("mid")
-	c.String(http.StatusConflict, "For mid '%s', if all files have not been freed, the DELETE will fail.\n", mid)
-}
-
-// Frees all directories and files associated with the storages resources and reclaims disk space.
-func freeStorageByMid(c *gin.Context, state *State) {
-	//mid := c.Param("mid")
-	c.Status(http.StatusOK)
-}
-
 // Returns a list of MIDs, one for each postprimary object.
 func listPostprimaryMids(c *gin.Context, state *State) {
 	mids := []string{}
@@ -457,8 +408,8 @@ func listPostprimaryMids(c *gin.Context, state *State) {
 
 // Starts a postprimary process on the provided urls to basecalling artifacts files.
 func startPostprimary(c *gin.Context, state *State) {
-	var obj PostprimaryObject
-	if err := c.BindJSON(&obj); err != nil {
+	obj := &PostprimaryObject{}
+	if err := c.BindJSON(obj); err != nil {
 		c.Writer.WriteString("Could not parse body into struct.\n")
 		return
 	}
@@ -502,7 +453,6 @@ func deletePostprimaries(c *gin.Context, state *State) {
 // Returns the postprimary object by MID.
 func getPostprimaryByMid(c *gin.Context, state *State) {
 	mid := c.Param("mid")
-	var obj PostprimaryObject
 	obj, found := state.Postprimaries[mid]
 	if !found {
 		c.String(http.StatusNotFound, "The postprimary process for mid '%s' was not found.\n", mid)
@@ -514,7 +464,6 @@ func getPostprimaryByMid(c *gin.Context, state *State) {
 // Deletes the postprimary resource.
 func deletePostprimaryByMid(c *gin.Context, state *State) {
 	mid := c.Param("mid")
-	var obj PostprimaryObject
 	obj, found := state.Postprimaries[mid]
 	if !found {
 		c.String(http.StatusOK, "The postprimary process for mid '%s' was not found, which is fine.\n", mid)

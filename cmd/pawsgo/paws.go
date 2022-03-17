@@ -119,7 +119,7 @@ func listen(port int) {
 	log.Fatal(router.Run(portStr)) // logger maybe not needed, but does not seem to hurt
 }
 func main() {
-	portPtr := flag.Int("port", 23633, "Listen on this port.")
+	portPtr := flag.Int("port", 23632, "Listen on this port.")
 	flag.Parse()
 	fmt.Printf("port='%v'\n", *portPtr)
 	//flag.PrintDefaults()
