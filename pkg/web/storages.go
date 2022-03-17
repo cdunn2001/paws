@@ -53,9 +53,8 @@ func freeStorageByMid(c *gin.Context, state *State) {
 }
 
 func StorageUrlToLinuxPath(url string, state *State) (string, error) {
-
-	rootUrl := "http://whatever:23632/m1234"
-	filepath := "whatever"
+	rootUrl := "http://localhost:23632/storages/m1234/files"
+	filepath := "/somefile.txt"
 	for _, so := range state.Storages {
 		if so.RootUrl == rootUrl {
 			linuxPath := so.LinuxPath + filepath
