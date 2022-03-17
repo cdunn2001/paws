@@ -164,8 +164,8 @@ type SocketBasecallerObject struct {
 	PhotoelectronSensitivity float64 `json:"photoelectronSensitivity"`
 
 	// Reference SNR
-	// Example: 10
-	RefSnr int32 `json:"refSnr"`
+	// Example: 10.0
+	RefSnr float64 `json:"refSnr"`
 
 	// Source URL for the file to use for transmission of simulated data. Only local files are supported currently.
 	// Example: file://localhost/data/pa/sample_file.trc.h5
