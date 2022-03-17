@@ -61,7 +61,6 @@ func String2StatusReport(text string) (result StatusReport, err error) {
 
 func WatchBash(bash string, env []string) error {
 	rpipe, wpipe, err := os.Pipe()
-	defer rpipe.Close()
 	if err != nil {
 		return err
 	}
@@ -119,6 +118,7 @@ func WatchBash(bash string, env []string) error {
 	go func() {
 		fmt.Println("Started scanner go-func")
 		breader := bufio.NewReader(rpipe)
+		defer rpipe.Close()
 		var err error = nil
 		for err == nil {
 			text := ""
