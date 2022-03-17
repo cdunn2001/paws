@@ -201,7 +201,7 @@ type AnalogObject struct {
 
 	// Coefficient of variation of excess noise
 	// Example: 3
-	ExcessNoiseCv int32 `json:"excessNoiseCv"`
+	ExcessNoiseCv float64 `json:"excessNoiseCv"`
 
 	// Average time in seconds of the width of pulses of this analog
 	// Example: 0.11
