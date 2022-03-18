@@ -14,8 +14,6 @@ curl -i -f -X GET $E/sockets/1/darkcal
 curl -i -f -X POST -d @sims/darkcal.start.json $E/sockets/1/darkcal/start
 #curl -i -X POST -d '{"calibFileUrl": ""}' $E/sockets/1/darkcal/start
 
-exit 0
-# For later:
 curl -i -f -X POST $E/sockets/1/darkcal/stop
 curl -i -f -X POST $E/sockets/1/darkcal/reset
 

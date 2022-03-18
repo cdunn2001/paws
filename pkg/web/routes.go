@@ -234,7 +234,16 @@ func startBasecallerBySocketId(c *gin.Context, state *State) {
 		return
 	}
 	obj.ProcessStatus.ExecutionStatus = Running
-	state.Basecallers[id] = obj
+	state.Basecallers[id] = obj // TODO: Error if already running?
+	wr := new(bytes.Buffer)
+	err := WriteBasecallerBash(wr, &topconfig, obj, id)
+	if err != nil {
+		c.Writer.WriteString("Could not parse body into struct.\n")
+		return
+	}
+	fmt.Printf("Wrote:'%s'\n", wr.String())
+	StartControlledBashProcess(wr.String(), &obj.ProcessStatus)
+	fmt.Printf("Ran it\n")
 	c.IndentedJSON(http.StatusOK, obj)
 }
 
@@ -385,7 +394,16 @@ func startLoadingcalBySocketId(c *gin.Context, state *State) {
 		return
 	}
 	obj.ProcessStatus.ExecutionStatus = Running
-	state.Loadingcals[id] = obj
+	state.Loadingcals[id] = obj // TODO: Error if already running?
+	wr := new(bytes.Buffer)
+	err := WriteLoadingcalBash(wr, &topconfig, obj, id)
+	if err != nil {
+		c.Writer.WriteString("Could not parse body into struct.\n")
+		return
+	}
+	fmt.Printf("Wrote:'%s'\n", wr.String())
+	StartControlledBashProcess(wr.String(), &obj.ProcessStatus)
+	fmt.Printf("Ran it\n")
 	c.IndentedJSON(http.StatusOK, obj)
 }
 
@@ -455,7 +473,16 @@ func startPostprimary(c *gin.Context, state *State) {
 		return
 	}
 	obj.ProcessStatus.ExecutionStatus = Running
-	state.Postprimaries[mid] = obj
+	state.Postprimaries[mid] = obj // TODO: Error if already running?
+	wr := new(bytes.Buffer)
+	err := WriteBaz2bamBash(wr, &topconfig, obj)
+	if err != nil {
+		c.Writer.WriteString("Could not parse body into struct.\n")
+		return
+	}
+	fmt.Printf("Wrote:'%s'\n", wr.String())
+	StartControlledBashProcess(wr.String(), &obj.ProcessStatus)
+	fmt.Printf("Ran it\n")
 	c.IndentedJSON(http.StatusOK, obj)
 }
 
