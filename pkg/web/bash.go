@@ -192,8 +192,8 @@ func UpdateJob(kv map[string]string, job Job) {
 	kv["job_platform"] = job.platform
 }
 
-var Template_reduce_stats = `
-{{.Binary_reduce_stats}} \
+var Template_reducestats = `
+{{.Binary_reducestats}} \
   --input {{.job_outputPrefix}}.sts.h5 \
   --output {{.job_outputPrefix}}.rsts.h5 \
   --config=common.chipClass={{.job_chipClass}} \
@@ -201,7 +201,7 @@ var Template_reduce_stats = `
 `
 
 func WriteReduceStatsBash(wr io.Writer, tc *TopConfig, obj *PostprimaryObject, job Job) error {
-	t := CreateTemplate(Template_reduce_stats, "")
+	t := CreateTemplate(Template_reducestats, "")
 	kv := make(map[string]string)
 	UpdateWithConfig(kv, tc)
 	job.outputPrefix = obj.OutputPrefixUrl // TODO

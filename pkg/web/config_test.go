@@ -16,6 +16,6 @@ func TestPpaConfigUpdate(t *testing.T) {
 	err := UpdatePpaConfig(raw, cfg)
 	check(err)
 	got := Config2Json(*cfg)
-	expected := `{"Binary_baz2bam":"SNAFU","Binary_pa_cal":"pa-cal","Binary_reduce_stats":"reduce-stats","Binary_smrt_basecaller":"smrt-basecaller"}`
+	expected := `{"Binary_baz2bam":"SNAFU","Binary_pa_cal":"pa-cal","Binary_reducestats":"ppa-reducestats","Binary_smrt_basecaller":"smrt-basecaller"}`
 	Expect(t, expected, got)
 }

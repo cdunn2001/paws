@@ -7,7 +7,7 @@ import (
 
 func TestWriteReduceStatsBash(t *testing.T) {
 	expected := `
-reduce-stats \
+ppa-reducestats \
   --input PREFIX.sts.h5 \
   --output PREFIX.rsts.h5 \
   --config=common.chipClass=CHIP \
