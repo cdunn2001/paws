@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/exec"
 	"regexp"
+	"strconv"
 	"time"
 )
 
@@ -57,6 +58,27 @@ func String2StatusReport(text string) (result StatusReport, err error) {
 	json_raw := []byte(found[1])
 	result = Json2StatusReport(json_raw)
 	return result, nil
+}
+
+// This can be used to set the env for our dummy bash scripts, causing
+// them to waste "stall" seconds (float).
+// The result is suitable for 'env' arg of WatchBash().
+func DummyEnv(stall string) (result []string) {
+	secs, err := strconv.ParseFloat(stall, 32)
+	if err != nil {
+		return result
+	}
+	if secs == 0.0 {
+		return result
+	}
+	delay := 0.1
+	count := int(secs / delay)
+	result = []string{
+		fmt.Sprintf("STATUS_COUNT=%d", count),
+		fmt.Sprintf("STATUS_DELAY_SECONDS=%f", delay),
+	}
+	fmt.Printf("DummyEnv:'%s'\n", result)
+	return result
 }
 
 func WatchBash(bash string, ps *ProcessStatusObject, env []string) (*ControlledProcess, error) {

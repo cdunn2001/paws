@@ -242,7 +242,8 @@ func startBasecallerBySocketId(c *gin.Context, state *State) {
 		return
 	}
 	fmt.Printf("Wrote:'%s'\n", wr.String())
-	StartControlledBashProcess(wr.String(), &obj.ProcessStatus)
+	stall := c.DefaultQuery("stall", "0")
+	StartControlledBashProcess(wr.String(), &obj.ProcessStatus, stall)
 	fmt.Printf("Ran it\n")
 	c.IndentedJSON(http.StatusOK, obj)
 }
@@ -303,8 +304,9 @@ type ControlledProcess struct {
 	chanComplete chan bool
 }
 
-func StartControlledBashProcess(bash string, ps *ProcessStatusObject) {
-	cp, err := WatchBash(bash, ps, nil)
+func StartControlledBashProcess(bash string, ps *ProcessStatusObject, stall string) {
+	env := DummyEnv(stall)
+	cp, err := WatchBash(bash, ps, env)
 	if err != nil {
 		panic(err) // TODO: Check if panics are working.
 	}
@@ -330,7 +332,8 @@ func startDarkcalBySocketId(c *gin.Context, state *State) {
 		return
 	}
 	fmt.Printf("Wrote:'%s'\n", wr.String())
-	StartControlledBashProcess(wr.String(), &obj.ProcessStatus)
+	stall := c.DefaultQuery("stall", "0")
+	StartControlledBashProcess(wr.String(), &obj.ProcessStatus, stall)
 	fmt.Printf("Ran it\n")
 	c.IndentedJSON(http.StatusOK, obj)
 }
@@ -402,7 +405,8 @@ func startLoadingcalBySocketId(c *gin.Context, state *State) {
 		return
 	}
 	fmt.Printf("Wrote:'%s'\n", wr.String())
-	StartControlledBashProcess(wr.String(), &obj.ProcessStatus)
+	stall := c.DefaultQuery("stall", "0")
+	StartControlledBashProcess(wr.String(), &obj.ProcessStatus, stall)
 	fmt.Printf("Ran it\n")
 	c.IndentedJSON(http.StatusOK, obj)
 }
@@ -481,7 +485,8 @@ func startPostprimary(c *gin.Context, state *State) {
 		return
 	}
 	fmt.Printf("Wrote:'%s'\n", wr.String())
-	StartControlledBashProcess(wr.String(), &obj.ProcessStatus)
+	stall := c.DefaultQuery("stall", "0")
+	StartControlledBashProcess(wr.String(), &obj.ProcessStatus, stall)
 	fmt.Printf("Ran it\n")
 	c.IndentedJSON(http.StatusOK, obj)
 }
