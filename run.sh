@@ -16,13 +16,14 @@ curl $f -X GET $E/sockets
 ###
 # Sleep after starting so they will finish before reset.
 
-#curl $F -X GET $E/sockets/1/darkcal
-#curl $F -X POST -d @sims/darkcal.start.json $E/sockets/1/darkcal/start
-#curl $F -X GET $E/sockets/1/darkcal
-#sleep 0.1
-#curl $F -X GET $E/sockets/1/darkcal
-#curl $F -X POST $E/sockets/1/darkcal/reset
-#curl $F -X GET $E/sockets/1/darkcal
+curl $F -X GET $E/sockets/1/darkcal
+curl $F -X POST -d @sims/darkcal.start.json $E/sockets/1/darkcal/start
+exit 0
+curl $F -X GET $E/sockets/1/darkcal
+sleep 0.1
+curl $F -X GET $E/sockets/1/darkcal
+curl $F -X POST $E/sockets/1/darkcal/reset
+curl $F -X GET $E/sockets/1/darkcal
 
 curl $F -X GET $E/sockets/1/loadingcal
 curl $F -X POST -d @sims/loadingcal.start.json $E/sockets/1/loadingcal/start

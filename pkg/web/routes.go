@@ -107,10 +107,10 @@ var topconfig TopConfig // Should be considered "const", as changes would not be
 func FindBinaries() BinaryPaths {
 	if true {
 		return BinaryPaths{
-			Binary_baz2bam:         "dummy-baz2bam.sh",
-			Binary_smrt_basecaller: "dummy-smrt-basecaller.sh",
-			Binary_pa_cal:          "dummy-pa-cal.sh",
-			Binary_reduce_stats:    "dummy-reduce-stats.sh",
+			Binary_baz2bam:         "baz2bam",
+			Binary_smrt_basecaller: "smrt-basecaller",
+			Binary_pa_cal:          "pa-cal",
+			Binary_reduce_stats:    "reduce-stats",
 		}
 	} else {
 		return BinaryPaths{
