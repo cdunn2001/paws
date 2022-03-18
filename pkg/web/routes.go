@@ -193,12 +193,12 @@ func resetSockets(c *gin.Context, state *State) {
 				x.Value = id
 			}
 		}
-		if !found {
-			c.Params = append(c.Params, gin.Param{
-				Key:   "id",
-				Value: id})
+		if ! found {
+			c.Params = append(c.Params, gin.Param {
+				Key: "id",
+				Value: id })
 		}
-		resetSocketById(c, state)
+		resetSocketById(c,state)
 	}
 	c.Status(http.StatusOK) // TODO: Should reset all 3.
 }
