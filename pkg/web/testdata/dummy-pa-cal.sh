@@ -12,50 +12,81 @@ OUTPUT_FILE="default.output"
 
 while [[ $# -gt 0 ]]; do
   case $1 in
-    --statusfd)
-      FD="$2"
-      shift # past argument
-      shift # past value
-      ;;
-    --logfilter)
-      LOG_FILTER="$2"
-      shift # past argument
-      shift # past value
-      ;;
-    --logoutput)
-      LOG_OUTPUT="$2"
-      shift # past argument
-      shift # past value
-      ;;
-    --outputFile)
-      OUTPUT_FILE="$2"
-      shift # past argument
-      shift # past value
-      ;;
-    --config)
-      CONFIG="$2"
-      shift # past argument
-      shift # past value
-      ;;
-    --version)
-      VERSION=1
-      shift # past argument
-      ;;
-    --*)
-      echo "Unknown option $1 $2"
-      shift # past argument
-      shift # past value
-      #exit 1 # Fine.
-      ;;
-    -*)
-      echo "Unknown flag $1"
-      shift # past argument
-      #exit 1 # Fine.
-      ;;
-    *)
-      POSITIONAL_ARGS+=("$1") # save positional arg
-      shift # past argument
-      ;;
+      --statusfd)
+          FD="$2"
+          shift # past argument
+          shift # past value
+          ;;
+      --logfilter)
+          LOG_FILTER="$2"
+          shift # past argument
+          shift # past value
+          ;;
+      --logoutput)
+          LOG_OUTPUT="$2"
+          shift # past argument
+          shift # past value
+          ;;
+      --outputFile)
+          OUTPUT_FILE="$2"
+          shift # past argument
+          shift # past value
+          ;;
+      --config)
+          CONFIG="$2"
+          shift # past argument
+          shift # past value
+          ;;
+      --version)
+          VERSION=1
+          shift # past argument
+          ;;
+      --sra)
+          shift # past argument
+          shift # past value
+          ;;
+      --movieNum)
+          shift # past argument
+          shift # past value
+          ;;
+      --numFrames)
+          shift # past argument
+          shift # past value
+          ;;
+      --timeoutseconds)
+          shift # past argument
+          shift # past value
+          ;;
+      --cal)
+          shift # past argument
+          shift # past value
+          ;;
+      --inputDarkCalFile)
+          shift # past argument
+          inputDarkCalFile=$1
+          if [[ ! -f ${inputDarkCalFile} ]] 
+          then
+              echo "inputDarkCalFile ${inputDarkCalFile} does not exist"
+              exit 1
+          fi
+          shift # past value
+          ;;
+
+      --*)
+          echo "Unknown option $1 $2"
+          shift # past argument
+          shift # past value
+          #exit 1 # Fine.
+          ;;
+      -*)
+          echo "Unknown flag $1"
+          shift # past argument
+          #exit 1 # Fine.
+          ;;
+      *)
+          POSITIONAL_ARGS+=("$1") # save positional arg
+          shift # past argument
+          ;;
   esac
 done
 
@@ -90,9 +121,12 @@ function count {
 
 #set -vex
 
+date > ${LOG_OUTPUT}
+echo "Starting pa-cal" >> ${LOG_OUTPUT}
 report_status 0 "init" 0 1
 count
 report_status 2 "fini" 0 1
 
-touch ${LOG_OUTPUT}
+echo "Ending pa-cal" >> ${LOG_OUTPUT}
+date >> ${LOG_OUTPUT}
 touch ${OUTPUT_FILE}
