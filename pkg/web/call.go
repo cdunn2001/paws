@@ -11,6 +11,7 @@ import (
 	"os/exec"
 	"regexp"
 	"strconv"
+	"syscall"
 	"time"
 )
 
@@ -81,14 +82,52 @@ func DummyEnv(stall string) (result []string) {
 	return result
 }
 
-func WatchBash(bash string, ps *ProcessStatusObject, env []string) (*ControlledProcess, error) {
+type ControlledProcess struct {
+	cmd          *exec.Cmd
+	status       *ProcessStatusObject
+	chanKill     chan bool
+	chanComplete chan bool
+}
+
+func StartControlledBashProcess(bash string, ps *ProcessStatusObject, stall string) (result *ControlledProcess) {
+	env := DummyEnv(stall)
+	result, err := WatchBash(bash, ps, env)
+	//result, err := WatchBash(bash, ps, nil)
+	if err != nil {
+		panic(err) // TODO: Check if panics are working.
+	}
+	pid := result.cmd.Process.Pid
+	fmt.Printf("New pid:%d\n", pid)
+	/*
+		select {
+		case <-result.chanComplete:
+		}
+		fmt.Println("Did we complete the process?")
+	*/
+	return result
+}
+
+func WriteStringToFile(content string, fn string) {
+	f, err := os.Create(fn)
+	check(err)
+	defer f.Close()
+	_, err = f.WriteString(content)
+	check(err)
+}
+func WatchBash(bash string, ps *ProcessStatusObject, envExtra []string) (*ControlledProcess, error) {
 	rpipe, wpipe, err := os.Pipe()
 	if err != nil {
 		return nil, err
 	}
 	extraFiles := []*os.File{wpipe} // becomes fd 3 in child
 	fmt.Println("bash:", bash)
-	cmd := exec.Command("bash", "-c", bash)
+	//fn := "/home/UNIXHOME/cdunn/repo/bb/paws/tmp/run.sh"
+	//WriteStringToFile(bash, fn)
+	//cmd := exec.Command("/bin/bash", fn)
+	env := os.Environ()
+	env = append(env, envExtra...)
+
+	cmd := exec.Command("/bin/bash", "-c", bash)
 	cmd.Env = env
 	cmd.ExtraFiles = extraFiles
 	cmd.Start()
@@ -179,6 +218,7 @@ func WatchBash(bash string, ps *ProcessStatusObject, env []string) (*ControlledP
 		breader := bufio.NewReader(rpipe)
 		defer rpipe.Close()
 		var err error = nil
+		//time.Sleep(1.0 * time.Second)
 		for err == nil {
 			text := ""
 			line := []byte{}
@@ -191,7 +231,7 @@ func WatchBash(bash string, ps *ProcessStatusObject, env []string) (*ControlledP
 						fmt.Printf("Unexpected error from Readline():'%+v'\n", err)
 						//check(err)
 					}
-					fmt.Println("End of file. Done reading status-reports.")
+					fmt.Printf("End of file. Done reading status-reports. isPrefix:%t, line:'%s'\n", isPrefix, line)
 					break
 				}
 				text = text + string(line)
@@ -202,6 +242,16 @@ func WatchBash(bash string, ps *ProcessStatusObject, env []string) (*ControlledP
 			}
 			chanStatusReportText <- text
 		}
+
+		pid := cbp.cmd.Process.Pid
+		process, err := os.FindProcess(int(pid))
+		if err != nil {
+			fmt.Printf("Failed to find process: %s\n", err)
+		} else {
+			err := process.Signal(syscall.Signal(0))
+			fmt.Printf("process.Signal on pid %d returned: %v\n", pid, err)
+		}
+
 		chanDone <- true
 		//close(chanStatusReportText) // TODO? Somehow?
 	}()

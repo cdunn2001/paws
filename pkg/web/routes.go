@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"os/exec"
 	"sort"
 	"sync"
 )
@@ -17,6 +16,7 @@ type State struct {
 	Darkcals      map[string]*SocketDarkcalObject
 	Loadingcals   map[string]*SocketLoadingcalObject
 	Postprimaries map[string]*PostprimaryObject
+	AllProcesses  map[int]*ControlledProcess
 }
 
 // Someday, move this to separate package, for privacy.
@@ -56,6 +56,7 @@ func init() {
 		Darkcals:      make(map[string]*SocketDarkcalObject),
 		Loadingcals:   make(map[string]*SocketLoadingcalObject),
 		Postprimaries: make(map[string]*PostprimaryObject),
+		AllProcesses:  make(map[int]*ControlledProcess),
 	}
 	for k := range top.state.Sockets {
 		top.state.Basecallers[k] = CreateSocketBasecallerObject()
@@ -230,7 +231,7 @@ func startBasecallerBySocketId(c *gin.Context, state *State) {
 	id := c.Param("id")
 	obj := &SocketBasecallerObject{}
 	if err := c.BindJSON(obj); err != nil {
-		c.Writer.WriteString("Could not parse body into struct.\n")
+		c.String(http.StatusBadRequest, "Could not parse body into struct.\n%v\n", err)
 		return
 	}
 	obj.ProcessStatus.ExecutionStatus = Running
@@ -238,13 +239,15 @@ func startBasecallerBySocketId(c *gin.Context, state *State) {
 	wr := new(bytes.Buffer)
 	err := WriteBasecallerBash(wr, &topconfig, obj, id)
 	if err != nil {
-		c.Writer.WriteString("Could not parse body into struct.\n")
+		c.String(http.StatusInternalServerError, "Error generating bash.\n%v\n", err)
 		return
 	}
 	fmt.Printf("Wrote:'%s'\n", wr.String())
 	stall := c.DefaultQuery("stall", "0")
-	StartControlledBashProcess(wr.String(), &obj.ProcessStatus, stall)
-	fmt.Printf("Ran it\n")
+	cp := StartControlledBashProcess(wr.String(), &obj.ProcessStatus, stall)
+	pid := cp.cmd.Process.Pid
+	state.AllProcesses[pid] = cp
+	fmt.Printf("Started it\n")
 	c.IndentedJSON(http.StatusOK, obj)
 }
 
@@ -297,30 +300,12 @@ func getDarkcalBySocketId(c *gin.Context, state *State) {
 	c.IndentedJSON(http.StatusOK, obj)
 }
 
-type ControlledProcess struct {
-	cmd          *exec.Cmd
-	status       *ProcessStatusObject
-	chanKill     chan bool
-	chanComplete chan bool
-}
-
-func StartControlledBashProcess(bash string, ps *ProcessStatusObject, stall string) {
-	env := DummyEnv(stall)
-	cp, err := WatchBash(bash, ps, env)
-	if err != nil {
-		panic(err) // TODO: Check if panics are working.
-	}
-	select {
-	case <-cp.chanComplete:
-	}
-}
-
 // Starts a darkcal process on socket {id}.
 func startDarkcalBySocketId(c *gin.Context, state *State) {
 	id := c.Param("id")
 	obj := &SocketDarkcalObject{}
 	if err := c.BindJSON(obj); err != nil {
-		c.Writer.WriteString("Could not parse body into struct.\n")
+		c.String(http.StatusBadRequest, "Could not parse body into struct.\n%v\n", err)
 		return
 	}
 	obj.ProcessStatus.ExecutionStatus = Running
@@ -328,13 +313,15 @@ func startDarkcalBySocketId(c *gin.Context, state *State) {
 	wr := new(bytes.Buffer)
 	err := WriteDarkcalBash(wr, &topconfig, obj, id)
 	if err != nil {
-		c.Writer.WriteString("Could not parse body into struct.\n")
+		c.String(http.StatusInternalServerError, "Error generating bash.\n%v\n", err)
 		return
 	}
 	fmt.Printf("Wrote:'%s'\n", wr.String())
 	stall := c.DefaultQuery("stall", "0")
-	StartControlledBashProcess(wr.String(), &obj.ProcessStatus, stall)
-	fmt.Printf("Ran it\n")
+	cp := StartControlledBashProcess(wr.String(), &obj.ProcessStatus, stall)
+	pid := cp.cmd.Process.Pid
+	state.AllProcesses[pid] = cp
+	fmt.Printf("Started it\n")
 	c.IndentedJSON(http.StatusOK, obj)
 }
 
@@ -393,7 +380,7 @@ func startLoadingcalBySocketId(c *gin.Context, state *State) {
 	id := c.Param("id")
 	obj := &SocketLoadingcalObject{}
 	if err := c.BindJSON(obj); err != nil {
-		c.Writer.WriteString("Could not parse body into struct.\n")
+		c.String(http.StatusBadRequest, "Could not parse body into struct.\n%v\n", err)
 		return
 	}
 	obj.ProcessStatus.ExecutionStatus = Running
@@ -401,13 +388,16 @@ func startLoadingcalBySocketId(c *gin.Context, state *State) {
 	wr := new(bytes.Buffer)
 	err := WriteLoadingcalBash(wr, &topconfig, obj, id)
 	if err != nil {
-		c.Writer.WriteString("Could not parse body into struct.\n")
+		//c.String(http.StatusBadRequest, "QQQError generating bash.\n%v\n", err)
+		c.String(http.StatusInternalServerError, "Error generating bash.\n%v\n", err)
 		return
 	}
 	fmt.Printf("Wrote:'%s'\n", wr.String())
 	stall := c.DefaultQuery("stall", "0")
-	StartControlledBashProcess(wr.String(), &obj.ProcessStatus, stall)
-	fmt.Printf("Ran it\n")
+	cp := StartControlledBashProcess(wr.String(), &obj.ProcessStatus, stall)
+	pid := cp.cmd.Process.Pid
+	state.AllProcesses[pid] = cp
+	fmt.Printf("Started it\n")
 	c.IndentedJSON(http.StatusOK, obj)
 }
 
@@ -463,7 +453,7 @@ func listPostprimaryMids(c *gin.Context, state *State) {
 func startPostprimary(c *gin.Context, state *State) {
 	obj := &PostprimaryObject{}
 	if err := c.BindJSON(obj); err != nil {
-		c.Writer.WriteString("Could not parse body into struct.\n")
+		c.String(http.StatusBadRequest, "Could not parse body into struct.\n%v\n", err)
 		return
 	}
 	mid := obj.Mid
@@ -481,13 +471,15 @@ func startPostprimary(c *gin.Context, state *State) {
 	wr := new(bytes.Buffer)
 	err := WriteBaz2bamBash(wr, &topconfig, obj)
 	if err != nil {
-		c.Writer.WriteString("Could not parse body into struct.\n")
+		c.String(http.StatusInternalServerError, "Error generating bash.\n%v\n", err)
 		return
 	}
 	fmt.Printf("Wrote:'%s'\n", wr.String())
 	stall := c.DefaultQuery("stall", "0")
-	StartControlledBashProcess(wr.String(), &obj.ProcessStatus, stall)
-	fmt.Printf("Ran it\n")
+	cp := StartControlledBashProcess(wr.String(), &obj.ProcessStatus, stall)
+	pid := cp.cmd.Process.Pid
+	state.AllProcesses[pid] = cp
+	fmt.Printf("Started it\n")
 	c.IndentedJSON(http.StatusOK, obj)
 }
 

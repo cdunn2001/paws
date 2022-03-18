@@ -1,8 +1,14 @@
 #!/bin/bash
 # https://stackoverflow.com/a/14203146
+exec 2> foo.stderr.txt
+exec > foo.stdout.txt
+set -vex
+pwd
 
 POSITIONAL_ARGS=()
 FD=2
+LOG_OUTPUT="default.log"
+OUTPUT_FILE="default.output"
 
 while [[ $# -gt 0 ]]; do
   case $1 in
@@ -59,6 +65,10 @@ set -- "${POSITIONAL_ARGS[@]}" # restore positional parameters
 : "${STATUS_COUNT:=0}"
 : "${STATUS_DELAY_SECONDS:=0.0}"
 
+echo "STATUS_COUNT=$STATUS_COUNT"
+echo "STATUS_DELAY_SECONDS=$STATUS_DELAY_SECONDS"
+sleep "$STATUS_DELAY_SECONDS"
+
 TIMESTAMP="20220223T146198.099Z" # arbitrary
 STAGE_WEIGHTING="[0, 100, 0]"
 
@@ -78,7 +88,7 @@ function count {
     done
 }
 
-set -vex
+#set -vex
 
 report_status 0 "init" 0 1
 count

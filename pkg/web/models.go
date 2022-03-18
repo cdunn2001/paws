@@ -91,7 +91,7 @@ type socketCommonObject struct {
 	LogUrl string `json:"logUrl"`
 
 	// Log severity threshold
-	LogLevel LogLevelEnum
+	LogLevel LogLevelEnum `json:"logLevel"`
 
 	ProcessStatus ProcessStatusObject `json:"processStatus"`
 }
@@ -270,7 +270,7 @@ type PostprimaryObject struct {
 	LogUrl string `json:"logUrl"`
 
 	// Log severity threshold
-	LogLevel LogLevelEnum
+	LogLevel LogLevelEnum `json:"logLevel"`
 
 	// Destination URL for the prefix of all output files from baz2bam and/or ccs
 	// Example: http://localhost:23632/storages/0/m12346
@@ -361,7 +361,7 @@ type StorageObject struct {
 
 	// Log severity threshold
 	// Example: "INFO"
-	LogLevel LogLevelEnum
+	LogLevel LogLevelEnum `json:"logLevel"`
 
 	Files         []StorageItemObject       `json:"files"`
 	Space         []StorageDiskReportObject `json:"space"`
