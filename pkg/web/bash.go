@@ -93,7 +93,7 @@ func WriteLoadingcalBash(wr io.Writer, tc *TopConfig, obj *SocketLoadingcalObjec
 
 	kv["outputFile"] = obj.CalibFileUrl           // TODO: Convert from URL!
 	kv["logoutput"] = obj.LogUrl                  // TODO: Convert from URL!
-	kv["inputDarkcalFile"] = obj.DarkFrameFileUrl // TODO: Convert from URL!
+	kv["inputDarkCalFile"] = obj.DarkFrameFileUrl // TODO: Convert from URL!
 
 	timeout := int(float64(numFrames) * 1.1 / tc.values.defaultFrameRate) // default
 	if obj.MaxMovieSeconds != 0 {
@@ -161,15 +161,15 @@ func WriteBaz2bamBash(wr io.Writer, tc *TopConfig, obj *PostprimaryObject) error
 	kv := make(map[string]string)
 	UpdateWithConfig(kv, tc)
 	kv["acqId"] = obj.Uuid
-	kv["bazFile"] = obj.BazFileUrl // TODO
-	// kv["metadataFile"] = obj.SubreadsetMetadataXml // written into a file?
-	// kv["baz2bamComputingThreads"] = ?
-	// kv["bamThreads"] = ?
-	// {{if .inlinePbi}}--inlinePbi{{end}} \
-	// kv["maxInputQueueMB"] = ?
-	// kv["zmwBatchMB"] = ?
-	// kv["headerBatchMB"] = ?
-	// kv["baz2BamMaxOutputQueueMB"] = ?
+	kv["bazFile"] = obj.BazFileUrl                 // TODO
+	kv["metadataFile"] = obj.SubreadsetMetadataXml // written into a file?
+	kv["baz2bamComputingThreads"] = "16"
+	kv["bamThreads"] = "16"
+	kv["inlinePbi"] = "true"
+	kv["maxInputQueueMB"] = "39"
+	kv["zmwBatchMB"] = "40"
+	kv["headerBatchMB"] = "41"
+	kv["baz2BamMaxOutputQueueMB"] = "42"
 
 	// --progress # for IPC messages
 	// --silent   # do we want this?

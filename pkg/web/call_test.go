@@ -40,8 +40,22 @@ func TestRunBash(t *testing.T) {
 		t.Errorf("Got %d", got)
 	}
 }
-func TestWatchBash(t *testing.T) {
-	bash := testdataDir + "/dummy-basic.sh --status-fd 3"
+func TestCont(t *testing.T) {
+	//bash := testdataDir + "/dummy-basic.sh --status-fd 3"
+	bash := testdataDir + "/dummy-pa-cal.sh --statusfd 3"
+	ps := &ProcessStatusObject{}
+	stall := "0" //"0.3"
+	_ = StartControlledBashProcess(bash, ps, stall)
+	/*
+		result, _ := WatchBash(bash, ps, nil)
+		select {
+		case <-result.chanComplete:
+		}
+	*/
+}
+func TestWatchBashSucceed(t *testing.T) {
+	//bash := testdataDir + "/dummy-basic.sh --status-fd 3"
+	bash := testdataDir + "/dummy-pa-cal.sh --statusfd 3"
 	env := []string{
 		"STATUS_COUNT=3",
 		"STATUS_DELAY_SECONDS=0.05", // Note: ".05" would not be valid.
