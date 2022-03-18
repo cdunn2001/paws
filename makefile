@@ -2,7 +2,11 @@
 #export GOPATH=$(pwd)
 #export GOPATH=~/gh/GO
 #vpath %.go cmd
+DUMMYDIR:=${CURDIR}/pkg/web/testdata
+export PATH:=${DUMMYDIR}:${PATH}
 
+echo:
+	echo "PATH=${PATH}"
 quick:
 	go test ./pkg/stuff
 all: test vet fmt lint build
