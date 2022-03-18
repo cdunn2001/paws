@@ -120,8 +120,15 @@ func listen(port int) {
 }
 func main() {
 	portPtr := flag.Int("port", 23632, "Listen on this port.")
+	cfgPtr := flag.String("config", "", "Read PpaConfig (JSON) from this file, to update default config.")
 	flag.Parse()
 	fmt.Printf("port='%v'\n", *portPtr)
 	//flag.PrintDefaults()
+	ppaConfig := web.PpaConfig{}
+	ppaConfig.SetDefaults()
+	if *cfgPtr != "" {
+		fmt.Printf("config='%v'\n", *cfgPtr)
+		web.UpdatePpaConfigFromFile(*cfgPtr, &ppaConfig)
+	}
 	listen(*portPtr)
 }

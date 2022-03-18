@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"os"
+	"path/filepath"
 	"sort"
 )
 
@@ -26,6 +28,8 @@ func createStorage(c *gin.Context, state *State) {
 		return
 	}
 	mid := obj.Mid
+	obj.RootUrl = filepath.Join("./tmp/storage", mid)
+	os.MkdirAll(obj.RootUrl, 0777)
 	state.Storages[mid] = obj
 	c.IndentedJSON(http.StatusOK, obj)
 }
