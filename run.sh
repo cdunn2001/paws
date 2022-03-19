@@ -18,7 +18,6 @@ curl $f -X GET $E/sockets
 
 curl $F -X GET $E/sockets/1/darkcal
 curl $F -X POST -d @sims/darkcal.start.json $E/sockets/1/darkcal/start
-exit 0
 curl $F -X GET $E/sockets/1/darkcal
 sleep 0.1
 curl $F -X GET $E/sockets/1/darkcal
