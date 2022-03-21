@@ -237,8 +237,8 @@ var Template_reducestats = `
 {{.Binary_reducestats}} \
   --input {{.job_outputPrefix}}.sts.h5 \
   --output {{.job_outputPrefix}}.rsts.h5 \
-  --config=common.chipClass={{.job_chipClass}} \
-  --config=common.platform={{.job_platform}} \
+  --config=common.chipClass=Kestrel \
+  --config=common.platform=Kestrel \
 `
 
 func WriteReduceStatsBash(wr io.Writer, tc *TopConfig, obj *PostprimaryObject, job Job) error {

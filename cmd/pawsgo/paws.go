@@ -69,6 +69,9 @@ func listen(port int, lw io.Writer) {
 	if wpid != "" {
 		pid, err := strconv.Atoi(wpid)
 		check(err)
+		//pid = os.Getpid() // TODO: VERY TEMP
+		//err = os.Setenv("WATCHDOG_PID", fmt.Sprintf("%d", pid))
+		//check(err)
 		usec, err := strconv.Atoi(wusec)
 		check(err)
 		usec = usec
@@ -80,17 +83,23 @@ func listen(port int, lw io.Writer) {
 		}
 		delay, err := daemon.SdWatchdogEnabled(false)
 		check(err)
-		delay = delay / 2
+		log.Printf("delay='%s'\n", delay)
+		delay = delay - 1*time.Second // should be delay / 2, but division is hard
+		//log.Printf("delay='%s'\n", delay*time.Microsecond)
+		log.Printf("delay='%s'\n", delay*time.Second)
 		log.Printf("For timer, using delay='%s'\n", delay.Round(time.Microsecond))
 		timer2 := time.NewTicker(delay)
 		defer timer2.Stop()
 		log.Printf("Created Ticker w/ arg='%s'\n", delay)
-		done := make(chan bool)
+
+		doneWatchdogCh := make(chan bool)
+		defer close(doneWatchdogCh) // closing is as good as sending "true"
+
 		go func() {
 			log.Print("gofunc started. Watiing on ticker/done channels...\n")
 			for {
 				select {
-				case <-done:
+				case <-doneWatchdogCh:
 					log.Print("Done!\n")
 					return
 				case current := <-timer2.C:
@@ -102,13 +111,15 @@ func listen(port int, lw io.Writer) {
 			}
 			log.Print("End of watchdog gofunc.\n")
 		}()
-		msg := ""
-		msg = fmt.Sprintf("Wait for %s delay.\n", delay)
-		log.Print(msg)
-		time.Sleep(16 * time.Second)
-		done <- true
-		msg = "Send done <- true\n"
-		log.Print(msg)
+		/*
+			msg := ""
+			msg = fmt.Sprintf("Wait for %s delay.\n", delay)
+			log.Print(msg)
+			time.Sleep(16 * time.Second)
+			done <- true
+			msg = "Send done <- true\n"
+			log.Print(msg)
+		*/
 	}
 
 	portStr := fmt.Sprintf(":%d", port)
