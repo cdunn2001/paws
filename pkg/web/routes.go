@@ -108,7 +108,7 @@ func FindBinaries() BinaryPaths {
 	// TODO: Replace w/ PpaConfig
 	return BinaryPaths{
 		Binary_baz2bam:         "baz2bam",
-		Binary_smrt_basecaller: "smrt-basecaller",
+		Binary_smrt_basecaller: "smrt-basecaller-launch.sh", // this script is necessary to configure NUMA. don't call smrt-basecaller binary directly.
 		Binary_pa_cal:          "pa-cal",
 		Binary_reducestats:     "ppa-reducestats",
 	}
@@ -186,6 +186,20 @@ func getSocketById(c *gin.Context, state *State) {
 
 // Resets all "one shot" app resources for each of the sockets.
 func resetSockets(c *gin.Context, state *State) {
+	for id, _ := range state.Sockets {
+		found := false
+		for _, x := range c.Params {
+			if x.Key == "id" {
+				x.Value = id
+			}
+		}
+		if !found {
+			c.Params = append(c.Params, gin.Param{
+				Key:   "id",
+				Value: id})
+		}
+		resetSocketById(c, state)
+	}
 	c.Status(http.StatusOK) // TODO: Should reset all 3.
 }
 
@@ -198,6 +212,9 @@ func resetSocketById(c *gin.Context, state *State) {
 		c.String(http.StatusNotFound, "The socket '%s' was not found in the list of attached sensor FPGA boards.\n", id)
 		return
 	}
+	resetBasecallerBySocketId(c, state)
+	resetDarkcalBySocketId(c, state)
+	resetLoadingcalBySocketId(c, state)
 	c.Status(http.StatusOK)
 }
 

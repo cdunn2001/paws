@@ -3,10 +3,11 @@
 
 POSITIONAL_ARGS=()
 FD=2
+LOG_OUTPUT="default.dummy-smrt-basecaller.$$.log"
 
 while [[ $# -gt 0 ]]; do
   case $1 in
-    --status-fd)
+    --statusfd)
       FD="$2"
       shift # past argument
       shift # past value
@@ -76,6 +77,10 @@ set -- "${POSITIONAL_ARGS[@]}" # restore positional parameters
 
 TIMESTAMP="20220223T146198.099Z" # arbitrary
 STAGE_WEIGHTING="[0, 100, 0]"
+
+function log {
+    echo "$1" >> "${LOG_OUTPUT}"
+}
 
 function report_status {
     # ARGS: number, name, counter, next

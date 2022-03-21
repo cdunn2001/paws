@@ -127,6 +127,16 @@ func WatchBash(bash string, ps *ProcessStatusObject, envExtra []string) (*Contro
 	env := os.Environ()
 	env = append(env, envExtra...)
 
+	fmt.Println("PATH:", os.Getenv("PATH"))
+	log.Println("PATH:", os.Getenv("PATH"))
+	out, err := exec.Command("which", "dummy-pa-cal.sh").Output()
+	if err != nil {
+		fmt.Printf("%s\n", err)
+	}
+	fmt.Println("Command Successfully Executed")
+	output := string(out[:])
+	fmt.Println(output)
+
 	cmd := exec.Command("/bin/bash", "-c", bash)
 	cmd.Env = env
 	cmd.ExtraFiles = extraFiles
