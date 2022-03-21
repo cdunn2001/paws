@@ -44,9 +44,11 @@ func listen(port int) {
 	f, err := os.Create(lfn)
 	check(err)
 	defer f.Close()
-	//gin.DefaultWriter = os.Stdout
-	//gin.DefaultWriter = f
-	gin.DefaultWriter = io.MultiWriter(f, os.Stdout)
+	//lw := os.Stdout
+	//lw := f
+	lw := io.MultiWriter(f, os.Stdout)
+	log.SetOutput(lw)
+	gin.DefaultWriter = lw
 	gin.ForceConsoleColor() // needed for colors w/ MultiWriter
 	router.Use(
 		gin.Logger(),
@@ -67,13 +69,12 @@ func listen(port int) {
 	})
 
 	web.AddRoutes(router)
-	f.WriteString("CDUNN WAS HERE\n")
 	ns := os.Getenv("NOTIFY_SOCKET")
 	wusec := os.Getenv("WATCHDOG_USEC")
 	wpid := os.Getenv("WATCHDOG_PID")
-	fmt.Fprintf(f, "NOTIFY_SOCKET='%s', WATCHDOG_USEC='%s'\n", ns, wusec)
-	fmt.Printf("stdout wrote to '%s'\n", lfn)
-	fmt.Fprintf(os.Stderr, "stderr wrote to '%s'\n", lfn)
+	log.Printf("NOTIFY_SOCKET='%s', WATCHDOG_USEC='%s'\n", ns, wusec)
+	//fmt.Printf("stdout wrote to '%s'\n", lfn)
+	//fmt.Fprintf(os.Stderr, "stderr wrote to '%s'\n", lfn)
 	if wpid != "" {
 		pid, err := strconv.Atoi(wpid)
 		check(err)

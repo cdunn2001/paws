@@ -2,8 +2,8 @@ package web
 
 import (
 	"bytes"
-	"fmt"
 	"github.com/gin-gonic/gin"
+	"log"
 	"net/http"
 	"sort"
 	"sync"
@@ -35,7 +35,7 @@ func (s *LockableState) Get() (*State, *sync.Mutex) {
 var top LockableState
 
 func init() {
-	fmt.Println("Initializing fixtures")
+	log.Println("Initializing fixtures")
 	top.state = State{
 		Sockets: map[string]SocketObject{
 			"1": SocketObject{
@@ -251,12 +251,12 @@ func startBasecallerBySocketId(c *gin.Context, state *State) {
 		c.String(http.StatusInternalServerError, "Error generating bash.\n%v\n", err)
 		return
 	}
-	fmt.Printf("Wrote:'%s'\n", wr.String())
+	log.Printf("Wrote:'%s'\n", wr.String())
 	stall := c.DefaultQuery("stall", "0")
 	cp := StartControlledBashProcess(wr.String(), &obj.ProcessStatus, stall)
 	pid := cp.cmd.Process.Pid
 	state.AllProcesses[pid] = cp
-	fmt.Printf("Started it\n")
+	log.Printf("Started it\n")
 	c.IndentedJSON(http.StatusOK, obj)
 }
 
@@ -325,12 +325,12 @@ func startDarkcalBySocketId(c *gin.Context, state *State) {
 		c.String(http.StatusInternalServerError, "Error generating bash.\n%v\n", err)
 		return
 	}
-	fmt.Printf("Wrote:'%s'\n", wr.String())
+	log.Printf("Wrote:'%s'\n", wr.String())
 	stall := c.DefaultQuery("stall", "0")
 	cp := StartControlledBashProcess(wr.String(), &obj.ProcessStatus, stall)
 	pid := cp.cmd.Process.Pid
 	state.AllProcesses[pid] = cp
-	fmt.Printf("Started it\n")
+	log.Printf("Started it\n")
 	c.IndentedJSON(http.StatusOK, obj)
 }
 
@@ -401,12 +401,12 @@ func startLoadingcalBySocketId(c *gin.Context, state *State) {
 		c.String(http.StatusInternalServerError, "Error generating bash.\n%v\n", err)
 		return
 	}
-	fmt.Printf("Wrote:'%s'\n", wr.String())
+	log.Printf("Wrote:'%s'\n", wr.String())
 	stall := c.DefaultQuery("stall", "0")
 	cp := StartControlledBashProcess(wr.String(), &obj.ProcessStatus, stall)
 	pid := cp.cmd.Process.Pid
 	state.AllProcesses[pid] = cp
-	fmt.Printf("Started it\n")
+	log.Printf("Started it\n")
 	c.IndentedJSON(http.StatusOK, obj)
 }
 
@@ -483,12 +483,12 @@ func startPostprimary(c *gin.Context, state *State) {
 		c.String(http.StatusInternalServerError, "Error generating bash.\n%v\n", err)
 		return
 	}
-	fmt.Printf("Wrote:'%s'\n", wr.String())
+	log.Printf("Wrote:'%s'\n", wr.String())
 	stall := c.DefaultQuery("stall", "0")
 	cp := StartControlledBashProcess(wr.String(), &obj.ProcessStatus, stall)
 	pid := cp.cmd.Process.Pid
 	state.AllProcesses[pid] = cp
-	fmt.Printf("Started it\n")
+	log.Printf("Started it\n")
 	c.IndentedJSON(http.StatusOK, obj)
 }
 

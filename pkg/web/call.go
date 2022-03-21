@@ -81,7 +81,7 @@ func DummyEnv(stall string) (result []string) {
 		fmt.Sprintf("STATUS_COUNT=%d", count),
 		fmt.Sprintf("STATUS_DELAY_SECONDS=%f", delay),
 	}
-	fmt.Printf("DummyEnv:'%s'\n", result)
+	log.Printf("DummyEnv:'%s'\n", result)
 	return result
 }
 
@@ -103,23 +103,23 @@ func StartControlledBashProcess(bash string, ps *ProcessStatusObject, stall stri
 		panic(err) // TODO: Check if panics are working.
 	}
 	pid := result.cmd.Process.Pid
-	fmt.Printf("New pid:%d\n", pid)
+	log.Printf("New pid:%d\n", pid)
 	/*
 		select {
 		case <-result.chanComplete:
 		}
-		fmt.Println("Did we complete the process?")
+		log.Println("Did we complete the process?")
 	*/
 	return result
 }
 
 func (cp *ControlledProcess) cleanup() {
 	if strings.HasSuffix(cp.temp_dn, ".tempdir") {
-		fmt.Printf("DEBUG removing dir tree '%s'", cp.temp_dn)
+		log.Printf("DEBUG removing dir tree '%s'", cp.temp_dn)
 		err := os.RemoveAll(cp.temp_dn)
 		check(err)
 	} else {
-		fmt.Printf("DEBUG not removing unknown dir tree '%s'", cp.temp_dn)
+		log.Printf("DEBUG not removing unknown dir tree '%s'", cp.temp_dn)
 	}
 }
 
@@ -127,9 +127,9 @@ func (cp *ControlledProcess) cleanup() {
 func logContent(fn, intro string) {
 	content, err := ioutil.ReadFile(fn)
 	if err != nil {
-		fmt.Printf("ERROR: Could not find '%s' file '%s'\n", intro, fn)
+		log.Printf("ERROR: Could not find '%s' file '%s'\n", intro, fn)
 	} else {
-		fmt.Printf("INFO %s:\n%s\n", intro, content)
+		log.Printf("INFO %s:\n%s\n", intro, content)
 	}
 }
 func WriteStringToFile(content string, fn string) {
@@ -147,21 +147,21 @@ func WatchBash(bash string, ps *ProcessStatusObject, envExtra []string) (*Contro
 	extraFiles := []*os.File{wpipe} // becomes fd 3 in child
 
 	{
-		fmt.Println("PATH:", os.Getenv("PATH"))
+		log.Println("PATH:", os.Getenv("PATH"))
 		log.Println("PATH:", os.Getenv("PATH"))
 		out, err := exec.Command("which", "dummy-pa-cal.sh").Output()
 		if err != nil {
-			fmt.Printf("%s\n", err)
+			log.Printf("%s\n", err)
 		}
-		fmt.Println("Command Successfully Executed")
+		log.Println("Command Successfully Executed")
 		output := string(out[:])
-		fmt.Println(output)
+		log.Println(output)
 	}
 
 	temp_dn, err := ioutil.TempDir("", "WatchBash.*.tmpdir")
 	if err != nil {
 		temp_dn = "very.tempdir"
-		fmt.Printf("ERROR Weirdly unable to create TempDir(): %#v\nTrying '%s' instead.\n",
+		log.Printf("ERROR Weirdly unable to create TempDir(): %#v\nTrying '%s' instead.\n",
 			err, temp_dn)
 		err = os.MkdirAll(temp_dn, 0777)
 		check(err)
@@ -169,7 +169,7 @@ func WatchBash(bash string, ps *ProcessStatusObject, envExtra []string) (*Contro
 	stdout_fn := filepath.Join(temp_dn, "stdout.txt")
 	stderr_fn := filepath.Join(temp_dn, "stderr.txt")
 	bash = bash + " >" + stdout_fn + " 2> " + stderr_fn
-	fmt.Println("bash:", bash)
+	log.Println("bash:", bash)
 	//fn := "/home/UNIXHOME/cdunn/repo/bb/paws/tmp/run.sh"
 	//WriteStringToFile(bash, fn)
 	//cmd := exec.Command("/bin/bash", fn)
@@ -205,7 +205,7 @@ func WatchBash(bash string, ps *ProcessStatusObject, envExtra []string) (*Contro
 	cbp.status.ExecutionStatus = Running // TODO: Make this thread-safe!!!
 
 	go func() {
-		fmt.Println("Started timeout go-func")
+		log.Println("Started timeout go-func")
 		var timeout float64 = 2.0
 		timedout := false
 		done := false
@@ -213,18 +213,18 @@ func WatchBash(bash string, ps *ProcessStatusObject, envExtra []string) (*Contro
 			select {
 			case <-time.After(time.Duration((timeout + 0.01) * float64(time.Second))):
 				timedout = true
-				fmt.Println("Timed out!")
-				fmt.Printf("Killing pid %d\n", cmd.Process.Pid)
+				log.Println("Timed out!")
+				log.Printf("Killing pid %d\n", cmd.Process.Pid)
 				cmd.Process.Kill() // TODO: What happens if not running? Also, check sub-children, or maybe ssid.
 			case <-chanKill:
-				fmt.Printf("Got chanKill.\n")
-				fmt.Printf("Killing pid %d\n", cmd.Process.Pid)
+				log.Printf("Got chanKill.\n")
+				log.Printf("Killing pid %d\n", cmd.Process.Pid)
 				cmd.Process.Kill() // TODO: What happens if not running? Also, check sub-children, or maybe ssid.
 				done = true
-				fmt.Println("Called Kill()")
+				log.Println("Called Kill()")
 			case <-chanDone:
 				done = true
-				fmt.Println("Got chanDone!")
+				log.Println("Got chanDone!")
 			case srText := <-chanStatusReportText:
 				sr, err := String2StatusReport(srText)
 				if err != nil {
@@ -233,7 +233,7 @@ func WatchBash(bash string, ps *ProcessStatusObject, envExtra []string) (*Contro
 					// TODO: Got an exception. Log and ignore?
 				} else {
 					timeout = sr.TimeToNextStatus
-					fmt.Println("timeout is now", timeout)
+					log.Println("timeout is now", timeout)
 
 					// TODO: Make this thread-safe!!!
 					cbp.status.Timestamp = sr.Timestamp
@@ -241,15 +241,15 @@ func WatchBash(bash string, ps *ProcessStatusObject, envExtra []string) (*Contro
 			}
 		}
 		if timedout {
-			fmt.Println("Timedout?")
+			log.Println("Timedout?")
 		} else if done {
-			fmt.Println("Done?")
+			log.Println("Done?")
 		} else {
-			fmt.Println("Not sure!!!")
+			log.Println("Not sure!!!")
 		}
-		fmt.Printf("Now waiting for pid %d\n", cmd.Process.Pid)
+		log.Printf("Now waiting for pid %d\n", cmd.Process.Pid)
 		err := cmd.Wait()
-		fmt.Printf("Done waiting for pid %d. Exit:%v\n", cmd.Process.Pid, err)
+		log.Printf("Done waiting for pid %d. Exit:%v\n", cmd.Process.Pid, err)
 
 		// TODO: Make these thread-safe!!!
 		cbp.status.ExecutionStatus = Complete
@@ -269,7 +269,7 @@ func WatchBash(bash string, ps *ProcessStatusObject, envExtra []string) (*Contro
 		chanComplete <- true
 	}()
 	go func() {
-		fmt.Println("Started scanner go-func")
+		log.Println("Started scanner go-func")
 		breader := bufio.NewReader(rpipe)
 		defer rpipe.Close()
 		var err error = nil
@@ -283,15 +283,15 @@ func WatchBash(bash string, ps *ProcessStatusObject, envExtra []string) (*Contro
 				if err != nil {
 					if err != io.EOF {
 						// Unexpected error. // TODO: What else is ok here?
-						fmt.Printf("Unexpected error from Readline():'%+v'\n", err)
+						log.Printf("Unexpected error from Readline():'%+v'\n", err)
 						//check(err)
 					}
-					fmt.Printf("End of file. Done reading status-reports. isPrefix:%t, line:'%s'\n", isPrefix, line)
+					log.Printf("End of file. Done reading status-reports. isPrefix:%t, line:'%s'\n", isPrefix, line)
 					break
 				}
 				text = text + string(line)
 			}
-			fmt.Println("Got:", text)
+			log.Println("Got:", text)
 			if err == io.EOF {
 				break
 			}
@@ -301,10 +301,10 @@ func WatchBash(bash string, ps *ProcessStatusObject, envExtra []string) (*Contro
 		pid := cbp.cmd.Process.Pid
 		process, err := os.FindProcess(int(pid))
 		if err != nil {
-			fmt.Printf("Failed to find process: %s\n", err)
+			log.Printf("Failed to find process: %s\n", err)
 		} else {
 			err := process.Signal(syscall.Signal(0))
-			fmt.Printf("process.Signal on pid %d returned: %v\n", pid, err)
+			log.Printf("process.Signal on pid %d returned: %v\n", pid, err)
 		}
 
 		chanDone <- true
