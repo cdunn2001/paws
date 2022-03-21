@@ -112,11 +112,15 @@ var Template_basecaller = `
   --outputtrcfile {{.outputtrcfile}} \
   --outputbazfile {{.outputbazfile}} \
   --config source.WXIPCDataSource.sraIndex={{.sra}} \
-  --config traceSaver.roi=<roi specification> \
-  --config source.WXIPCDataSource.acqConfig=<Info-About-Chemistry> \
-  --config system.analyzerHardware=A100 \ # optional
-  --config algorithm=<forward-from-user> \ # optional
+  --config traceSaver.roi=roi_specification \
+  --config source.WXIPCDataSource.acqConfig=Info-About-Chemistry \
+  --config system.analyzerHardware=A100 \
+  --config algorithm=forward-from-user \
 `
+
+// optional:
+//   system.analyzerHardware
+//   algorithm
 
 // Doesn't this need the darkcalfile?
 func WriteBasecallerBash(wr io.Writer, tc *TopConfig, obj *SocketBasecallerObject, SocketId string) error {

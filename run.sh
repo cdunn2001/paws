@@ -26,19 +26,26 @@ curl $F -X GET $E/sockets/1/darkcal
 
 curl $F -X GET $E/sockets/1/loadingcal
 curl $F -X POST -d @sims/loadingcal.start.json $E/sockets/1/loadingcal/start
+curl $F -X GET $E/sockets/1/loadingcal
 sleep 0.1
+curl $F -X GET $E/sockets/1/loadingcal
+curl $F -X POST $E/sockets/1/loadingcal/reset
+curl $F -X GET $E/sockets/1/loadingcal
 
 curl $F -X GET $E/sockets/1/basecaller
 curl $F -X POST -d @sims/basecaller.start.json $E/sockets/1/basecaller/start
+curl $F -X GET $E/sockets/1/basecaller
 sleep 0.1
+curl $F -X GET $E/sockets/1/basecaller
 curl $F -X POST $E/sockets/1/basecaller/reset
+curl $F -X GET $E/sockets/1/basecaller
 
 curl $F -X GET $E/postprimaries
 curl $F -X POST -d @sims/baz2bam.start.json $E/postprimaries
-curl $F -X GET $E/postprimaries
 sleep 0.1
-curl $F -X GET $E/postprimaries
+curl $F -X GET $E/postprimaries/m123
 curl $F -X DELETE $E/postprimaries/m123
+curl $F -X GET $E/postprimaries
 
 exit 0
 ###
