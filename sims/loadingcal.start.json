@@ -1,6 +1,6 @@
 {
-    "calibFileUrl": "tmp/darkcal.h5",
-    "darkFrameFileUrl": "tmp/loadingcal.h5",
+    "darkFrameFileUrl": "tmp/darkcal.h5",
+    "calibFileUrl": "tmp/loadingcal.h5",
     "mid": "",
     "maxMovieFrames": 0,
     "maxMovieSeconds": 0,

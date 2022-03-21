@@ -58,17 +58,13 @@ while [[ $# -gt 0 ]]; do
           shift # past value
           ;;
       --cal)
+          CAL="$2"
           shift # past argument
           shift # past value
           ;;
       --inputDarkCalFile)
           shift # past argument
           inputDarkCalFile=$1
-          if [[ ! -f ${inputDarkCalFile} ]] 
-          then
-              echo "inputDarkCalFile ${inputDarkCalFile} does not exist"
-              exit 1
-          fi
           shift # past value
           ;;
 
@@ -92,16 +88,9 @@ done
 
 set -- "${POSITIONAL_ARGS[@]}" # restore positional parameters
 
-# Optional env-vars:
-: "${STATUS_COUNT:=0}"
-: "${STATUS_DELAY_SECONDS:=0.0}"
-
-echo "STATUS_COUNT=$STATUS_COUNT"
-echo "STATUS_DELAY_SECONDS=$STATUS_DELAY_SECONDS"
-sleep "$STATUS_DELAY_SECONDS"
-
-TIMESTAMP="20220223T146198.099Z" # arbitrary
-STAGE_WEIGHTING="[0, 100, 0]"
+function log {
+    echo "$1" >> "${LOG_OUTPUT}"
+}
 
 function report_status {
     # ARGS: number, name, counter, next
@@ -119,14 +108,45 @@ function count {
     done
 }
 
+function report_exception {
+    echo "Exception: $1" >&2
+    # ARGS: message
+    cat >&$FD << EOF
+ERROR | PA_CAL_STATUS {"state": "exception", "message": "$1"}
+EOF
+}
+
+if [[ -z "${CAL}" || (${CAL} != "Dark" && ${CAL} != "Loading") ]]
+then
+    report_exception "--cal='${CAL}' must be Dark or Loading"
+    exit 1
+fi
+
+if [[ ${CAL} == "Loading" && ! -f ${inputDarkCalFile} ]]
+then
+    report_exception "inputDarkCalFile ${inputDarkCalFile} does not exist (for --cal=Loading)"
+    exit 1
+fi
+
+# Optional env-vars:
+: "${STATUS_COUNT:=0}"
+: "${STATUS_DELAY_SECONDS:=0.0}"
+
+echo "STATUS_COUNT=$STATUS_COUNT"
+echo "STATUS_DELAY_SECONDS=$STATUS_DELAY_SECONDS"
+sleep "$STATUS_DELAY_SECONDS"
+
+TIMESTAMP="20220223T146198.099Z" # arbitrary
+STAGE_WEIGHTING="[0, 100, 0]"
+
 #set -vex
 
 date > ${LOG_OUTPUT}
-echo "Starting pa-cal" >> ${LOG_OUTPUT}
+log "Starting pa-cal"
 report_status 0 "init" 0 1
 count
 report_status 2 "fini" 0 1
 
-echo "Ending pa-cal" >> ${LOG_OUTPUT}
+log "Ending pa-cal"
 date >> ${LOG_OUTPUT}
 touch ${OUTPUT_FILE}
