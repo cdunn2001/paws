@@ -31,7 +31,9 @@ build: bin/pawsgo
 bin/%: .FORCE
 	go build -o $@ ./cmd/$*
 serve: bin/pawsgo
-	./$<
+	./$< --logoutput pa-wsgo.log #--config SNAFU.json
+s:
+	bin/pawsgo --logoutput pa-wsgo.log #--config SNAFU.json
 
 .FORCE:
 .PHONY: test

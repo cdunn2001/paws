@@ -63,11 +63,6 @@ while [[ $# -gt 0 ]]; do
       --inputDarkCalFile)
           shift # past argument
           inputDarkCalFile=$1
-          if [[ ! -f ${inputDarkCalFile} ]] 
-          then
-              echo "inputDarkCalFile ${inputDarkCalFile} does not exist"
-              exit 1
-          fi
           shift # past value
           ;;
 
