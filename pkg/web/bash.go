@@ -176,13 +176,13 @@ var Template_basecaller = `
   --outputtrcfile {{.outputtrcfile}} \
   --outputbazfile {{.outputbazfile}} \
   --config {{.config_json_fn}} \
-  --config source.WXIPCDataSource.sraIndex={{.sra}} \
+  --config source.WXIPCDataSourceConfig.sraIndex={{.sra}} \
   --config traceSaver.roi=roi_specification \
   --config system.analyzerHardware=A100 \
 `
 
 // Maybe better:
-// --config source.WXIPCDataSource.acqConfig=Info-About-Chemistry \
+// --config source.WXIPCDataSourceConfig.acqConfig=Info-About-Chemistry \
 
 // optional:
 //   system.analyzerHardware
