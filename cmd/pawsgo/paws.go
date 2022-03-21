@@ -86,8 +86,8 @@ func listen(port int, lw io.Writer) {
 		check(err)
 		log.Printf("delay='%s'\n", delay)
 		delay = delay - 1*time.Second // should be delay / 2, but division is hard
-		//log.Printf("delay='%s'\n", delay*time.Microsecond)
-		log.Printf("delay='%s'\n", delay*time.Second)
+		delay = 1 * time.Second
+		log.Printf("Forcing delay='%s'\n", delay)
 		log.Printf("For timer, using delay='%s'\n", delay.Round(time.Microsecond))
 		timer2 := time.NewTicker(delay)
 		defer timer2.Stop()
