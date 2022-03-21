@@ -10,8 +10,8 @@ func TestWriteReduceStatsBash(t *testing.T) {
 ppa-reducestats \
   --input PREFIX.sts.h5 \
   --output PREFIX.rsts.h5 \
-  --config=common.chipClass=CHIP \
-  --config=common.platform=PLATFORM \
+  --config=common.chipClass=Kestrel \
+  --config=common.platform=Kestrel \
 `
 	obj := &PostprimaryObject{
 		OutputPrefixUrl: "PREFIX",

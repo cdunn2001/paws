@@ -3,7 +3,7 @@ set -vex
 P=23632
 E=localhost:$P
 mkdir -p tmp
-rm -f tmp/*
+rm -rf tmp/*
 F="-i -f"
 
 curl $f -X GET $E/sockets
