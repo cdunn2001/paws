@@ -2,11 +2,13 @@ package web
 
 import (
 	"bytes"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
 	"sort"
 	"sync"
+	"time"
 )
 
 type State struct {
@@ -124,7 +126,10 @@ func SafeState(h StateHandlerFunc) gin.HandlerFunc {
 	}
 }
 
+var bootTime time.Time
+
 func AddRoutes(router *gin.Engine) {
+	bootTime = time.Now()
 	router.GET("/status", SafeState(getStatus))
 	router.GET("/sockets", SafeState(getSockets))
 	router.GET("/sockets/:id", SafeState(getSocketById))
@@ -159,6 +164,22 @@ func AddRoutes(router *gin.Engine) {
 // Returns top level status of the pa-ws process.
 func getStatus(c *gin.Context, state *State) {
 	var status PawsStatusObject // TODO
+	// Real time seconds that pa-ws has been running
+	status.Uptime = time.Now().Sub(bootTime).Seconds()
+
+	// Time that pa-ws has been running, formatted to be human readable as hours, minutes, seconds, etc
+	status.UptimeMessage = fmt.Sprintf("%g seconds", status.Uptime)
+
+	// Current epoch time in seconds as seen by pa-ws (UTC)
+	utc := time.Now().UTC()
+	status.Time =  float64(utc.UnixMilli())*0.001
+
+	// ISO8601 timestamp (with milliseconds) of time field
+	status.Timestamp = utc.Format("2006-01-02T15:04:05-0700Z")
+
+	// Version of software, including git hash of last commit
+	status.Version = "0.0.0"  // TODO
+
 	c.IndentedJSON(http.StatusOK, status)
 }
 
@@ -193,12 +214,12 @@ func resetSockets(c *gin.Context, state *State) {
 				x.Value = id
 			}
 		}
-		if !found {
-			c.Params = append(c.Params, gin.Param{
-				Key:   "id",
-				Value: id})
+		if ! found {
+			c.Params = append(c.Params, gin.Param {
+				Key: "id",
+				Value: id })
 		}
-		resetSocketById(c, state)
+		resetSocketById(c,state)
 	}
 	c.Status(http.StatusOK) // TODO: Should reset all 3.
 }

@@ -9,6 +9,7 @@ import (
 	//"net/http/httputil"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 	// "pacb.com/seq/paws/pkg/stuff"
 	// "pacb.com/seq/paws/pkg/stiff"
@@ -128,11 +129,12 @@ func listen(port int, lw io.Writer) {
 func main() {
 	portPtr := flag.Int("port", 23632, "Listen on this port.")
 	cfgPtr := flag.String("config", "", "Read PpaConfig (JSON) from this file, to update default config.")
+	lfnPtr := flag.String("logoutput","/var/log/pacbio/pa-wsgo/pa-wsgo.log","Logfile output")
 	flag.Parse()
 	//flag.PrintDefaults()
 
 	//lfn := "/var/log/pacbio/pa-wsgo/pa-wsgo.log"
-	lfn := "pa-wsgo.log"
+	lfn := *lfnPtr
 	f, err := os.Create(lfn)
 	check(err)
 	defer f.Close()
@@ -140,7 +142,7 @@ func main() {
 	//lw := f
 	lw := io.MultiWriter(f, os.Stdout)
 	log.SetOutput(lw)
-
+	log.Println(strings.Join(os.Args[:], " "))
 	log.Printf("port='%v'\n", *portPtr)
 	ppaConfig := web.PpaConfig{}
 	ppaConfig.SetDefaults()
