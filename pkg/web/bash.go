@@ -189,9 +189,17 @@ var Template_basecaller = `
   --outputbazfile {{.outputbazfile}} \
   --config {{.config_json_fn}} \
   --config source.WXIPCDataSourceConfig.sraIndex={{.sra}} \
-  --config traceSaver.roi="{{.traceFileRoi}}" \
+  {{.optTraceFileRoi}} \
   --config system.analyzerHardware=A100 \
 `
+
+func MaybeJsonOption(flagName string, val string) string {
+	if val == "null" {
+		return ""
+	} else {
+		return fmt.Sprintf(`--%s="%s"`, flagName, val)
+	}
+}
 
 // Maybe better:
 // --config source.WXIPCDataSourceConfig.acqConfig=Info-About-Chemistry \
@@ -228,7 +236,7 @@ func WriteBasecallerBash(wr io.Writer, tc *TopConfig, obj *SocketBasecallerObjec
 
 	raw, err := json.Marshal(obj.TraceFileRoi)
 	check(err)
-	kv["traceFileRoi"] = string(raw)
+	kv["optTraceFileRoi"] = MaybeJsonOption("--traceFileRoi=", string(raw))
 
 	// Skip --maxFrames for now?
 
