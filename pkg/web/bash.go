@@ -145,20 +145,39 @@ func WriteBasecallerBash(wr io.Writer, tc *TopConfig, obj *SocketBasecallerObjec
 	return t.Execute(wr, kv)
 }
 
+// I don't expect you to have to change these.  These are Sequel-II
+// parameters that may or may not be updated for Kestrel, but it's
+// the kind of thing you'll hard code and never update again. -Ben
+const (
+	BAZ_THREADS = 32    // -j
+	PBI_THREADS = 8     // -b
+	OUT_QUEUE   = 15000 // --maxOutputQueueMB
+	IN_QUEUE    = 7000  // --maxInputQueueMB
+	BATCH_SIZE  = 50000 // --zmwBatchMB
+	HEADER_SIZE = 30000 // --zmwHeaderBatchMB
+)
+
 var Template_baz2bam = `
 {{.Binary_baz2bam}} \
   {{.bazFile}} \
   --statusfd 3 \
   --metadata {{.metadataFile}} \
   --uuid {{.acqId}} \
-  -j {{.baz2bamComputingThreads}} \
-  -b {{.bamThreads}} \
-  {{if .inlinePbi}}--inlinePbi{{end}} \
-  --maxInputQueueMB {{.maxInputQueueMB}} \
-  --zmwBatchMB {{.zmwBatchMB}} \
-  --zmwHeaderBatchMB {{.headerBatchMB}} \
-  --maxOutputQueueMB {{.baz2BamMaxOutputQueueMB}} \
+  -j 32 \
+  -b 8 \
+  --inlinePbi \
+  --maxInputQueueMB 7000 \
+  --zmwBatchMB 50000 \
+  --zmwHeaderBatchMB 30000 \
+  --maxOutputQueueMB 15000 \
 `
+
+//  -o OUT_SUFFIX (e.g. 'out')
+
+// alternatively, replace bazFile(s) w/
+// --filelist ${FILE_LIST}
+
+// --silent //?
 
 func WriteBaz2bamBash(wr io.Writer, tc *TopConfig, obj *PostprimaryObject) error {
 	t := CreateTemplate(Template_baz2bam, "")
@@ -167,13 +186,13 @@ func WriteBaz2bamBash(wr io.Writer, tc *TopConfig, obj *PostprimaryObject) error
 	kv["acqId"] = obj.Uuid
 	kv["bazFile"] = obj.BazFileUrl                 // TODO
 	kv["metadataFile"] = obj.SubreadsetMetadataXml // written into a file?
-	kv["baz2bamComputingThreads"] = "16"
-	kv["bamThreads"] = "16"
-	kv["inlinePbi"] = "true"
-	kv["maxInputQueueMB"] = "39"
-	kv["zmwBatchMB"] = "40"
-	kv["headerBatchMB"] = "41"
-	kv["baz2BamMaxOutputQueueMB"] = "42"
+	//kv["baz2bamComputingThreads"] = "16"
+	//kv["bamThreads"] = "16"
+	//kv["inlinePbi"] = "true"
+	//kv["maxInputQueueMB"] = "39"
+	//kv["zmwBatchMB"] = "40"
+	//kv["headerBatchMB"] = "41"
+	//kv["baz2BamMaxOutputQueueMB"] = "42"
 
 	// --progress # for IPC messages
 	// --silent   # do we want this?
