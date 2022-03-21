@@ -108,6 +108,66 @@ func WriteLoadingcalBash(wr io.Writer, tc *TopConfig, obj *SocketLoadingcalObjec
 	return t.Execute(wr, kv)
 }
 
+var defaultBasecallerConfig = `
+{
+	"source" :
+	{
+		"WXIPCDataSourceConfig" :
+		{
+			"acqConfig" :
+			{
+				"A" :
+				{
+					"baseLabel" : "X",
+					"excessNoiseCV" : 0,
+					"interPulseDistance" : 0,
+					"ipd2SlowStepRatio" : 0,
+					"pulseWidth" : 0,
+					"pw2SlowStepRatio" : 0,
+					"relAmplitude" : 1
+				},
+				"C" :
+				{
+					"baseLabel" : "X",
+					"excessNoiseCV" : 0,
+					"interPulseDistance" : 0,
+					"ipd2SlowStepRatio" : 0,
+					"pulseWidth" : 0,
+					"pw2SlowStepRatio" : 0,
+					"relAmplitude" : 1
+				},
+				"G" :
+				{
+					"baseLabel" : "X",
+					"excessNoiseCV" : 0,
+					"interPulseDistance" : 0,
+					"ipd2SlowStepRatio" : 0,
+					"pulseWidth" : 0,
+					"pw2SlowStepRatio" : 0,
+					"relAmplitude" : 1
+				},
+				"T" :
+				{
+					"baseLabel" : "X",
+					"excessNoiseCV" : 0,
+					"interPulseDistance" : 0,
+					"ipd2SlowStepRatio" : 0,
+					"pulseWidth" : 0,
+					"pw2SlowStepRatio" : 0,
+					"relAmplitude" : 1
+				},
+				"refSnr" : 12
+			}
+		}
+	}
+}
+`
+
+func CopyDefaultBasecallerConfig(dest_fn string) {
+	log.Printf("Copy basecaller config to file '%s'", dest_fn)
+	WriteStringToFile(defaultBasecallerConfig, dest_fn)
+}
+
 var Template_basecaller = `
 {{.Binary_smrt_basecaller}} \
   --statusfd 3 \
@@ -115,12 +175,14 @@ var Template_basecaller = `
   --logfilter INFO \
   --outputtrcfile {{.outputtrcfile}} \
   --outputbazfile {{.outputbazfile}} \
+  --config {{.config_json_fn}} \
   --config source.WXIPCDataSource.sraIndex={{.sra}} \
   --config traceSaver.roi=roi_specification \
-  --config source.WXIPCDataSource.acqConfig=Info-About-Chemistry \
   --config system.analyzerHardware=A100 \
-  --config algorithm=forward-from-user \
 `
+
+// Maybe better:
+// --config source.WXIPCDataSource.acqConfig=Info-About-Chemistry \
 
 // optional:
 //   system.analyzerHardware
@@ -133,12 +195,19 @@ func WriteBasecallerBash(wr io.Writer, tc *TopConfig, obj *SocketBasecallerObjec
 
 	UpdateWithConfig(kv, tc)
 
+	outdir := "tmp"
+	os.MkdirAll(outdir, 0777)
+	config_json_fn := filepath.Join(outdir, obj.Mid+".basecaller.config.json")
+	CopyDefaultBasecallerConfig(config_json_fn)
+	// TODO: This file will be over-written on each call. Must use unique filepath.
+
 	socketIdInt, err := strconv.Atoi(SocketId)
 	if err != nil {
 		return err
 	}
 	sra := socketIdInt - 1 // for now
 	kv["sra"] = strconv.Itoa(sra)
+	kv["config_json_fn"] = config_json_fn
 
 	kv["outputtrcfile"] = obj.TraceFileUrl // TODO: Convert from URL!
 	kv["outputbazfile"] = obj.BazUrl       // TODO: Convert from URL!
