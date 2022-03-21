@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"log" // log.Fatal()
 	"net/http"
 	//"net/http/httputil"
@@ -129,7 +130,7 @@ func main() {
 	portPtr := flag.Int("port", 23632, "Listen on this port.")
 	cfgPtr := flag.String("config", "", "Read PpaConfig (JSON) from this file, to update default config.")
 	lfnPtr := flag.String("logoutput", "/var/log/pacbio/pa-wsgo/pa-wsgo.log", "Logfile output")
-	dataDirPtr := flag.String("data-dir", "/data/nrta", "Directory for some outputs (usually under SRA subdir")
+	dataDirPtr := flag.String("data-dir", "", "Directory for some outputs (usually under SRA subdir")
 	flag.Parse()
 	//flag.PrintDefaults()
 
@@ -152,8 +153,13 @@ func main() {
 		web.UpdatePpaConfigFromFile(*cfgPtr, &ppaConfig)
 	}
 
+	if *dataDirPtr == "" {
+		*dataDirPtr, err = ioutil.TempDir("", "pawsgo.*.datadir")
+		check(err)
+		//defer os.RemoveAll(*dataDirPtr)
+	}
 	web.DataDir = *dataDirPtr
-	log.Println("DataDir='%s'", web.DataDir)
+	log.Printf("DataDir='%s'\n", web.DataDir)
 
 	listen(*portPtr, lw)
 }

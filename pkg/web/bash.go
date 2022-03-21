@@ -11,6 +11,9 @@ import (
 	"text/template"
 )
 
+// TODO: Move this somewhere better.
+var DataDir = "/tmp" // Should be /var/run, but owned by root.
+
 func CreateTemplate(source string, name string) *template.Template {
 	result := template.Must(template.
 		New(name).
@@ -215,7 +218,7 @@ func WriteBasecallerBash(wr io.Writer, tc *TopConfig, obj *SocketBasecallerObjec
 
 	UpdateWithConfig(kv, tc)
 
-	outdir := filepath.Join("/data/nrta", sraName)
+	outdir := filepath.Join(DataDir, sraName)
 	os.MkdirAll(outdir, 0777)
 	config_json_fn := filepath.Join(outdir, obj.Mid+".basecaller.config.json")
 	CopyDefaultBasecallerConfig(config_json_fn)
