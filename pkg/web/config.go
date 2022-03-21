@@ -2,8 +2,8 @@ package web
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
+	"log"
 )
 
 // This might replace TopConfig soon. Not sure yet.
@@ -28,7 +28,7 @@ func UpdatePpaConfigFromFile(fn string, current *PpaConfig) error {
 	b, err := ioutil.ReadFile(fn)
 	check(err)
 	UpdatePpaConfig(b, current)
-	fmt.Printf("Config now:%#v\n", *current)
+	log.Printf("Config now:%#v\n", *current)
 	return nil
 }
 

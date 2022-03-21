@@ -2,8 +2,8 @@ package web
 
 import (
 	"errors"
-	"fmt"
 	"github.com/gin-gonic/gin"
+	"log"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -58,31 +58,31 @@ func freeStorageByMid(c *gin.Context, state *State) {
 }
 
 func StorageUrlToLinuxPath(url string, state *State) (string, error) {
-	fmt.Println("Converting:", url)
+	log.Println("Converting:", url)
 	lenUrl := len(url)
 	if lenUrl >= 1 {
 		if url[0:1] == "/" {
-			//fmt.Println("Already linuxed: ",url)
+			//log.Println("Already linuxed: ",url)
 			return url, nil
 		}
 	}
 	if lenUrl >= 5 {
 		if url[0:5] == "file:" {
-			//fmt.Println("Removing file: prefix from ",url)
+			//log.Println("Removing file: prefix from ",url)
 			return url[5:], nil
 		}
 	}
 	for _, so := range state.Storages {
-		//fmt.Printf("StorageUrlToLinuxPath so:%v\n", *so)
+		//log.Printf("StorageUrlToLinuxPath so:%v\n", *so)
 		// r, _ := regexp.Compile("^" + so.RootUrl)
 		l := len(so.RootUrl)
-		//fmt.Println("l:",l)
+		//log.Println("l:",l)
 		if lenUrl >= l {
-			//fmt.Println("url[0:l]:",url[0:l])
+			//log.Println("url[0:l]:",url[0:l])
 			if url[0:l] == so.RootUrl {
 				filepath := url[l:]
 				linuxPath := so.LinuxPath + filepath
-				//fmt.Println("Found match, linux path:",linuxPath)
+				//log.Println("Found match, linux path:",linuxPath)
 				return linuxPath, nil
 			}
 		}
