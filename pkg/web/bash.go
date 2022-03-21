@@ -1,6 +1,7 @@
 package web
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"log"
@@ -188,7 +189,7 @@ var Template_basecaller = `
   --outputbazfile {{.outputbazfile}} \
   --config {{.config_json_fn}} \
   --config source.WXIPCDataSourceConfig.sraIndex={{.sra}} \
-  --config traceSaver.roi=roi_specification \
+  --config traceSaver.roi="{{.traceFileRoi}}" \
   --config system.analyzerHardware=A100 \
 `
 
@@ -224,6 +225,10 @@ func WriteBasecallerBash(wr io.Writer, tc *TopConfig, obj *SocketBasecallerObjec
 	kv["optTraceFile"] = optTraceFile
 	kv["outputbazfile"] = obj.BazUrl // TODO: Convert from URL!
 	kv["logoutput"] = obj.LogUrl     // TODO: Convert from URL!
+
+	raw, err := json.Marshal(obj.TraceFileRoi)
+	check(err)
+	kv["traceFileRoi"] = string(raw)
 
 	// Skip --maxFrames for now?
 
