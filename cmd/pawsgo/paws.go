@@ -34,20 +34,11 @@ func PanicHandleRecovery(c *gin.Context, err interface{}) {
 	msg := fmt.Sprintf("Panic:'%+v'\n", err)
 	c.String(http.StatusInternalServerError, msg)
 }
-func listen(port int) {
+func listen(port int, lw io.Writer) {
 	//router := gin.Default()
 	// Or explicitly:
 	router := gin.New()
 	router.SetTrustedProxies(nil) // https://pkg.go.dev/github.com/gin-gonic/gin#readme-don-t-trust-all-proxies
-	//lfn := "/var/log/pacbio/pa-wsgo/pa-wsgo.log"
-	lfn := "pa-wsgo.log"
-	f, err := os.Create(lfn)
-	check(err)
-	defer f.Close()
-	//lw := os.Stdout
-	//lw := f
-	lw := io.MultiWriter(f, os.Stdout)
-	log.SetOutput(lw)
 	gin.DefaultWriter = lw
 	gin.ForceConsoleColor() // needed for colors w/ MultiWriter
 	router.Use(
@@ -82,44 +73,42 @@ func listen(port int) {
 		check(err)
 		usec = usec
 		interval := time.Duration(usec) * time.Microsecond
-		fmt.Fprintf(f, "usec='%d', pid='%d', interval='%s'\n", usec, pid, interval)
+		log.Printf("usec='%d', pid='%d', interval='%s'\n", usec, pid, interval)
 		if os.Getpid() != pid {
-			fmt.Fprintf(os.Stderr, "Wrong pid! '%s'\n", wpid)
+			log.Printf("Wrong pid! '%s'\n", wpid)
 			os.Exit(1)
 		}
 		delay, err := daemon.SdWatchdogEnabled(false)
 		check(err)
 		delay = delay / 2
-		fmt.Fprintf(f, "For timer, using delay='%s'\n", delay.Round(time.Microsecond))
+		log.Printf("For timer, using delay='%s'\n", delay.Round(time.Microsecond))
 		timer2 := time.NewTicker(delay)
 		defer timer2.Stop()
-		fmt.Fprintf(f, "Created Ticker w/ arg='%s'\n", delay)
+		log.Printf("Created Ticker w/ arg='%s'\n", delay)
 		done := make(chan bool)
 		go func() {
-			fmt.Fprint(f, "gofunc started. Watiing on ticker/done channels...\n")
+			log.Print("gofunc started. Watiing on ticker/done channels...\n")
 			for {
 				select {
 				case <-done:
-					fmt.Fprint(f, "Done!\n")
+					log.Print("Done!\n")
 					return
 				case current := <-timer2.C:
-					fmt.Fprintf(f, "...Timer 2 fired! current='%s'\n", current)
+					log.Printf("...Timer 2 fired! current='%s'\n", current)
 					supported_and_sent, err := daemon.SdNotify(false, daemon.SdNotifyWatchdog)
 					check(err)
-					fmt.Fprintf(f, "delay='%s', sent='%s'\n", delay.Round(time.Microsecond), supported_and_sent)
+					log.Printf("delay='%s', sent='%s'\n", delay.Round(time.Microsecond), supported_and_sent)
 				}
 			}
-			fmt.Fprint(f, "End of watchdog gofunc.\n")
+			log.Print("End of watchdog gofunc.\n")
 		}()
 		msg := ""
 		msg = fmt.Sprintf("Wait for %s delay.\n", delay)
-		fmt.Print(msg)
-		fmt.Fprint(f, msg)
+		log.Print(msg)
 		time.Sleep(16 * time.Second)
 		done <- true
 		msg = "Send done <- true\n"
-		fmt.Print(msg)
-		fmt.Fprint(f, msg)
+		log.Print(msg)
 	}
 
 	portStr := fmt.Sprintf(":%d", port)
@@ -129,13 +118,24 @@ func main() {
 	portPtr := flag.Int("port", 23632, "Listen on this port.")
 	cfgPtr := flag.String("config", "", "Read PpaConfig (JSON) from this file, to update default config.")
 	flag.Parse()
-	fmt.Printf("port='%v'\n", *portPtr)
 	//flag.PrintDefaults()
+
+	//lfn := "/var/log/pacbio/pa-wsgo/pa-wsgo.log"
+	lfn := "pa-wsgo.log"
+	f, err := os.Create(lfn)
+	check(err)
+	defer f.Close()
+	//lw := os.Stdout
+	//lw := f
+	lw := io.MultiWriter(f, os.Stdout)
+	log.SetOutput(lw)
+
+	log.Printf("port='%v'\n", *portPtr)
 	ppaConfig := web.PpaConfig{}
 	ppaConfig.SetDefaults()
 	if *cfgPtr != "" {
-		fmt.Printf("config='%v'\n", *cfgPtr)
+		log.Printf("config='%v'\n", *cfgPtr)
 		web.UpdatePpaConfigFromFile(*cfgPtr, &ppaConfig)
 	}
-	listen(*portPtr)
+	listen(*portPtr, lw)
 }

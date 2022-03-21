@@ -1,7 +1,11 @@
 package web
 
 import (
+	"fmt"
 	"io"
+	"log"
+	"os"
+	"path/filepath"
 	"strconv"
 	"text/template"
 )
@@ -145,35 +149,68 @@ func WriteBasecallerBash(wr io.Writer, tc *TopConfig, obj *SocketBasecallerObjec
 	return t.Execute(wr, kv)
 }
 
+// I don't expect you to have to change these.  These are Sequel-II
+// parameters that may or may not be updated for Kestrel, but it's
+// the kind of thing you'll hard code and never update again. -Ben
+const (
+	BAZ_THREADS = 32    // -j
+	PBI_THREADS = 8     // -b
+	OUT_QUEUE   = 15000 // --maxOutputQueueMB
+	IN_QUEUE    = 7000  // --maxInputQueueMB
+	BATCH_SIZE  = 50000 // --zmwBatchMB
+	HEADER_SIZE = 30000 // --zmwHeaderBatchMB
+)
+
 var Template_baz2bam = `
 {{.Binary_baz2bam}} \
   {{.bazFile}} \
   --statusfd 3 \
   --metadata {{.metadataFile}} \
   --uuid {{.acqId}} \
-  -j {{.baz2bamComputingThreads}} \
-  -b {{.bamThreads}} \
-  {{if .inlinePbi}}--inlinePbi{{end}} \
-  --maxInputQueueMB {{.maxInputQueueMB}} \
-  --zmwBatchMB {{.zmwBatchMB}} \
-  --zmwHeaderBatchMB {{.headerBatchMB}} \
-  --maxOutputQueueMB {{.baz2BamMaxOutputQueueMB}} \
+  -j 32 \
+  -b 8 \
+  --inlinePbi \
+  --maxInputQueueMB 7000 \
+  --zmwBatchMB 50000 \
+  --zmwHeaderBatchMB 30000 \
+  --maxOutputQueueMB 15000 \
 `
 
+//  -o OUT_SUFFIX (e.g. 'out')
+
+// alternatively, replace bazFile(s) w/
+// --filelist ${FILE_LIST}
+
+// --silent //?
+
+func WriteMetadata(fn string, content string) {
+	f, err := os.Create(fn)
+	defer f.Close()
+	if err != nil {
+		msg := fmt.Sprintf("Could not open metadata file '%s' for write: %v", fn, err)
+		log.Printf(msg)
+		panic(msg)
+	}
+	f.WriteString(content)
+}
 func WriteBaz2bamBash(wr io.Writer, tc *TopConfig, obj *PostprimaryObject) error {
 	t := CreateTemplate(Template_baz2bam, "")
 	kv := make(map[string]string)
 	UpdateWithConfig(kv, tc)
+	outdir := obj.OutputPrefixUrl // TODO: Translate URL
+	os.MkdirAll(outdir, 0777)
+	metadata_xml := filepath.Join(outdir, obj.Mid+".metadata.subreadset.xml")
+	WriteMetadata(metadata_xml, obj.SubreadsetMetadataXml)
+	kv["metadataFile"] = metadata_xml
 	kv["acqId"] = obj.Uuid
-	kv["bazFile"] = obj.BazFileUrl                 // TODO
-	kv["metadataFile"] = obj.SubreadsetMetadataXml // written into a file?
-	kv["baz2bamComputingThreads"] = "16"
-	kv["bamThreads"] = "16"
-	kv["inlinePbi"] = "true"
-	kv["maxInputQueueMB"] = "39"
-	kv["zmwBatchMB"] = "40"
-	kv["headerBatchMB"] = "41"
-	kv["baz2BamMaxOutputQueueMB"] = "42"
+	kv["bazFile"] = obj.BazFileUrl // TODO
+	//kv["baz2bamComputingThreads"] = "16"
+	//kv["bamThreads"] = "16"
+	//kv["inlinePbi"] = "true"
+	//kv["maxInputQueueMB"] = "39"
+	//kv["zmwBatchMB"] = "40"
+	//kv["headerBatchMB"] = "41"
+	//kv["baz2BamMaxOutputQueueMB"] = "42"
 
 	// --progress # for IPC messages
 	// --silent   # do we want this?
