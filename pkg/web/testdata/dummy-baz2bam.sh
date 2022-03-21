@@ -3,7 +3,7 @@
 
 POSITIONAL_ARGS=()
 FD=2
-LOG_OUTPUT="default.log"
+LOG_OUTPUT="default.dummy-baz2bam.$$.log"
 
 while [[ $# -gt 0 ]]; do
   case $1 in
@@ -58,6 +58,10 @@ echo "BAMFILE=${BAMFILE}"
 
 TIMESTAMP="20220223T146198.099Z" # arbitrary
 STAGE_WEIGHTING="[0, 100, 0]"
+
+function log {
+    echo "$1" >> "${LOG_OUTPUT}"
+}
 
 function report_status {
     # ARGS: number, name, counter, next

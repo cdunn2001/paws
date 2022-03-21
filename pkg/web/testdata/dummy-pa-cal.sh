@@ -7,7 +7,7 @@ pwd
 
 POSITIONAL_ARGS=()
 FD=2
-LOG_OUTPUT="default.log"
+LOG_OUTPUT="default.dummy-pa-cal.$$.log"
 OUTPUT_FILE="default.output"
 
 while [[ $# -gt 0 ]]; do
