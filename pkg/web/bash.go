@@ -167,13 +167,24 @@ func CopyDefaultBasecallerConfig(dest_fn string) {
 	log.Printf("Copy basecaller config to file '%s'", dest_fn)
 	WriteStringToFile(defaultBasecallerConfig, dest_fn)
 }
+func TranslateDiscardableUrl(option string, url string) string {
+	// ex. Translate("discard:", "--outputtrcfile")
+	// If "discard:", then return "".
+	// Otherwise return the flag with the translated path.
+	if url == "discard:" {
+		return ""
+	} else {
+		// TODO: Convert from URL!
+		return fmt.Sprintf("%s %s", option, url)
+	}
+}
 
 var Template_basecaller = `
 {{.Binary_smrt_basecaller}} \
   --statusfd 3 \
   --logoutput {{.logoutput}} \
   --logfilter INFO \
-  --outputtrcfile {{.outputtrcfile}} \
+  {{.optTraceFile}} \
   --outputbazfile {{.outputbazfile}} \
   --config {{.config_json_fn}} \
   --config source.WXIPCDataSourceConfig.sraIndex={{.sra}} \
@@ -209,9 +220,10 @@ func WriteBasecallerBash(wr io.Writer, tc *TopConfig, obj *SocketBasecallerObjec
 	kv["sra"] = strconv.Itoa(sra)
 	kv["config_json_fn"] = config_json_fn
 
-	kv["outputtrcfile"] = obj.TraceFileUrl // TODO: Convert from URL!
-	kv["outputbazfile"] = obj.BazUrl       // TODO: Convert from URL!
-	kv["logoutput"] = obj.LogUrl           // TODO: Convert from URL!
+	optTraceFile := TranslateDiscardableUrl("--outputtrcfile", obj.TraceFileUrl)
+	kv["optTraceFile"] = optTraceFile
+	kv["outputbazfile"] = obj.BazUrl // TODO: Convert from URL!
+	kv["logoutput"] = obj.LogUrl     // TODO: Convert from URL!
 
 	// Skip --maxFrames for now?
 
