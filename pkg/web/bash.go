@@ -213,19 +213,21 @@ func WriteBasecallerBash(wr io.Writer, tc *TopConfig, obj *SocketBasecallerObjec
 	t := CreateTemplate(Template_basecaller, "")
 	kv := make(map[string]string)
 
-	UpdateWithConfig(kv, tc)
-
-	outdir := "tmp"
-	os.MkdirAll(outdir, 0777)
-	config_json_fn := filepath.Join(outdir, obj.Mid+".basecaller.config.json")
-	CopyDefaultBasecallerConfig(config_json_fn)
-	// TODO: This file will be over-written on each call. Must use unique filepath.
-
 	socketIdInt, err := strconv.Atoi(SocketId)
 	if err != nil {
 		return err
 	}
 	sra := socketIdInt - 1 // for now
+	sraName := strconv.Itoa(sra)
+
+	UpdateWithConfig(kv, tc)
+
+	outdir := filepath.Join("/data/nrta", sraName)
+	os.MkdirAll(outdir, 0777)
+	config_json_fn := filepath.Join(outdir, obj.Mid+".basecaller.config.json")
+	CopyDefaultBasecallerConfig(config_json_fn)
+	// Note: This file will be over-written on each call.
+
 	kv["sra"] = strconv.Itoa(sra)
 	kv["config_json_fn"] = config_json_fn
 
