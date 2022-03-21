@@ -1,0 +1,52 @@
+{
+	"source" : 
+	{
+		"WXIPCDataSourceConfig" : 
+		{
+			"acqConfig" : 
+			{
+				"A" : 
+				{
+					"baseLabel" : "X",
+					"excessNoiseCV" : 0,
+					"interPulseDistance" : 0,
+					"ipd2SlowStepRatio" : 0,
+					"pulseWidth" : 0,
+					"pw2SlowStepRatio" : 0,
+					"relAmplitude" : 1
+				},
+				"C" : 
+				{
+					"baseLabel" : "X",
+					"excessNoiseCV" : 0,
+					"interPulseDistance" : 0,
+					"ipd2SlowStepRatio" : 0,
+					"pulseWidth" : 0,
+					"pw2SlowStepRatio" : 0,
+					"relAmplitude" : 1
+				},
+				"G" : 
+				{
+					"baseLabel" : "X",
+					"excessNoiseCV" : 0,
+					"interPulseDistance" : 0,
+					"ipd2SlowStepRatio" : 0,
+					"pulseWidth" : 0,
+					"pw2SlowStepRatio" : 0,
+					"relAmplitude" : 1
+				},
+				"T" : 
+				{
+					"baseLabel" : "X",
+					"excessNoiseCV" : 0,
+					"interPulseDistance" : 0,
+					"ipd2SlowStepRatio" : 0,
+					"pulseWidth" : 0,
+					"pw2SlowStepRatio" : 0,
+					"relAmplitude" : 1
+				},
+				"refSnr" : 12
+			}
+		}
+	}
+}
