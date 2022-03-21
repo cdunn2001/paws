@@ -2,6 +2,8 @@
     "mid": "m123",
     "uuid": "MyUuid",
     "bazFileUrl": "tmp/foo.baz",
+    "outputPrefixUrl": "tmp/out",
     "logUrl": "tmp/log.loadingcal.txt",
+    "subreadsetMetadataXml": "<SubreadSet></SubreadSet>",
     "logLevel": "INFO"
 }

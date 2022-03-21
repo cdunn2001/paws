@@ -1,7 +1,11 @@
 package web
 
 import (
+	"fmt"
 	"io"
+	"log"
+	"os"
+	"path/filepath"
 	"strconv"
 	"text/template"
 )
@@ -179,13 +183,27 @@ var Template_baz2bam = `
 
 // --silent //?
 
+func WriteMetadata(fn string, content string) {
+	f, err := os.Create(fn)
+	defer f.Close()
+	if err != nil {
+		msg := fmt.Sprintf("Could not open metadata file '%s' for write: %v", fn, err)
+		log.Printf(msg)
+		panic(msg)
+	}
+	f.WriteString(content)
+}
 func WriteBaz2bamBash(wr io.Writer, tc *TopConfig, obj *PostprimaryObject) error {
 	t := CreateTemplate(Template_baz2bam, "")
 	kv := make(map[string]string)
 	UpdateWithConfig(kv, tc)
+	outdir := obj.OutputPrefixUrl // TODO: Translate URL
+	os.MkdirAll(outdir, 0777)
+	metadata_xml := filepath.Join(outdir, obj.Mid+".metadata.subreadset.xml")
+	WriteMetadata(metadata_xml, obj.SubreadsetMetadataXml)
+	kv["metadataFile"] = metadata_xml
 	kv["acqId"] = obj.Uuid
-	kv["bazFile"] = obj.BazFileUrl                 // TODO
-	kv["metadataFile"] = obj.SubreadsetMetadataXml // written into a file?
+	kv["bazFile"] = obj.BazFileUrl // TODO
 	//kv["baz2bamComputingThreads"] = "16"
 	//kv["bamThreads"] = "16"
 	//kv["inlinePbi"] = "true"
