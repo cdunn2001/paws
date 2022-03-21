@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io"
 	"log" // log.Fatal()
 	"net/http"
 	//"net/http/httputil"
@@ -38,11 +39,21 @@ func listen(port int) {
 	// Or explicitly:
 	router := gin.New()
 	router.SetTrustedProxies(nil) // https://pkg.go.dev/github.com/gin-gonic/gin#readme-don-t-trust-all-proxies
+	//lfn := "/var/log/pacbio/pa-wsgo/pa-wsgo.log"
+	lfn := "pa-wsgo.log"
+	f, err := os.Create(lfn)
+	check(err)
+	defer f.Close()
+	//gin.DefaultWriter = os.Stdout
+	//gin.DefaultWriter = f
+	gin.DefaultWriter = io.MultiWriter(f, os.Stdout)
+	gin.ForceConsoleColor() // needed for colors w/ MultiWriter
 	router.Use(
-		//gin.Logger(),
-		gin.LoggerWithWriter(gin.DefaultWriter, "/pathsNotToLog/"), // useful!
+		gin.Logger(),
+		//gin.LoggerWithWriter(gin.DefaultWriter, "/pathsNotToLog/"), // useful!
 		gin.CustomRecovery(PanicHandleRecovery),
 		//gin.Recovery(),
+		//gin.RecoveryWithWriter(log.Writer())
 	)
 
 	router.GET("/hello", func(c *gin.Context) {
@@ -56,11 +67,6 @@ func listen(port int) {
 	})
 
 	web.AddRoutes(router)
-	//lfn := "/var/log/pacbio/pa-wsgo/pa-wsgo.log"
-	lfn := "/tmp/pa-wsgo.log"
-	f, err := os.Create(lfn)
-	check(err)
-	defer f.Close()
 	f.WriteString("CDUNN WAS HERE\n")
 	ns := os.Getenv("NOTIFY_SOCKET")
 	wusec := os.Getenv("WATCHDOG_USEC")
