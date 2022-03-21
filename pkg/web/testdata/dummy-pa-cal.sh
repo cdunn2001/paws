@@ -1,7 +1,5 @@
 #!/bin/bash
 # https://stackoverflow.com/a/14203146
-exec 2> foo.stderr.txt
-exec > foo.stdout.txt
 set -vex
 pwd
 

@@ -6,11 +6,14 @@ import (
 	"fmt"
 	"github.com/pkg/errors"
 	"io"
+	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"regexp"
 	"strconv"
+	"strings"
 	"syscall"
 	"time"
 )
@@ -85,6 +88,9 @@ func DummyEnv(stall string) (result []string) {
 type ControlledProcess struct {
 	cmd          *exec.Cmd
 	status       *ProcessStatusObject
+	temp_dn      string // someone must delete
+	stdout_fn    string // someone must delete (unless under temp_dn)
+	stderr_fn    string // someone must delete (unless under temp_dn)
 	chanKill     chan bool
 	chanComplete chan bool
 }
@@ -107,6 +113,25 @@ func StartControlledBashProcess(bash string, ps *ProcessStatusObject, stall stri
 	return result
 }
 
+func (cp *ControlledProcess) cleanup() {
+	if strings.HasSuffix(cp.temp_dn, ".tempdir") {
+		fmt.Printf("DEBUG removing dir tree '%s'", cp.temp_dn)
+		err := os.RemoveAll(cp.temp_dn)
+		check(err)
+	} else {
+		fmt.Printf("DEBUG not removing unknown dir tree '%s'", cp.temp_dn)
+	}
+}
+
+// TODO: Identify this process in the log.
+func logContent(fn, intro string) {
+	content, err := ioutil.ReadFile(fn)
+	if err != nil {
+		fmt.Printf("ERROR: Could not find '%s' file '%s'\n", intro, fn)
+	} else {
+		fmt.Printf("INFO %s:\n%s\n", intro, content)
+	}
+}
 func WriteStringToFile(content string, fn string) {
 	f, err := os.Create(fn)
 	check(err)
@@ -120,22 +145,36 @@ func WatchBash(bash string, ps *ProcessStatusObject, envExtra []string) (*Contro
 		return nil, err
 	}
 	extraFiles := []*os.File{wpipe} // becomes fd 3 in child
+
+	{
+		fmt.Println("PATH:", os.Getenv("PATH"))
+		log.Println("PATH:", os.Getenv("PATH"))
+		out, err := exec.Command("which", "dummy-pa-cal.sh").Output()
+		if err != nil {
+			fmt.Printf("%s\n", err)
+		}
+		fmt.Println("Command Successfully Executed")
+		output := string(out[:])
+		fmt.Println(output)
+	}
+
+	temp_dn, err := ioutil.TempDir("", "WatchBash.*.tmpdir")
+	if err != nil {
+		temp_dn = "very.tempdir"
+		fmt.Printf("ERROR Weirdly unable to create TempDir(): %#v\nTrying '%s' instead.\n",
+			err, temp_dn)
+		err = os.MkdirAll(temp_dn, 0777)
+		check(err)
+	}
+	stdout_fn := filepath.Join(temp_dn, "stdout.txt")
+	stderr_fn := filepath.Join(temp_dn, "stderr.txt")
+	bash = bash + " >" + stdout_fn + " 2> " + stderr_fn
 	fmt.Println("bash:", bash)
 	//fn := "/home/UNIXHOME/cdunn/repo/bb/paws/tmp/run.sh"
 	//WriteStringToFile(bash, fn)
 	//cmd := exec.Command("/bin/bash", fn)
 	env := os.Environ()
 	env = append(env, envExtra...)
-
-	fmt.Println("PATH:", os.Getenv("PATH"))
-	log.Println("PATH:", os.Getenv("PATH"))
-	out, err := exec.Command("which", "dummy-pa-cal.sh").Output()
-	if err != nil {
-		fmt.Printf("%s\n", err)
-	}
-	fmt.Println("Command Successfully Executed")
-	output := string(out[:])
-	fmt.Println(output)
 
 	cmd := exec.Command("/bin/bash", "-c", bash)
 	cmd.Env = env
@@ -157,6 +196,9 @@ func WatchBash(bash string, ps *ProcessStatusObject, envExtra []string) (*Contro
 	cbp := &ControlledProcess{
 		cmd:          cmd,
 		status:       ps,
+		temp_dn:      temp_dn,
+		stdout_fn:    stdout_fn,
+		stderr_fn:    stderr_fn,
 		chanKill:     chanKill,
 		chanComplete: chanComplete,
 	}
@@ -221,6 +263,9 @@ func WatchBash(bash string, ps *ProcessStatusObject, envExtra []string) (*Contro
 		} else {
 			cbp.status.CompletionStatus = Success
 		}
+		logContent(cbp.stdout_fn, "stdout")
+		logContent(cbp.stderr_fn, "stderr")
+		defer cbp.cleanup()
 		chanComplete <- true
 	}()
 	go func() {
