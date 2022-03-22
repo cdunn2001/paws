@@ -29,7 +29,6 @@ func check(e error) {
 	}
 }
 
-// Someday, keep panic message in response, maybe.
 func PanicHandleRecovery(c *gin.Context, err interface{}) {
 	//c.AbortWithStatus(http.StatusInternalServerError)
 	msg := fmt.Sprintf("Panic:'%+v'\n", err)
