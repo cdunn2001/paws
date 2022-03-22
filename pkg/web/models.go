@@ -69,6 +69,9 @@ type ProcessStatusObject struct {
 
 	// The exit code of the process
 	ExitCode int32 `json:"exitCode"`
+
+	// The process ID of the process
+	PID int `json:"PID"`
 }
 
 // For composition in others

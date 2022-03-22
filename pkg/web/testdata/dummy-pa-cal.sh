@@ -51,7 +51,7 @@ while [[ $# -gt 0 ]]; do
           shift # past argument
           shift # past value
           ;;
-      --timeoutseconds)
+      --timeoutSeconds)
           shift # past argument
           shift # past value
           ;;

@@ -28,7 +28,7 @@ var Template_darkcal = `
   --numFrames {{.numFrames}} \
   --cal Dark \
   --outputFile {{.outputFile}}  \
-  --timeoutseconds {{.timeoutseconds}} \
+  --timeoutSeconds {{.timeoutSeconds}} \
 `
 
 func WriteDarkcalBash(wr io.Writer, tc *TopConfig, obj *SocketDarkcalObject, SocketId string) error {
@@ -53,11 +53,11 @@ func WriteDarkcalBash(wr io.Writer, tc *TopConfig, obj *SocketDarkcalObject, Soc
 	kv["outputFile"] = obj.CalibFileUrl // TODO: Convert from URL!
 	kv["logoutput"] = obj.LogUrl        // TODO: Convert from URL!
 
-	timeout := int(float64(numFrames) * 1.1 / tc.values.defaultFrameRate) // default
-	if obj.MaxMovieSeconds != 0 {
-		timeout = int(obj.MaxMovieSeconds)
+	timeout := float64(numFrames) * 1.1 / tc.values.defaultFrameRate // default
+	if obj.MaxMovieSeconds > 0 {
+		timeout = obj.MaxMovieSeconds
 	}
-	kv["timeoutseconds"] = strconv.Itoa(timeout)
+	kv["timeoutSeconds"] = fmt.Sprintf("%g", timeout)
 
 	// Skip --inputDarkCalFile can be skipped for now.
 	return t.Execute(wr, kv)
@@ -73,7 +73,7 @@ var Template_loadingcal = `
   --cal Loading \
   --outputFile {{.outputFile}}  \
   --inputDarkCalFile {{.inputDarkCalFile}} \
-  --timeoutseconds {{.timeoutseconds}} \
+  --timeoutSeconds {{.timeoutseconds}} \
 `
 
 func WriteLoadingcalBash(wr io.Writer, tc *TopConfig, obj *SocketLoadingcalObject, SocketId string) error {
@@ -100,11 +100,11 @@ func WriteLoadingcalBash(wr io.Writer, tc *TopConfig, obj *SocketLoadingcalObjec
 	kv["logoutput"] = obj.LogUrl                  // TODO: Convert from URL!
 	kv["inputDarkCalFile"] = obj.DarkFrameFileUrl // TODO: Convert from URL!
 
-	timeout := int(float64(numFrames) * 1.1 / tc.values.defaultFrameRate) // default
-	if obj.MaxMovieSeconds != 0 {
-		timeout = int(obj.MaxMovieSeconds)
+	timeout := float64(numFrames) * 1.1 / tc.values.defaultFrameRate // default
+	if obj.MaxMovieSeconds > 0 {
+		timeout = obj.MaxMovieSeconds
 	}
-	kv["timeoutseconds"] = strconv.Itoa(timeout)
+	kv["timeoutSeconds"] = fmt.Sprintf("%g",timeout)
 
 	return t.Execute(wr, kv)
 }
@@ -119,43 +119,43 @@ var defaultBasecallerConfig = `
 			{
 				"A" :
 				{
-					"baseLabel" : "X",
-					"excessNoiseCV" : 0,
-					"interPulseDistance" : 0,
+					"baseLabel" : "A",
+					"excessNoiseCV" : 0.1,
+					"interPulseDistance" : 0.08,
 					"ipd2SlowStepRatio" : 0,
-					"pulseWidth" : 0,
-					"pw2SlowStepRatio" : 0,
-					"relAmplitude" : 1
+					"pulseWidth" : 0.166,
+					"pw2SlowStepRatio" : 3.2,
+					"relAmplitude" : 0.67
 				},
 				"C" :
 				{
-					"baseLabel" : "X",
-					"excessNoiseCV" : 0,
-					"interPulseDistance" : 0,
+					"baseLabel" : "C",
+					"excessNoiseCV" : 0.1,
+					"interPulseDistance" : 0.07,
 					"ipd2SlowStepRatio" : 0,
-					"pulseWidth" : 0,
-					"pw2SlowStepRatio" : 0,
-					"relAmplitude" : 1
+					"pulseWidth" : 0.209,
+					"pw2SlowStepRatio" : 3.2,
+					"relAmplitude" : 1.0
 				},
 				"G" :
 				{
-					"baseLabel" : "X",
-					"excessNoiseCV" : 0,
-					"interPulseDistance" : 0,
+					"baseLabel" : "G",
+					"excessNoiseCV" : 0.1,
+					"interPulseDistance" : 0.07,
 					"ipd2SlowStepRatio" : 0,
-					"pulseWidth" : 0,
-					"pw2SlowStepRatio" : 0,
-					"relAmplitude" : 1
+					"pulseWidth" : 0.193,
+					"pw2SlowStepRatio" : 3.2,
+					"relAmplitude" : 0.26
 				},
 				"T" :
 				{
-					"baseLabel" : "X",
-					"excessNoiseCV" : 0,
-					"interPulseDistance" : 0,
+					"baseLabel" : "T",
+					"excessNoiseCV" : 0.1,
+					"interPulseDistance" : 0.08,
 					"ipd2SlowStepRatio" : 0,
-					"pulseWidth" : 0,
-					"pw2SlowStepRatio" : 0,
-					"relAmplitude" : 1
+					"pulseWidth" : 0.163,
+					"pw2SlowStepRatio" : 3.2,
+					"relAmplitude" : 0.445
 				},
 				"refSnr" : 12
 			}
@@ -191,6 +191,7 @@ var Template_basecaller = `
   --config source.WXIPCDataSourceConfig.sraIndex={{.sra}} \
   {{.optTraceFileRoi}} \
   --config system.analyzerHardware=A100 \
+  --maxFrames {{.maxFrames}} \
 `
 
 func MaybeJsonOption(flagName string, val string) string {
@@ -232,13 +233,20 @@ func WriteBasecallerBash(wr io.Writer, tc *TopConfig, obj *SocketBasecallerObjec
 	kv["config_json_fn"] = config_json_fn
 
 	optTraceFile := TranslateDiscardableUrl("--outputtrcfile", obj.TraceFileUrl)
-	kv["optTraceFile"] = optTraceFile
-	kv["outputbazfile"] = obj.BazUrl // TODO: Convert from URL!
-	kv["logoutput"] = obj.LogUrl     // TODO: Convert from URL!
-
 	raw, err := json.Marshal(obj.TraceFileRoi)
 	check(err)
+
 	kv["optTraceFileRoi"] = MaybeJsonOption("--traceFileRoi=", string(raw))
+	if kv["optTraceFileRoi"] == "" || kv["optTraceFileRoi"] == "[]" {
+		kv["optTraceFile"] = ""	
+	} else {
+		kv["optTraceFile"] = optTraceFile
+	}
+
+	kv["outputbazfile"] = obj.BazUrl // TODO: Convert from URL!
+	kv["logoutput"] = obj.LogUrl     // TODO: Convert from URL!
+	maxFrames := int(obj.MaxMovieFrames)
+	kv["maxFrames"] = strconv.Itoa(maxFrames)
 
 	// Skip --maxFrames for now?
 

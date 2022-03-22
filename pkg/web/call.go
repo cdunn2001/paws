@@ -103,6 +103,7 @@ func StartControlledBashProcess(bash string, ps *ProcessStatusObject, stall stri
 		panic(err) // TODO: Check if panics are working.
 	}
 	pid := result.cmd.Process.Pid
+	ps.PID = pid
 	log.Printf("New pid:%d\n", pid)
 	/*
 		select {
