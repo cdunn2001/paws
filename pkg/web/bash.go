@@ -73,7 +73,7 @@ var Template_loadingcal = `
   --cal Loading \
   --outputFile {{.outputFile}}  \
   --inputDarkCalFile {{.inputDarkCalFile}} \
-  --timeoutSeconds {{.timeoutseconds}} \
+  --timeoutSeconds {{.timeoutSeconds}} \
 `
 
 func WriteLoadingcalBash(wr io.Writer, tc *TopConfig, obj *SocketLoadingcalObject, SocketId string) error {
