@@ -82,10 +82,10 @@ type socketCommonObject struct {
 	Mid string `json:"mid"`
 
 	// Movie length in frames. The values movieMaxFrames and movieMaxSeconds should be similar, but not exactly the same, depending on whether true elapsed time or accurate frame count is desired. One value should be the desired amount and the other value should be an emergency stop amount.
-	MaxMovieFrames int32 `json:"maxMovieFrames"`
+	MovieMaxFrames int32 `json:"movieMaxFrames"`
 
 	// Movie length in seconds. The values movieMaxFrames and movieMaxSeconds should be similar, but not exactly the same, depending on whether true elapsed time or accurate frame count is desired. One value should be the desired amount and the other value should be an emergency stop amount.
-	MaxMovieSeconds float64 `json:"maxMovieSeconds"`
+	MovieMaxSeconds float64 `json:"movieMaxSeconds"`
 
 	// Arbitrary movie number to delimite the start and end
 	MovieNumber int32 `json:"movieNumber"`
