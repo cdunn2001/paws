@@ -277,7 +277,7 @@ func startBasecallerBySocketId(c *gin.Context, state *State) {
 	obj.ProcessStatus.ExecutionStatus = Running
 	state.Basecallers[id] = obj // TODO: Error if already running?
 	wr := new(bytes.Buffer)
-	err := WriteBasecallerBash(wr, &topconfig, obj, id)
+	err = WriteBasecallerBash(wr, &topconfig, obj, id)
 	if err != nil {
 		err = errors.Wrapf(err, "Error in WriteBasecallerBash(%v, %v, %v, %v)", wr, topconfig, obj, id)
 		check(err)
@@ -459,7 +459,7 @@ func startLoadingcalBySocketId(c *gin.Context, state *State) {
 	obj.ProcessStatus.ExecutionStatus = Running
 	state.Loadingcals[id] = obj // TODO: Error if already running?
 	wr := new(bytes.Buffer)
-	err := WriteLoadingcalBash(wr, &topconfig, obj, id)
+	err = WriteLoadingcalBash(wr, &topconfig, obj, id)
 	if err != nil {
 		err = errors.Wrapf(err, "Error in WriteLoadingcalBash(%v, %v, %v, %v)", wr, topconfig, obj, id)
 		check(err)
