@@ -129,7 +129,7 @@ func listen(port int, lw io.Writer) {
 func main() {
 	portPtr := flag.Int("port", 23632, "Listen on this port.")
 	cfgPtr := flag.String("config", "", "Read PpaConfig (JSON) from this file, to update default config.")
-	lfnPtr := flag.String("logoutput","/var/log/pacbio/pa-wsgo/pa-wsgo.log","Logfile output")
+	lfnPtr := flag.String("logoutput", "/var/log/pacbio/pa-wsgo/pa-wsgo.log", "Logfile output")
 	flag.Parse()
 	//flag.PrintDefaults()
 

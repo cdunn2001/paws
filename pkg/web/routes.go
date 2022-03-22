@@ -172,13 +172,13 @@ func getStatus(c *gin.Context, state *State) {
 
 	// Current epoch time in seconds as seen by pa-ws (UTC)
 	utc := time.Now().UTC()
-	status.Time =  float64(utc.UnixMilli())*0.001
+	status.Time = float64(utc.UnixMilli()) * 0.001
 
 	// ISO8601 timestamp (with milliseconds) of time field
 	status.Timestamp = utc.Format("2006-01-02T15:04:05-0700Z")
 
 	// Version of software, including git hash of last commit
-	status.Version = "0.0.0"  // TODO
+	status.Version = "0.0.0" // TODO
 
 	c.IndentedJSON(http.StatusOK, status)
 }
@@ -214,12 +214,12 @@ func resetSockets(c *gin.Context, state *State) {
 				x.Value = id
 			}
 		}
-		if ! found {
-			c.Params = append(c.Params, gin.Param {
-				Key: "id",
-				Value: id })
+		if !found {
+			c.Params = append(c.Params, gin.Param{
+				Key:   "id",
+				Value: id})
 		}
-		resetSocketById(c,state)
+		resetSocketById(c, state)
 	}
 	c.Status(http.StatusOK) // TODO: Should reset all 3.
 }

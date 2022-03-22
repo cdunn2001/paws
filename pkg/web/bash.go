@@ -104,7 +104,7 @@ func WriteLoadingcalBash(wr io.Writer, tc *TopConfig, obj *SocketLoadingcalObjec
 	if obj.MaxMovieSeconds > 0 {
 		timeout = obj.MaxMovieSeconds
 	}
-	kv["timeoutSeconds"] = fmt.Sprintf("%g",timeout)
+	kv["timeoutSeconds"] = fmt.Sprintf("%g", timeout)
 
 	return t.Execute(wr, kv)
 }
@@ -238,7 +238,7 @@ func WriteBasecallerBash(wr io.Writer, tc *TopConfig, obj *SocketBasecallerObjec
 
 	kv["optTraceFileRoi"] = MaybeJsonOption("--traceFileRoi=", string(raw))
 	if kv["optTraceFileRoi"] == "" || kv["optTraceFileRoi"] == "[]" {
-		kv["optTraceFile"] = ""	
+		kv["optTraceFile"] = ""
 	} else {
 		kv["optTraceFile"] = optTraceFile
 	}
