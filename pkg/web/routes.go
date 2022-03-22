@@ -2,13 +2,14 @@ package web
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
-	//	"io/ioutil"
+	"io/ioutil"
 	"log"
 	"net/http"
-	"net/http/httputil"
+	//"net/http/httputil"
 	"sort"
 	"sync"
 	"time"
@@ -261,17 +262,15 @@ func getBasecallerBySocketId(c *gin.Context, state *State) {
 
 // Start the basecaller process on socket {id}.
 func startBasecallerBySocketId(c *gin.Context, state *State) {
-	payload, err := httputil.DumpRequest(c.Request, true)
-	if err != nil {
-		log.Printf("http.StatusInternalServerError %v", err.Error())
-		return
-	}
-	log.Println("startBasecallerBySocketId dump request", string(payload))
+	payload, err := ioutil.ReadAll(c.Request.Body)
+	check(err)
+	log.Println("dump request", string(payload)) // TODO: Delete this line. Log only on JSON error.
 
 	id := c.Param("id")
 	obj := &SocketBasecallerObject{}
-	if err := c.BindJSON(obj); err != nil {
-		c.String(http.StatusBadRequest, "Could not parse body into struct.\n%v\n", err)
+	err = json.Unmarshal(payload, &obj)
+	if err != nil {
+		c.String(http.StatusBadRequest, "Could not parse body into struct.\n%v\nBody was:\n%s", err, payload)
 		return
 	}
 	obj.ProcessStatus.ExecutionStatus = Running
@@ -344,12 +343,10 @@ func getDarkcalBySocketId(c *gin.Context, state *State) {
 
 // Starts a darkcal process on socket {id}.
 func startDarkcalBySocketId(c *gin.Context, state *State) {
-	payload, err := httputil.DumpRequest(c.Request, true)
-	if err != nil {
-		log.Printf("http.StatusInternalServerError %v", err.Error())
-		return
-	}
-	log.Println("dump request", string(payload))
+	payload, err := ioutil.ReadAll(c.Request.Body)
+	//payload, err := httputil.DumpRequest(c.Request, true) // probably same, but not sure
+	check(err)
+	log.Println("dump request", string(payload)) // TODO: Delete this line. Log only on JSON error.
 
 	/* 	//	bodyReader2, err1 := c.Request.GetBody()
 		bodyReader2 := c.Request.Body
@@ -368,8 +365,10 @@ func startDarkcalBySocketId(c *gin.Context, state *State) {
 	*/
 	id := c.Param("id")
 	obj := &SocketDarkcalObject{}
-	if err := c.BindJSON(obj); err != nil {
-		c.String(http.StatusBadRequest, "Could not parse body into struct.\n%v\n", err)
+	err = json.Unmarshal(payload, &obj)
+	//if err := c.BindJSON(obj); err != nil
+	if err != nil {
+		c.String(http.StatusBadRequest, "Could not parse body into struct.\n%v\nBody was:\n%s", err, payload)
 		return
 	}
 	obj.ProcessStatus.ExecutionStatus = Running
@@ -443,17 +442,15 @@ func getLoadingcalBySocketId(c *gin.Context, state *State) {
 
 // Starts a loadingcal process on socket {id}.
 func startLoadingcalBySocketId(c *gin.Context, state *State) {
-	payload, err := httputil.DumpRequest(c.Request, true)
-	if err != nil {
-		log.Printf("http.StatusInternalServerError %v", err.Error())
-		return
-	}
-	log.Println("startLoadingcalBySocketId dump request", string(payload))
+	payload, err := ioutil.ReadAll(c.Request.Body)
+	check(err)
+	log.Println("dump request", string(payload)) // TODO: Delete this line. Log only on JSON error.
 
 	id := c.Param("id")
 	obj := &SocketLoadingcalObject{}
-	if err := c.BindJSON(obj); err != nil {
-		c.String(http.StatusBadRequest, "Could not parse body into struct.\n%v\n", err)
+	err = json.Unmarshal(payload, &obj)
+	if err != nil {
+		c.String(http.StatusBadRequest, "Could not parse body into struct.\n%v\nBody was:\n%s", err, payload)
 		return
 	}
 	obj.ProcessStatus.ExecutionStatus = Running
@@ -525,9 +522,14 @@ func listPostprimaryMids(c *gin.Context, state *State) {
 
 // Starts a postprimary process on the provided urls to basecalling artifacts files.
 func startPostprimary(c *gin.Context, state *State) {
+	payload, err := ioutil.ReadAll(c.Request.Body)
+	check(err)
+	log.Println("dump request", string(payload)) // TODO: Delete this line. Log only on JSON error.
+
 	obj := &PostprimaryObject{}
-	if err := c.BindJSON(obj); err != nil {
-		c.String(http.StatusBadRequest, "Could not parse body into struct.\n%v\n", err)
+	err = json.Unmarshal(payload, &obj)
+	if err != nil {
+		c.String(http.StatusBadRequest, "Could not parse body into struct.\n%v\nBody was:\n%s", err, payload)
 		return
 	}
 	mid := obj.Mid
@@ -543,7 +545,7 @@ func startPostprimary(c *gin.Context, state *State) {
 	obj.ProcessStatus.ExecutionStatus = Running
 	state.Postprimaries[mid] = obj // TODO: Error if already running?
 	wr := new(bytes.Buffer)
-	err := WriteBaz2bamBash(wr, &topconfig, obj)
+	err = WriteBaz2bamBash(wr, &topconfig, obj)
 	if err != nil {
 		err = errors.Wrapf(err, "Error in WriteBaz2BamBash(%v, %v, %v)", wr, topconfig, obj)
 		check(err)
