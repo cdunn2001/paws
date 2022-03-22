@@ -6,6 +6,13 @@ mkdir -p tmp
 rm -rf tmp/*
 F="-i -f"
 
+#NOTIFY_SOCKET=/tmp/kpaws.sock
+#rm -f ${NOTIFY_SOCKET}
+#trap "nc -vklU ${NOTIFY_SOCKET}" EXIT
+# This gives: "Nothing sent to systemd watchdog. dial unixgram /tmp/kpaws.sock: connect: protocol wrong type for socket"
+
+curl -i -X PUT $E/feed-watchdog
+
 curl $f -X GET $E/sockets
 # Should print [1,2,3,4] quoted.
 

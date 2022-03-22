@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"log" // log.Fatal()
 	"net/http"
+	"sync/atomic"
 	//"net/http/httputil"
 	"os"
 	"strconv"
@@ -64,7 +65,7 @@ func listen(port int, lw io.Writer) {
 	ns := os.Getenv("NOTIFY_SOCKET")
 	wusec := os.Getenv("WATCHDOG_USEC")
 	wpid := os.Getenv("WATCHDOG_PID")
-	log.Printf("NOTIFY_SOCKET='%s', WATCHDOG_USEC='%s'\n", ns, wusec)
+	log.Printf("NOTIFY_SOCKET='%s', WATCHDOG_USEC='%s', WATCHDOG_PID=%s\n", ns, wusec, wpid)
 	//fmt.Printf("stdout wrote to '%s'\n", lfn)
 	//fmt.Fprintf(os.Stderr, "stderr wrote to '%s'\n", lfn)
 	if wusec != "" {
@@ -88,30 +89,36 @@ func listen(port int, lw io.Writer) {
 		}
 		timeout, err := daemon.SdWatchdogEnabled(false)
 		check(err)
-		delay := timeout / time.Duration(2)
+		if timeout != interval {
+			log.Printf("ERROR: timeout(%s) != our calc(%s)", timeout, interval)
+		}
+		delay := timeout / 2
 		log.Printf("systemd timeout=%s, paws heartbeat%s'\n", timeout, delay)
-		timer2 := time.NewTicker(delay)
-		defer timer2.Stop()
+		timer := time.NewTicker(delay)
+		defer timer.Stop()
 		log.Printf("Created Ticker w/ arg='%s'\n", delay)
 
 		doneWatchdogCh := make(chan bool)
 		defer close(doneWatchdogCh) // closing is as good as sending "true"
 
+		var count int32 = 1
+
 		go func() {
-			log.Print("gofunc started. Watiing on ticker/done channels...\n")
+			log.Print("Watchdog gofunc started. Waiting on ticker/done channels...\n")
 			for {
 				select {
 				case <-doneWatchdogCh:
-					log.Print("Done!\n")
+					log.Print("Watchdog done!\n")
 					return
-				case current := <-timer2.C:
-					log.Printf("...Timer 2 fired! current='%s'\n", current)
-					supported_and_sent, err := daemon.SdNotify(false, daemon.SdNotifyWatchdog)
-					check(err)
-					log.Printf("delay='%s', sent='%s'\n", delay.Round(time.Microsecond), supported_and_sent)
+				case <-timer.C:
+					msg := web.NotifyWatchdog()
+					if web.IsPowerOf2(count) {
+						log.Printf("Watchdog timer fired. count=%06d -- %s\n", count, msg)
+					}
+					atomic.AddInt32(&count, 1)
 				}
 			}
-			log.Print("End of watchdog gofunc.\n")
+			log.Print("Watchdog gofunc ends.\n")
 		}()
 		/*
 			msg := ""

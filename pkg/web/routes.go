@@ -3,6 +3,7 @@ package web
 import (
 	"bytes"
 	"fmt"
+	"github.com/coreos/go-systemd/v22/daemon"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 	"log"
@@ -131,6 +132,7 @@ var bootTime time.Time
 
 func AddRoutes(router *gin.Engine) {
 	bootTime = time.Now()
+	router.PUT("/feed-watchdog", feedWatchdog)
 	router.GET("/status", SafeState(getStatus))
 	router.GET("/sockets", SafeState(getSockets))
 	router.GET("/sockets/:id", SafeState(getSocketById))
@@ -160,6 +162,25 @@ func AddRoutes(router *gin.Engine) {
 	router.GET("/postprimaries/:mid", SafeState(getPostprimaryByMid))
 	router.DELETE("/postprimaries/:mid", SafeState(deletePostprimaryByMid))
 	router.POST("/postprimaries/:mid/stop", SafeState(stopPostprimaryByMid))
+}
+
+type SystemdStruct struct {
+}
+
+var Systemd *SystemdStruct
+
+func NotifyWatchdog() string {
+	supported_and_sent, err := daemon.SdNotify(false, daemon.SdNotifyWatchdog)
+	if supported_and_sent {
+		return "Heartbeat sent to systemd watchdog."
+	} else {
+		return fmt.Sprintf("Nothing sent to systemd watchdog. %v", err)
+	}
+}
+
+func feedWatchdog(c *gin.Context) {
+	msg := NotifyWatchdog()
+	c.String(http.StatusOK, msg)
 }
 
 // Returns top level status of the pa-ws process.

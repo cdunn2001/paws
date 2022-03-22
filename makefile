@@ -4,10 +4,10 @@
 #vpath %.go cmd
 DUMMYDIR:=${PWD}/pkg/web/testdata
 export PATH:=${DUMMYDIR}:${PATH}
-#WATCHDOG_NOTIFY=/tmp/kpaws.sock
-#WATCHDOG_USEC=4000000
-#export WATCHDOG_NOTIFY
-#export WATCHDOG_USEC
+#NOTIFY_SOCKET=/tmp/kpaws.sock
+WATCHDOG_USEC=4000000
+#export NOTIFY_SOCKET
+export WATCHDOG_USEC
 
 echo:
 	echo "PATH=${PATH}"
