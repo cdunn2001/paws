@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
-//	"io/ioutil"
-	"net/http/httputil"
+	//	"io/ioutil"
 	"log"
 	"net/http"
+	"net/http/httputil"
 	"sort"
 	"sync"
 	"time"
@@ -351,25 +351,25 @@ func startDarkcalBySocketId(c *gin.Context, state *State) {
 	}
 	log.Println("dump request", string(payload))
 
-/* 	//	bodyReader2, err1 := c.Request.GetBody()
-	bodyReader2 := c.Request.Body
-	err1 := error(nil)
-	if err1 == nil {
-		bodyText2, err2 := ioutil.ReadAll(bodyReader2)
-		if bodyText2 != nil && err2 == nil {
-    		log.Printf("startDarkcalBySocketId, POSTed payload = %s", bodyText2)
+	/* 	//	bodyReader2, err1 := c.Request.GetBody()
+		bodyReader2 := c.Request.Body
+		err1 := error(nil)
+		if err1 == nil {
+			bodyText2, err2 := ioutil.ReadAll(bodyReader2)
+			if bodyText2 != nil && err2 == nil {
+	    		log.Printf("startDarkcalBySocketId, POSTed payload = %s", bodyText2)
+			} else {
+				log.Printf("startDarkcalBySocketId, ReadAll failed to read payload: %s", err2)
+			}
 		} else {
-			log.Printf("startDarkcalBySocketId, ReadAll failed to read payload: %s", err2)
+			log.Printf("startDarkcalBySocketId, c.Request.GetBody() failed to read payload: %s", err1)
 		}
-	} else {
-		log.Printf("startDarkcalBySocketId, c.Request.GetBody() failed to read payload: %s", err1)
-	}
-	c.Request.Body.Seek(0, io.SeekStart)
- */
+		c.Request.Body.Seek(0, io.SeekStart)
+	*/
 	id := c.Param("id")
 	obj := &SocketDarkcalObject{}
 	if err := c.BindJSON(obj); err != nil {
-		c.String(http.StatusBadRequest , "Could not parse body into struct.\n%v\n", err)
+		c.String(http.StatusBadRequest, "Could not parse body into struct.\n%v\n", err)
 		return
 	}
 	obj.ProcessStatus.ExecutionStatus = Running
