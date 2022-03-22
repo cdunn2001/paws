@@ -32,15 +32,15 @@ func check(e error) {
 }
 
 type StatusReport struct {
-	State            string  // e.g. "progress" or "exception"
-	Ready            bool    // turns to true when ICS can resume execution for providing sensor data
-	StageNumber      int32   // number starting at 0 representing the stage
-	StageName        string  // human readable description of the stage
-	Counter          uint64  // a counter that monotonically increments as progress is made. example might be frames or ZMWs
-	CounterMax       uint64  // the maximum number that the counter is expected to attain when done. If this is not known, then it should be omitted.
-	TimeToNextStatus float64 // maximum time in seconds until the next status update. If there is no status message within the alloted time, pa-ws should kill the process
-	StageWeights     []int32 // weights for each stage. Does not need to be normalized to any number
-	Timestamp        string  // ISO8601 time stamp with millisecond precision (see PacBio::Utilities::ISO8601)
+	State                string  // e.g. "progress" or "exception"
+	Ready                bool    // turns to true when ICS can resume execution for providing sensor data
+	StageNumber          int32   // number starting at 0 representing the stage
+	StageName            string  // human readable description of the stage
+	Counter              uint64  // a counter that monotonically increments as progress is made. example might be frames or ZMWs
+	CounterMax           uint64  // the maximum number that the counter is expected to attain when done. If this is not known, then it should be omitted.
+	TimeoutForNextStatus float64 // maximum time in seconds until the next status update. If there is no status message within the alloted time, pa-ws should kill the process
+	StageWeights         []int32 // weights for each stage. Does not need to be normalized to any number
+	Timestamp            string  // ISO8601 time stamp with millisecond precision (see PacBio::Utilities::ISO8601)
 
 	// Only for exceptions:
 	Message string
@@ -49,7 +49,6 @@ type StatusReport struct {
 func Json2StatusReport(raw []byte) (result StatusReport) {
 	err := json.Unmarshal(raw, &result)
 	if err != nil {
-		// TODO: Ignore errors. Assume a heartbeat.
 		check(err)
 	}
 	return result
@@ -98,19 +97,12 @@ type ControlledProcess struct {
 func StartControlledBashProcess(bash string, ps *ProcessStatusObject, stall string) (result *ControlledProcess) {
 	env := DummyEnv(stall)
 	result, err := WatchBash(bash, ps, env)
-	//result, err := WatchBash(bash, ps, nil)
 	if err != nil {
-		panic(err) // TODO: Check if panics are working.
+		panic(err)
 	}
 	pid := result.cmd.Process.Pid
 	ps.PID = pid
 	log.Printf("New pid:%d\n", pid)
-	/*
-		select {
-		case <-result.chanComplete:
-		}
-		log.Println("Did we complete the process?")
-	*/
 	return result
 }
 
@@ -124,7 +116,6 @@ func (cp *ControlledProcess) cleanup() {
 	}
 }
 
-// TODO: Identify this process in the log.
 func logContent(fn, intro string) {
 	content, err := ioutil.ReadFile(fn)
 	if err != nil {
@@ -206,35 +197,43 @@ func WatchBash(bash string, ps *ProcessStatusObject, envExtra []string) (*Contro
 	cbp.status.ExecutionStatus = Running // TODO: Make this thread-safe!!!
 
 	go func() {
-		log.Println("Started timeout go-func")
-		var timeout float64 = 2.0
+		pid := int(cmd.Process.Pid)
+		var timeout float64 = 10.0 // seconds
+		log.Printf("PID: %d Started timeout go-func with timeout=%f\n", pid, timeout)
 		timedout := false
 		done := false
 		for !done && !timedout {
 			select {
 			case <-time.After(time.Duration((timeout + 0.01) * float64(time.Second))):
 				timedout = true
-				log.Println("Timed out!")
-				log.Printf("Killing pid %d\n", cmd.Process.Pid)
+				log.Printf("PID: %d Timed out! Killing.\n", pid)
 				cmd.Process.Kill() // TODO: What happens if not running? Also, check sub-children, or maybe ssid.
 			case <-chanKill:
-				log.Printf("Got chanKill.\n")
-				log.Printf("Killing pid %d\n", cmd.Process.Pid)
+				log.Printf("PID: %d Got chanKill. Killing.\n", pid)
 				cmd.Process.Kill() // TODO: What happens if not running? Also, check sub-children, or maybe ssid.
 				done = true
-				log.Println("Called Kill()")
 			case <-chanDone:
 				done = true
-				log.Println("Got chanDone!")
+				log.Printf("PID: %d Got chanDone!\n", pid)
 			case srText := <-chanStatusReportText:
 				sr, err := String2StatusReport(srText)
 				if err != nil {
-					// TODO: Log unexpected line?
+					// Count as a heartbeat, but do not update timeout.
+					log.Printf("PID: %d Unparseable status:\n%s\n", pid, srText)
 				} else if sr.State == "exception" {
-					// TODO: Got an exception. Log and ignore?
+					// Count as a heartbeat, but do not update timeout.
+					log.Printf("PID: %d Status exception:%s\n", pid, srText)
+
+					// TODO: Make this thread-safe!!!
+					cbp.status.Timestamp = sr.Timestamp
 				} else {
-					timeout = sr.TimeToNextStatus
-					log.Println("timeout is now", timeout)
+					// Count as a heartbeat and update timeout.
+					if sr.TimeoutForNextStatus > 0.0 {
+						timeout = sr.TimeoutForNextStatus
+						log.Printf("PID: %d timeout is now %f\n", pid, timeout)
+					} else {
+						log.Printf("PID: %d Ignoring TimeoutForNextStatus %f\n", pid, sr.TimeoutForNextStatus)
+					}
 
 					// TODO: Make this thread-safe!!!
 					cbp.status.Timestamp = sr.Timestamp
@@ -242,15 +241,15 @@ func WatchBash(bash string, ps *ProcessStatusObject, envExtra []string) (*Contro
 			}
 		}
 		if timedout {
-			log.Println("Timedout?")
+			log.Printf("PID: %d Timedout?\n", pid)
 		} else if done {
-			log.Println("Done?")
+			log.Printf("PID: %d Done?\n", pid)
 		} else {
-			log.Println("Not sure!!!")
+			log.Printf("PID: %d Not sure why we stopped watching it.\n", pid)
 		}
-		log.Printf("Now waiting for pid %d\n", cmd.Process.Pid)
+		log.Printf("PID: %d Waiting...\n", pid)
 		err := cmd.Wait()
-		log.Printf("Done waiting for pid %d. Exit:%v\n", cmd.Process.Pid, err)
+		log.Printf("PID: %d Done waiting. Exit:%v\n", pid, err)
 
 		// TODO: Make these thread-safe!!!
 		cbp.status.ExecutionStatus = Complete
@@ -270,7 +269,8 @@ func WatchBash(bash string, ps *ProcessStatusObject, envExtra []string) (*Contro
 		chanComplete <- true
 	}()
 	go func() {
-		log.Println("Started scanner go-func")
+		pid := int(cmd.Process.Pid)
+		log.Printf("PID: %d Started scanner go-func\n", pid)
 		breader := bufio.NewReader(rpipe)
 		defer rpipe.Close()
 		var err error = nil
@@ -284,28 +284,27 @@ func WatchBash(bash string, ps *ProcessStatusObject, envExtra []string) (*Contro
 				if err != nil {
 					if err != io.EOF {
 						// Unexpected error. // TODO: What else is ok here?
-						log.Printf("Unexpected error from Readline():'%+v'\n", err)
+						log.Printf("PID: %d Unexpected error from Readline():'%+v'\n", pid, err)
 						//check(err)
 					}
-					log.Printf("End of file. Done reading status-reports. isPrefix:%t, line:'%s'\n", isPrefix, line)
+					log.Printf("PID: %d End of file. Done reading status-reports. isPrefix:%t, line:'%s'\n", pid, isPrefix, line)
 					break
 				}
 				text = text + string(line)
 			}
-			log.Println("Got:", text)
+			log.Printf("PID: %d Got:%s\n", pid, text)
 			if err == io.EOF {
 				break
 			}
 			chanStatusReportText <- text
 		}
 
-		pid := cbp.cmd.Process.Pid
-		process, err := os.FindProcess(int(pid))
+		process, err := os.FindProcess(pid)
 		if err != nil {
-			log.Printf("Failed to find process: %s\n", err)
+			log.Printf("PID: %d Failed FindProcess: %s\n", pid, err)
 		} else {
 			err := process.Signal(syscall.Signal(0))
-			log.Printf("process.Signal on pid %d returned: %v\n", pid, err)
+			log.Printf("PID: %d process.Signal returned: %v\n", pid, err)
 		}
 
 		chanDone <- true

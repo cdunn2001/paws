@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"log" // log.Fatal()
 	"net/http"
 	//"net/http/httputil"
@@ -29,7 +30,6 @@ func check(e error) {
 	}
 }
 
-// Someday, keep panic message in response, maybe.
 func PanicHandleRecovery(c *gin.Context, err interface{}) {
 	//c.AbortWithStatus(http.StatusInternalServerError)
 	msg := fmt.Sprintf("Panic:'%+v'\n", err)
@@ -86,8 +86,8 @@ func listen(port int, lw io.Writer) {
 		check(err)
 		log.Printf("delay='%s'\n", delay)
 		delay = delay - 1*time.Second // should be delay / 2, but division is hard
-		//log.Printf("delay='%s'\n", delay*time.Microsecond)
-		log.Printf("delay='%s'\n", delay*time.Second)
+		delay = 1 * time.Second
+		log.Printf("Forcing delay='%s'\n", delay)
 		log.Printf("For timer, using delay='%s'\n", delay.Round(time.Microsecond))
 		timer2 := time.NewTicker(delay)
 		defer timer2.Stop()
@@ -130,6 +130,7 @@ func main() {
 	portPtr := flag.Int("port", 23632, "Listen on this port.")
 	cfgPtr := flag.String("config", "", "Read PpaConfig (JSON) from this file, to update default config.")
 	lfnPtr := flag.String("logoutput", "/var/log/pacbio/pa-wsgo/pa-wsgo.log", "Logfile output")
+	dataDirPtr := flag.String("data-dir", "", "Directory for some outputs (usually under SRA subdir")
 	flag.Parse()
 	//flag.PrintDefaults()
 
@@ -144,11 +145,21 @@ func main() {
 	log.SetOutput(lw)
 	log.Println(strings.Join(os.Args[:], " "))
 	log.Printf("port='%v'\n", *portPtr)
+
 	ppaConfig := web.PpaConfig{}
 	ppaConfig.SetDefaults()
 	if *cfgPtr != "" {
 		log.Printf("config='%v'\n", *cfgPtr)
 		web.UpdatePpaConfigFromFile(*cfgPtr, &ppaConfig)
 	}
+
+	if *dataDirPtr == "" {
+		*dataDirPtr, err = ioutil.TempDir("", "pawsgo.*.datadir")
+		check(err)
+		//defer os.RemoveAll(*dataDirPtr)
+	}
+	web.DataDir = *dataDirPtr
+	log.Printf("DataDir='%s'\n", web.DataDir)
+
 	listen(*portPtr, lw)
 }

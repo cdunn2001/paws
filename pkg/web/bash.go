@@ -11,6 +11,9 @@ import (
 	"text/template"
 )
 
+// TODO: Move this somewhere better.
+var DataDir = "/tmp" // Should be /var/run, but owned by root.
+
 func CreateTemplate(source string, name string) *template.Template {
 	result := template.Must(template.
 		New(name).
@@ -73,7 +76,7 @@ var Template_loadingcal = `
   --cal Loading \
   --outputFile {{.outputFile}}  \
   --inputDarkCalFile {{.inputDarkCalFile}} \
-  --timeoutSeconds {{.timeoutseconds}} \
+  --timeoutSeconds {{.timeoutSeconds}} \
 `
 
 func WriteLoadingcalBash(wr io.Writer, tc *TopConfig, obj *SocketLoadingcalObject, SocketId string) error {
@@ -186,21 +189,13 @@ var Template_basecaller = `
   --logoutput {{.logoutput}} \
   --logfilter INFO \
   {{.optTraceFile}} \
+  {{.optTraceFileRoi}} \
   --outputbazfile {{.outputbazfile}} \
   --config {{.config_json_fn}} \
   --config source.WXIPCDataSourceConfig.sraIndex={{.sra}} \
-  {{.optTraceFileRoi}} \
   --config system.analyzerHardware=A100 \
   --maxFrames {{.maxFrames}} \
 `
-
-func MaybeJsonOption(flagName string, val string) string {
-	if val == "null" {
-		return ""
-	} else {
-		return fmt.Sprintf(`--%s="%s"`, flagName, val)
-	}
-}
 
 // Maybe better:
 // --config source.WXIPCDataSourceConfig.acqConfig=Info-About-Chemistry \
@@ -223,7 +218,7 @@ func WriteBasecallerBash(wr io.Writer, tc *TopConfig, obj *SocketBasecallerObjec
 
 	UpdateWithConfig(kv, tc)
 
-	outdir := filepath.Join("/data/nrta", sraName)
+	outdir := filepath.Join(DataDir, sraName)
 	os.MkdirAll(outdir, 0777)
 	config_json_fn := filepath.Join(outdir, obj.Mid+".basecaller.config.json")
 	CopyDefaultBasecallerConfig(config_json_fn)
@@ -231,24 +226,21 @@ func WriteBasecallerBash(wr io.Writer, tc *TopConfig, obj *SocketBasecallerObjec
 
 	kv["sra"] = strconv.Itoa(sra)
 	kv["config_json_fn"] = config_json_fn
-
-	optTraceFile := TranslateDiscardableUrl("--outputtrcfile", obj.TraceFileUrl)
-	raw, err := json.Marshal(obj.TraceFileRoi)
-	check(err)
-
-	kv["optTraceFileRoi"] = MaybeJsonOption("--traceFileRoi=", string(raw))
-	if kv["optTraceFileRoi"] == "" || kv["optTraceFileRoi"] == "[]" {
-		kv["optTraceFile"] = ""
-	} else {
-		kv["optTraceFile"] = optTraceFile
-	}
-
 	kv["outputbazfile"] = obj.BazUrl // TODO: Convert from URL!
 	kv["logoutput"] = obj.LogUrl     // TODO: Convert from URL!
-	maxFrames := int(obj.MaxMovieFrames)
-	kv["maxFrames"] = strconv.Itoa(maxFrames)
+	kv["maxFrames"] = strconv.Itoa(int(obj.MaxMovieFrames))
 
-	// Skip --maxFrames for now?
+	if kv["optTraceFileRoi"] == "" || kv["optTraceFileRoi"] == "[]" {
+		kv["optTraceFile"] = ""
+		kv["optTraceFileRoi"] = ""
+	} else {
+		optTraceFile := TranslateDiscardableUrl("--outputtrcfile", obj.TraceFileUrl)
+		kv["optTraceFile"] = optTraceFile
+
+		raw, err := json.Marshal(obj.TraceFileRoi)
+		check(err)
+		kv["optTraceFileRoi"] = "--traceFileRoi=" + string(raw)
+	}
 
 	return t.Execute(wr, kv)
 }

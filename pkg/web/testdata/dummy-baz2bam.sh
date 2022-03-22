@@ -68,7 +68,7 @@ function report_status {
     # Not reported: counterMax
     # Do we need "timestamp"?
     cat >&$FD << EOF
-INFO | PAWNEE_STATUS {"state": "progress", "stageNumber": $1, "stageName": "$2", "counter": $3, "timeToNextStatus": $4, "stageWeighting": "$STAGE_WEIGHTING", "timestamp": "$TIMESTAMP"}
+INFO | PAWNEE_STATUS {"state": "progress", "stageNumber": $1, "stageName": "$2", "counter": $3, "timeoutForNextStatus": $4, "stageWeighting": "$STAGE_WEIGHTING", "timestamp": "$TIMESTAMP"}
 EOF
 }
 

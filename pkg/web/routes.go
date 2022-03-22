@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/pkg/errors"
 	"log"
 	"net/http"
 	"sort"
@@ -269,8 +270,10 @@ func startBasecallerBySocketId(c *gin.Context, state *State) {
 	wr := new(bytes.Buffer)
 	err := WriteBasecallerBash(wr, &topconfig, obj, id)
 	if err != nil {
-		c.String(http.StatusInternalServerError, "Error generating bash.\n%v\n", err)
-		return
+		err = errors.Wrapf(err, "Error in WriteBasecallerBash(%v, %v, %v, %v)", wr, topconfig, obj, id)
+		check(err)
+		//c.String(http.StatusInternalServerError, "Error generating bash.\n%v\n", err)
+		//return
 	}
 	log.Printf("Wrote:'%s'\n", wr.String())
 	stall := c.DefaultQuery("stall", "0")
@@ -343,8 +346,10 @@ func startDarkcalBySocketId(c *gin.Context, state *State) {
 	wr := new(bytes.Buffer)
 	err := WriteDarkcalBash(wr, &topconfig, obj, id)
 	if err != nil {
-		c.String(http.StatusInternalServerError, "Error generating bash.\n%v\n", err)
-		return
+		err = errors.Wrapf(err, "Error in WriteDarkcalBash(%v, %v, %v, %v)", wr, topconfig, obj, id)
+		check(err)
+		//c.String(http.StatusInternalServerError, "Error generating bash.\n%v\n", err)
+		//return
 	}
 	log.Printf("Wrote:'%s'\n", wr.String())
 	stall := c.DefaultQuery("stall", "0")
@@ -418,9 +423,10 @@ func startLoadingcalBySocketId(c *gin.Context, state *State) {
 	wr := new(bytes.Buffer)
 	err := WriteLoadingcalBash(wr, &topconfig, obj, id)
 	if err != nil {
-		//c.String(http.StatusBadRequest, "QQQError generating bash.\n%v\n", err)
-		c.String(http.StatusInternalServerError, "Error generating bash.\n%v\n", err)
-		return
+		err = errors.Wrapf(err, "Error in WriteLoadingcalBash(%v, %v, %v, %v)", wr, topconfig, obj, id)
+		check(err)
+		//c.String(http.StatusInternalServerError, "Error generating bash.\n%v\n", err)
+		//return
 	}
 	log.Printf("Wrote:'%s'\n", wr.String())
 	stall := c.DefaultQuery("stall", "0")
@@ -501,8 +507,10 @@ func startPostprimary(c *gin.Context, state *State) {
 	wr := new(bytes.Buffer)
 	err := WriteBaz2bamBash(wr, &topconfig, obj)
 	if err != nil {
-		c.String(http.StatusInternalServerError, "Error generating bash.\n%v\n", err)
-		return
+		err = errors.Wrapf(err, "Error in WriteBaz2BamBash(%v, %v, %v)", wr, topconfig, obj)
+		check(err)
+		//c.String(http.StatusInternalServerError, "Error generating bash.\n%v\n", err)
+		//return
 	}
 	log.Printf("Wrote:'%s'\n", wr.String())
 	stall := c.DefaultQuery("stall", "0")
