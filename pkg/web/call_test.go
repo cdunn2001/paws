@@ -122,8 +122,7 @@ func TestString2StatusReport(t *testing.T) {
 		check(err)
 		if sr.State == "exception" {
 			t.Errorf("Got %v", sr)
-		} else if sr.TimeToNextStatus != 300 {
-			t.Errorf("Got TimeToNextStatus=%f", sr.TimeToNextStatus)
+		} else if sr.TimeoutForNextStatus != 300 {
 			t.Errorf("Got TimeoutForNextStatus=%f", sr.TimeoutForNextStatus)
 		}
 	}

@@ -38,7 +38,6 @@ type StatusReport struct {
 	StageName            string  // human readable description of the stage
 	Counter              uint64  // a counter that monotonically increments as progress is made. example might be frames or ZMWs
 	CounterMax           uint64  // the maximum number that the counter is expected to attain when done. If this is not known, then it should be omitted.
-	TimeToNextStatus     float64 // maximum time in seconds until the next status update. If there is no status message within the alloted time, pa-ws should kill the process
 	TimeoutForNextStatus float64 // maximum time in seconds until the next status update. If there is no status message within the alloted time, pa-ws should kill the process
 	StageWeights         []int32 // weights for each stage. Does not need to be normalized to any number
 	Timestamp            string  // ISO8601 time stamp with millisecond precision (see PacBio::Utilities::ISO8601)
@@ -50,11 +49,7 @@ type StatusReport struct {
 func Json2StatusReport(raw []byte) (result StatusReport) {
 	err := json.Unmarshal(raw, &result)
 	if err != nil {
-		// TODO: Ignore errors. Assume a heartbeat.
 		check(err)
-	}
-	if result.TimeoutForNextStatus > 0.0 {
-		result.TimeToNextStatus = result.TimeoutForNextStatus
 	}
 	return result
 }
@@ -223,18 +218,21 @@ func WatchBash(bash string, ps *ProcessStatusObject, envExtra []string) (*Contro
 			case srText := <-chanStatusReportText:
 				sr, err := String2StatusReport(srText)
 				if err != nil {
+					// Count as a heartbeat, but do not update timeout.
 					log.Printf("PID: %d Unparseable status:\n%s\n", pid, srText)
 				} else if sr.State == "exception" {
+					// Count as a heartbeat, but do not update timeout.
 					log.Printf("PID: %d Status exception:%s\n", pid, srText)
 
 					// TODO: Make this thread-safe!!!
 					cbp.status.Timestamp = sr.Timestamp
 				} else {
-					if sr.TimeToNextStatus > 0.0 {
-						timeout = sr.TimeToNextStatus
+					// Count as a heartbeat and update timeout.
+					if sr.TimeoutForNextStatus > 0.0 {
+						timeout = sr.TimeoutForNextStatus
 						log.Printf("PID: %d timeout is now %f\n", pid, timeout)
 					} else {
-						log.Printf("PID: %d Ignoring TimeToNextStatus %f\n", pid, sr.TimeToNextStatus)
+						log.Printf("PID: %d Ignoring TimeoutForNextStatus %f\n", pid, sr.TimeoutForNextStatus)
 					}
 
 					// TODO: Make this thread-safe!!!
@@ -303,7 +301,7 @@ func WatchBash(bash string, ps *ProcessStatusObject, envExtra []string) (*Contro
 
 		process, err := os.FindProcess(pid)
 		if err != nil {
-			log.Printf("PID: %s Failed FindProcess: %s\n", pid, err)
+			log.Printf("PID: %d Failed FindProcess: %s\n", pid, err)
 		} else {
 			err := process.Signal(syscall.Signal(0))
 			log.Printf("PID: %d process.Signal returned: %v\n", pid, err)
