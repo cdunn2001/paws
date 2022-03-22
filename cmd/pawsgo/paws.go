@@ -67,12 +67,16 @@ func listen(port int, lw io.Writer) {
 	log.Printf("NOTIFY_SOCKET='%s', WATCHDOG_USEC='%s'\n", ns, wusec)
 	//fmt.Printf("stdout wrote to '%s'\n", lfn)
 	//fmt.Fprintf(os.Stderr, "stderr wrote to '%s'\n", lfn)
-	if wpid != "" {
+	if wusec != "" {
+		if wpid == "" {
+			// We must be testing.
+			wpid = strconv.Itoa(os.Getpid())
+			log.Printf("Fake WATCHDOG_PID='%s'\n", wpid)
+			err := os.Setenv("WATCHDOG_PID", wpid)
+			check(err)
+		}
 		pid, err := strconv.Atoi(wpid)
 		check(err)
-		//pid = os.Getpid() // TODO: VERY TEMP
-		//err = os.Setenv("WATCHDOG_PID", fmt.Sprintf("%d", pid))
-		//check(err)
 		usec, err := strconv.Atoi(wusec)
 		check(err)
 		usec = usec
@@ -82,13 +86,10 @@ func listen(port int, lw io.Writer) {
 			log.Printf("Wrong pid! '%s'\n", wpid)
 			os.Exit(1)
 		}
-		delay, err := daemon.SdWatchdogEnabled(false)
+		timeout, err := daemon.SdWatchdogEnabled(false)
 		check(err)
-		log.Printf("delay='%s'\n", delay)
-		delay = delay - 1*time.Second // should be delay / 2, but division is hard
-		delay = 1 * time.Second
-		log.Printf("Forcing delay='%s'\n", delay)
-		log.Printf("For timer, using delay='%s'\n", delay.Round(time.Microsecond))
+		delay := timeout / time.Duration(2)
+		log.Printf("systemd timeout=%s, paws heartbeat%s'\n", timeout, delay)
 		timer2 := time.NewTicker(delay)
 		defer timer2.Stop()
 		log.Printf("Created Ticker w/ arg='%s'\n", delay)
@@ -116,8 +117,8 @@ func listen(port int, lw io.Writer) {
 			msg := ""
 			msg = fmt.Sprintf("Wait for %s delay.\n", delay)
 			log.Print(msg)
-			time.Sleep(16 * time.Second)
-			done <- true
+			time.Sleep(2 * time.Second)
+			doneWatchdogCh <- true
 			msg = "Send done <- true\n"
 			log.Print(msg)
 		*/
