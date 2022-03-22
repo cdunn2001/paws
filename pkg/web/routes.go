@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
+//	"io/ioutil"
+	"net/http/httputil"
 	"log"
 	"net/http"
 	"sort"
@@ -259,6 +261,13 @@ func getBasecallerBySocketId(c *gin.Context, state *State) {
 
 // Start the basecaller process on socket {id}.
 func startBasecallerBySocketId(c *gin.Context, state *State) {
+	payload, err := httputil.DumpRequest(c.Request, true)
+	if err != nil {
+		log.Printf("http.StatusInternalServerError %v", err.Error())
+		return
+	}
+	log.Println("startBasecallerBySocketId dump request", string(payload))
+
 	id := c.Param("id")
 	obj := &SocketBasecallerObject{}
 	if err := c.BindJSON(obj); err != nil {
@@ -335,19 +344,41 @@ func getDarkcalBySocketId(c *gin.Context, state *State) {
 
 // Starts a darkcal process on socket {id}.
 func startDarkcalBySocketId(c *gin.Context, state *State) {
+	payload, err := httputil.DumpRequest(c.Request, true)
+	if err != nil {
+		log.Printf("http.StatusInternalServerError %v", err.Error())
+		return
+	}
+	log.Println("dump request", string(payload))
+
+/* 	//	bodyReader2, err1 := c.Request.GetBody()
+	bodyReader2 := c.Request.Body
+	err1 := error(nil)
+	if err1 == nil {
+		bodyText2, err2 := ioutil.ReadAll(bodyReader2)
+		if bodyText2 != nil && err2 == nil {
+    		log.Printf("startDarkcalBySocketId, POSTed payload = %s", bodyText2)
+		} else {
+			log.Printf("startDarkcalBySocketId, ReadAll failed to read payload: %s", err2)
+		}
+	} else {
+		log.Printf("startDarkcalBySocketId, c.Request.GetBody() failed to read payload: %s", err1)
+	}
+	c.Request.Body.Seek(0, io.SeekStart)
+ */
 	id := c.Param("id")
 	obj := &SocketDarkcalObject{}
 	if err := c.BindJSON(obj); err != nil {
-		c.String(http.StatusBadRequest, "Could not parse body into struct.\n%v\n", err)
+		c.String(http.StatusBadRequest , "Could not parse body into struct.\n%v\n", err)
 		return
 	}
 	obj.ProcessStatus.ExecutionStatus = Running
 	state.Darkcals[id] = obj // TODO: Error if already running?
 	wr := new(bytes.Buffer)
-	err := WriteDarkcalBash(wr, &topconfig, obj, id)
-	if err != nil {
-		err = errors.Wrapf(err, "Error in WriteDarkcalBash(%v, %v, %v, %v)", wr, topconfig, obj, id)
-		check(err)
+	err3 := WriteDarkcalBash(wr, &topconfig, obj, id)
+	if err3 != nil {
+		err3 = errors.Wrapf(err3, "Error in WriteDarkcalBash(%v, %v, %v, %v)", wr, topconfig, obj, id)
+		check(err3)
 		//c.String(http.StatusInternalServerError, "Error generating bash.\n%v\n", err)
 		//return
 	}
@@ -412,6 +443,13 @@ func getLoadingcalBySocketId(c *gin.Context, state *State) {
 
 // Starts a loadingcal process on socket {id}.
 func startLoadingcalBySocketId(c *gin.Context, state *State) {
+	payload, err := httputil.DumpRequest(c.Request, true)
+	if err != nil {
+		log.Printf("http.StatusInternalServerError %v", err.Error())
+		return
+	}
+	log.Println("startLoadingcalBySocketId dump request", string(payload))
+
 	id := c.Param("id")
 	obj := &SocketLoadingcalObject{}
 	if err := c.BindJSON(obj); err != nil {
