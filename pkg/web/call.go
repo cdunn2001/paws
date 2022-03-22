@@ -32,15 +32,16 @@ func check(e error) {
 }
 
 type StatusReport struct {
-	State            string  // e.g. "progress" or "exception"
-	Ready            bool    // turns to true when ICS can resume execution for providing sensor data
-	StageNumber      int32   // number starting at 0 representing the stage
-	StageName        string  // human readable description of the stage
-	Counter          uint64  // a counter that monotonically increments as progress is made. example might be frames or ZMWs
-	CounterMax       uint64  // the maximum number that the counter is expected to attain when done. If this is not known, then it should be omitted.
-	TimeToNextStatus float64 // maximum time in seconds until the next status update. If there is no status message within the alloted time, pa-ws should kill the process
-	StageWeights     []int32 // weights for each stage. Does not need to be normalized to any number
-	Timestamp        string  // ISO8601 time stamp with millisecond precision (see PacBio::Utilities::ISO8601)
+	State                string  // e.g. "progress" or "exception"
+	Ready                bool    // turns to true when ICS can resume execution for providing sensor data
+	StageNumber          int32   // number starting at 0 representing the stage
+	StageName            string  // human readable description of the stage
+	Counter              uint64  // a counter that monotonically increments as progress is made. example might be frames or ZMWs
+	CounterMax           uint64  // the maximum number that the counter is expected to attain when done. If this is not known, then it should be omitted.
+	TimeToNextStatus     float64 // maximum time in seconds until the next status update. If there is no status message within the alloted time, pa-ws should kill the process
+	TimeoutForNextStatus float64 // maximum time in seconds until the next status update. If there is no status message within the alloted time, pa-ws should kill the process
+	StageWeights         []int32 // weights for each stage. Does not need to be normalized to any number
+	Timestamp            string  // ISO8601 time stamp with millisecond precision (see PacBio::Utilities::ISO8601)
 
 	// Only for exceptions:
 	Message string
@@ -51,6 +52,9 @@ func Json2StatusReport(raw []byte) (result StatusReport) {
 	if err != nil {
 		// TODO: Ignore errors. Assume a heartbeat.
 		check(err)
+	}
+	if result.TimeoutForNextStatus > 0.0 {
+		result.TimeToNextStatus = result.TimeoutForNextStatus
 	}
 	return result
 }

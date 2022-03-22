@@ -117,4 +117,14 @@ func TestString2StatusReport(t *testing.T) {
 			t.Errorf("Got %s", sr.Message)
 		}
 	}
+	{
+		sr, err := String2StatusReport(`PA_BASECALLER_STATUS {"counter":0,"counterMax":1,"ready":false,"stageName":"StartUp","stageNumber":0,"stageWeights":[10, 80, 10],"state":"progress","timeStamp":"2022-03-21T23:27:40Z","timeoutForNextStatus":300}`)
+		check(err)
+		if sr.State == "exception" {
+			t.Errorf("Got %v", sr)
+		} else if sr.TimeToNextStatus != 300 {
+			t.Errorf("Got TimeToNextStatus=%f", sr.TimeToNextStatus)
+			t.Errorf("Got TimeoutForNextStatus=%f", sr.TimeoutForNextStatus)
+		}
+	}
 }
