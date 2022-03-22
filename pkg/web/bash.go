@@ -49,7 +49,7 @@ func WriteDarkcalBash(wr io.Writer, tc *TopConfig, obj *SocketDarkcalObject, Soc
 	kv["movieNum"] = "0" // for now
 	// assert if obj.movieNum not nil, then it is 0.
 
-	numFrames := int(obj.MaxMovieFrames)
+	numFrames := int(obj.MovieMaxFrames)
 	kv["numFrames"] = strconv.Itoa(numFrames)
 	// --numFrames # gets overridden w/ 128 or 512 for now, but setting prevents warning
 
@@ -57,8 +57,8 @@ func WriteDarkcalBash(wr io.Writer, tc *TopConfig, obj *SocketDarkcalObject, Soc
 	kv["logoutput"] = obj.LogUrl        // TODO: Convert from URL!
 
 	timeout := float64(numFrames) * 1.1 / tc.values.defaultFrameRate // default
-	if obj.MaxMovieSeconds > 0 {
-		timeout = obj.MaxMovieSeconds
+	if obj.MovieMaxSeconds > 0 {
+		timeout = obj.MovieMaxSeconds
 	}
 	kv["timeoutSeconds"] = fmt.Sprintf("%g", timeout)
 
@@ -95,7 +95,7 @@ func WriteLoadingcalBash(wr io.Writer, tc *TopConfig, obj *SocketLoadingcalObjec
 	kv["movieNum"] = "0" // for now
 	// assert if obj.movieNum not nil, then it is 0.
 
-	numFrames := int(obj.MaxMovieFrames)
+	numFrames := int(obj.MovieMaxFrames)
 	kv["numFrames"] = strconv.Itoa(numFrames)
 	// --numFrames # gets overridden w/ 128 or 512 for now, but setting prevents warning
 
@@ -104,8 +104,8 @@ func WriteLoadingcalBash(wr io.Writer, tc *TopConfig, obj *SocketLoadingcalObjec
 	kv["inputDarkCalFile"] = obj.DarkFrameFileUrl // TODO: Convert from URL!
 
 	timeout := float64(numFrames) * 1.1 / tc.values.defaultFrameRate // default
-	if obj.MaxMovieSeconds > 0 {
-		timeout = obj.MaxMovieSeconds
+	if obj.MovieMaxSeconds > 0 {
+		timeout = obj.MovieMaxSeconds
 	}
 	kv["timeoutSeconds"] = fmt.Sprintf("%g", timeout)
 
@@ -228,7 +228,7 @@ func WriteBasecallerBash(wr io.Writer, tc *TopConfig, obj *SocketBasecallerObjec
 	kv["config_json_fn"] = config_json_fn
 	kv["outputbazfile"] = obj.BazUrl // TODO: Convert from URL!
 	kv["logoutput"] = obj.LogUrl     // TODO: Convert from URL!
-	kv["maxFrames"] = strconv.Itoa(int(obj.MaxMovieFrames))
+	kv["maxFrames"] = strconv.Itoa(int(obj.MovieMaxFrames))
 
 	if kv["optTraceFileRoi"] == "" || kv["optTraceFileRoi"] == "[]" {
 		kv["optTraceFile"] = ""

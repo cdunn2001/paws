@@ -2,8 +2,8 @@
     "darkFrameFileUrl": "tmp/darkcal.h5",
     "calibFileUrl": "tmp/loadingcal.h5",
     "mid": "",
-    "maxMovieFrames": 0,
-    "maxMovieSeconds": 0.0,
+    "movieMaxFrames": 0,
+    "movieMaxSeconds": 0.0,
     "movieNumber": 0,
     "logUrl": "tmp/log.loadingcal.txt",
     "logLevel": "INFO"
