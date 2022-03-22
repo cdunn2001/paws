@@ -2,7 +2,7 @@
     "calibFileUrl": "tmp/darkcal.h5",
     "mid": "",
     "maxMovieFrames": 0,
-    "maxMovieSeconds": 0,
+    "maxMovieSeconds": 0.0,
     "movieNumber": 0,
     "logUrl": "tmp/log.darkcal.txt",
     "logLevel": "INFO"

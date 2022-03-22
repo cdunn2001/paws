@@ -19,7 +19,7 @@
     },
     "mid": "m1234",
     "maxMovieFrames": 5120,
-    "maxMovieSeconds": 60,
+    "maxMovieSeconds": 60.0,
     "movieNumber": 0,
     "logUrl": "",
     "LogLevel": ""
