@@ -292,6 +292,7 @@ func startBasecallerBySocketId(c *gin.Context, state *State) {
 		return
 	}
 	obj.ProcessStatus.ExecutionStatus = Running
+	obj.ProcessStatus.Armed = false
 	state.Basecallers[id] = obj // TODO: Error if already running?
 	wr := new(bytes.Buffer)
 	if err = WriteBasecallerBash(wr, &topconfig, obj, id); err != nil {
@@ -371,6 +372,7 @@ func startDarkcalBySocketId(c *gin.Context, state *State) {
 		return
 	}
 	obj.ProcessStatus.ExecutionStatus = Running
+	obj.ProcessStatus.Armed = false
 	state.Darkcals[id] = obj // TODO: Error if already running?
 	wr := new(bytes.Buffer)
 	if err := WriteDarkcalBash(wr, &topconfig, obj, id); err != nil {
@@ -452,6 +454,7 @@ func startLoadingcalBySocketId(c *gin.Context, state *State) {
 		return
 	}
 	obj.ProcessStatus.ExecutionStatus = Running
+	obj.ProcessStatus.Armed = false
 	state.Loadingcals[id] = obj // TODO: Error if already running?
 	wr := new(bytes.Buffer)
 	if err := WriteLoadingcalBash(wr, &topconfig, obj, id); err != nil {
@@ -538,7 +541,8 @@ func startPostprimary(c *gin.Context, state *State) {
 		return
 	}
 	obj.ProcessStatus.ExecutionStatus = Running
-	state.Postprimaries[mid] = obj // TODO: Error if already running?
+	obj.ProcessStatus.Armed = false // always false for Postprimary
+	state.Postprimaries[mid] = obj  // TODO: Error if already running?
 	wr := new(bytes.Buffer)
 	if err := WriteBaz2bamBash(wr, &topconfig, obj); err != nil {
 		err = errors.Wrapf(err, "Error in WriteBaz2BamBash(%v, %v, %v)", wr, topconfig, obj)

@@ -74,6 +74,9 @@ func TestWatchBashSucceed(t *testing.T) {
 	if code != 0 {
 		t.Errorf("Expected 0, got exit-code %d", code)
 	}
+	if ps.Armed {
+		t.Errorf("ProcessStatus.Armed should be false when the process completes.")
+	}
 }
 func TestWatchBashKill(t *testing.T) {
 	bash := testdataDir + "/dummy-basic.sh --status-fd 3"
@@ -96,6 +99,9 @@ func TestWatchBashKill(t *testing.T) {
 	code := ps.ExitCode
 	if code != -1 {
 		t.Errorf("Expected -1, got exit-code %d", code)
+	}
+	if ps.Armed {
+		t.Errorf("ProcessStatus.Armed should be false when the process is killed.")
 	}
 }
 func TestString2StatusReport(t *testing.T) {
