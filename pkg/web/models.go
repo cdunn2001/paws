@@ -63,6 +63,10 @@ type ProcessStatusObject struct {
 	// Status of the completion of the process after it exits. Only valid if the executionStatus is COMPLETE
 	CompletionStatus CompletionStatusEnum `json:"completionStatus"`
 
+	// For Sensor applications, we need to know whether the app is "armed",
+	// i.e. ready to start taking frames.
+	Armed bool // Note: This is 'false' by default for any new object.
+
 	// ISO8601 timestamp (with milliseconds) of the latest status update
 	// Example: 2017-01-31T01:59:49.103Z
 	Timestamp string `json:"timestamp"`

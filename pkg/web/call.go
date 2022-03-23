@@ -195,6 +195,7 @@ func WatchBash(bash string, ps *ProcessStatusObject, envExtra []string) (*Contro
 		chanComplete: chanComplete,
 	}
 	cbp.status.ExecutionStatus = Running // TODO: Make this thread-safe!!!
+	cbp.status.Armed = false             //     : ditto
 
 	go func() {
 		pid := int(cmd.Process.Pid)
@@ -226,6 +227,7 @@ func WatchBash(bash string, ps *ProcessStatusObject, envExtra []string) (*Contro
 
 					// TODO: Make this thread-safe!!!
 					cbp.status.Timestamp = sr.Timestamp
+					// TODO: Should an exception alter the "ready" state? I think no.
 				} else {
 					// Count as a heartbeat and update timeout.
 					if sr.TimeoutForNextStatus > 0.0 {
@@ -237,6 +239,8 @@ func WatchBash(bash string, ps *ProcessStatusObject, envExtra []string) (*Contro
 
 					// TODO: Make this thread-safe!!!
 					cbp.status.Timestamp = sr.Timestamp
+
+					cbp.status.Armed = sr.Ready // Yes, "Ready" means something different here.
 				}
 			}
 		}
@@ -253,6 +257,7 @@ func WatchBash(bash string, ps *ProcessStatusObject, envExtra []string) (*Contro
 
 		// TODO: Make these thread-safe!!!
 		cbp.status.ExecutionStatus = Complete
+		cbp.status.Armed = false // TODO: Does it matter here?
 		cbp.status.ExitCode = int32(cmd.ProcessState.ExitCode())
 
 		if !cmd.ProcessState.Exited() {
