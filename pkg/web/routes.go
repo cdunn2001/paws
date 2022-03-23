@@ -252,8 +252,7 @@ func resetSockets(c *gin.Context, state *State) {
 func resetSocketById(c *gin.Context, state *State) {
 	id := c.Param("id")
 
-	_, found := state.Sockets[id]
-	if !found {
+	if _, found := state.Sockets[id]; !found {
 		c.String(http.StatusNotFound, "The socket '%s' was not found in the list of attached sensor FPGA boards.\n", id)
 		return
 	}
@@ -288,16 +287,14 @@ func startBasecallerBySocketId(c *gin.Context, state *State) {
 
 	id := c.Param("id")
 	obj := &SocketBasecallerObject{}
-	err = json.Unmarshal(payload, &obj)
-	if err != nil {
+	if err := json.Unmarshal(payload, &obj); err != nil {
 		c.String(http.StatusBadRequest, "Could not parse body into struct.\n%v\nBody was:\n%s", err, payload)
 		return
 	}
 	obj.ProcessStatus.ExecutionStatus = Running
 	state.Basecallers[id] = obj // TODO: Error if already running?
 	wr := new(bytes.Buffer)
-	err = WriteBasecallerBash(wr, &topconfig, obj, id)
-	if err != nil {
+	if err = WriteBasecallerBash(wr, &topconfig, obj, id); err != nil {
 		err = errors.Wrapf(err, "Error in WriteBasecallerBash(%v, %v, %v, %v)", wr, topconfig, obj, id)
 		check(err)
 		//c.String(http.StatusInternalServerError, "Error generating bash.\n%v\n", err)
@@ -369,18 +366,16 @@ func startDarkcalBySocketId(c *gin.Context, state *State) {
 
 	id := c.Param("id")
 	obj := &SocketDarkcalObject{}
-	err = json.Unmarshal(payload, &obj)
-	if err != nil {
+	if err := json.Unmarshal(payload, &obj); err != nil {
 		c.String(http.StatusBadRequest, "Could not parse body into struct.\n%v\nBody was:\n%s", err, payload)
 		return
 	}
 	obj.ProcessStatus.ExecutionStatus = Running
 	state.Darkcals[id] = obj // TODO: Error if already running?
 	wr := new(bytes.Buffer)
-	err3 := WriteDarkcalBash(wr, &topconfig, obj, id)
-	if err3 != nil {
-		err3 = errors.Wrapf(err3, "Error in WriteDarkcalBash(%v, %v, %v, %v)", wr, topconfig, obj, id)
-		check(err3)
+	if err := WriteDarkcalBash(wr, &topconfig, obj, id); err != nil {
+		err = errors.Wrapf(err, "Error in WriteDarkcalBash(%v, %v, %v, %v)", wr, topconfig, obj, id)
+		check(err)
 		//c.String(http.StatusInternalServerError, "Error generating bash.\n%v\n", err)
 		//return
 	}
@@ -459,8 +454,7 @@ func startLoadingcalBySocketId(c *gin.Context, state *State) {
 	obj.ProcessStatus.ExecutionStatus = Running
 	state.Loadingcals[id] = obj // TODO: Error if already running?
 	wr := new(bytes.Buffer)
-	err = WriteLoadingcalBash(wr, &topconfig, obj, id)
-	if err != nil {
+	if err := WriteLoadingcalBash(wr, &topconfig, obj, id); err != nil {
 		err = errors.Wrapf(err, "Error in WriteLoadingcalBash(%v, %v, %v, %v)", wr, topconfig, obj, id)
 		check(err)
 		//c.String(http.StatusInternalServerError, "Error generating bash.\n%v\n", err)
@@ -530,8 +524,7 @@ func startPostprimary(c *gin.Context, state *State) {
 	log.Println("dump request", string(payload)) // TODO: Delete this line. Log only on JSON error.
 
 	obj := &PostprimaryObject{}
-	err = json.Unmarshal(payload, &obj)
-	if err != nil {
+	if err := json.Unmarshal(payload, &obj); err != nil {
 		c.String(http.StatusBadRequest, "Could not parse body into struct.\n%v\nBody was:\n%s", err, payload)
 		return
 	}
@@ -540,20 +533,16 @@ func startPostprimary(c *gin.Context, state *State) {
 		c.String(http.StatusBadRequest, "Must provide mid to start a postprimary process.\n")
 		return
 	}
-	_, found := state.Postprimaries[mid]
-	if found {
+	if _, found := state.Postprimaries[mid]; found {
 		c.String(http.StatusConflict, "The postprimary process for mid '%s' already exists. (But maybe we should allow a duplicate call?)\n", mid)
 		return
 	}
 	obj.ProcessStatus.ExecutionStatus = Running
 	state.Postprimaries[mid] = obj // TODO: Error if already running?
 	wr := new(bytes.Buffer)
-	err = WriteBaz2bamBash(wr, &topconfig, obj)
-	if err != nil {
+	if err := WriteBaz2bamBash(wr, &topconfig, obj); err != nil {
 		err = errors.Wrapf(err, "Error in WriteBaz2BamBash(%v, %v, %v)", wr, topconfig, obj)
 		check(err)
-		//c.String(http.StatusInternalServerError, "Error generating bash.\n%v\n", err)
-		//return
 	}
 	log.Printf("Wrote:'%s'\n", wr.String())
 	stall := c.DefaultQuery("stall", "0")
