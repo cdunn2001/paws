@@ -65,7 +65,7 @@ type ProcessStatusObject struct {
 
 	// For Sensor applications, we need to know whether the app is "armed",
 	// i.e. ready to start taking frames.
-	Armed bool // Note: This is 'false' by default for any new object.
+	Armed bool `json:"armed"` // Note: This is 'false' by default for any new object.
 
 	// ISO8601 timestamp (with milliseconds) of the latest status update
 	// Example: 2017-01-31T01:59:49.103Z
