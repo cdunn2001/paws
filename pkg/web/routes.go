@@ -9,7 +9,6 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	//"net/http/httputil"
 	"sort"
 	"sync"
 	"time"
@@ -344,29 +343,12 @@ func getDarkcalBySocketId(c *gin.Context, state *State) {
 // Starts a darkcal process on socket {id}.
 func startDarkcalBySocketId(c *gin.Context, state *State) {
 	payload, err := ioutil.ReadAll(c.Request.Body)
-	//payload, err := httputil.DumpRequest(c.Request, true) // probably same, but not sure
 	check(err)
 	log.Println("dump request", string(payload)) // TODO: Delete this line. Log only on JSON error.
 
-	/* 	//	bodyReader2, err1 := c.Request.GetBody()
-		bodyReader2 := c.Request.Body
-		err1 := error(nil)
-		if err1 == nil {
-			bodyText2, err2 := ioutil.ReadAll(bodyReader2)
-			if bodyText2 != nil && err2 == nil {
-	    		log.Printf("startDarkcalBySocketId, POSTed payload = %s", bodyText2)
-			} else {
-				log.Printf("startDarkcalBySocketId, ReadAll failed to read payload: %s", err2)
-			}
-		} else {
-			log.Printf("startDarkcalBySocketId, c.Request.GetBody() failed to read payload: %s", err1)
-		}
-		c.Request.Body.Seek(0, io.SeekStart)
-	*/
 	id := c.Param("id")
 	obj := &SocketDarkcalObject{}
 	err = json.Unmarshal(payload, &obj)
-	//if err := c.BindJSON(obj); err != nil
 	if err != nil {
 		c.String(http.StatusBadRequest, "Could not parse body into struct.\n%v\nBody was:\n%s", err, payload)
 		return
