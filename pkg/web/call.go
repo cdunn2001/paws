@@ -140,7 +140,6 @@ func WatchBash(bash string, ps *ProcessStatusObject, envExtra []string) (*Contro
 	extraFiles := []*os.File{wpipe} // becomes fd 3 in child
 
 	{
-		fmt.Println("PATH:", os.Getenv("PATH"))
 		log.Println("PATH:", os.Getenv("PATH"))
 		out, err := exec.Command("which", "dummy-pa-cal.sh").Output()
 		if err != nil {

@@ -1,7 +1,7 @@
 package web
 
 import (
-	"fmt"
+	"log"
 	"os"
 	"testing"
 	//"time"
@@ -13,7 +13,7 @@ func init() {
 	wd, err := os.Getwd()
 	check(err)
 	testdataDir = wd + "/testdata"
-	fmt.Printf("testdata='%s'\n", testdataDir)
+	log.Printf("testdata='%s'\n", testdataDir)
 	requireFile(testdataDir)
 }
 func requireFile(fn string) {
@@ -65,11 +65,11 @@ func TestWatchBashSucceed(t *testing.T) {
 	if err != nil {
 		t.Errorf("Got %d", err)
 	}
-	fmt.Printf("Waiting for chanComplete '%s'?", cp.cmd)
+	log.Printf("Waiting for chanComplete '%s'?", cp.cmd)
 	select {
 	case <-cp.chanComplete:
 	}
-	fmt.Printf("Done '%s'!\n", cp.cmd)
+	log.Printf("Done '%s'!\n", cp.cmd)
 	code := ps.ExitCode
 	if code != 0 {
 		t.Errorf("Expected 0, got exit-code %d", code)
@@ -90,11 +90,11 @@ func TestWatchBashKill(t *testing.T) {
 	if err != nil {
 		t.Errorf("Got %d", err)
 	}
-	fmt.Printf("Waiting for chanComplete '%s'?", cp.cmd)
+	log.Printf("Waiting for chanComplete '%s'?", cp.cmd)
 	select {
 	case <-cp.chanComplete:
 	}
-	fmt.Printf("Done '%s'!\n", cp.cmd)
+	log.Printf("Done '%s'!\n", cp.cmd)
 	code := ps.ExitCode
 	if code != -1 {
 		t.Errorf("Expected -1 (from timeout), got exit-code %d", code)
