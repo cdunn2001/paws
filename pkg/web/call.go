@@ -227,7 +227,6 @@ func WatchBash(bash string, ps *ProcessStatusObject, envExtra []string) (*Contro
 
 					// TODO: Make this thread-safe!!!
 					cbp.status.Timestamp = sr.Timestamp
-					// TODO: Should an exception alter the "ready" state? I think no.
 				} else {
 					// Count as a heartbeat and update timeout.
 					if sr.TimeoutForNextStatus > 0.0 {
