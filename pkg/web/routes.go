@@ -41,7 +41,7 @@ func (s *LockableState) Get() (*State, *sync.Mutex) {
 
 var top LockableState
 
-func init() {
+func InitFixtures() {
 	log.Println("Initializing fixtures")
 	top.state = State{
 		Sockets: map[string]SocketObject{

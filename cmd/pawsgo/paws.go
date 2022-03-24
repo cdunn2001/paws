@@ -154,6 +154,8 @@ func main() {
 	log.Println(strings.Join(os.Args[:], " "))
 	log.Printf("port='%v'\n", *portPtr)
 
+	web.InitFixtures()
+
 	if *cfgPtr != "" {
 		log.Printf("config='%v'\n", *cfgPtr)
 		//config.UpdateConfigFromFile(*cfgPtr, &ppaConfig)
