@@ -107,7 +107,7 @@ func StartControlledBashProcess(bash string, ps *ProcessStatusObject, stall stri
 }
 
 func (cp *ControlledProcess) cleanup() {
-	if strings.HasSuffix(cp.temp_dn, ".tempdir") {
+	if strings.HasSuffix(cp.temp_dn, ".tmpdir") {
 		log.Printf("DEBUG removing dir tree '%s'", cp.temp_dn)
 		err := os.RemoveAll(cp.temp_dn)
 		check(err)
