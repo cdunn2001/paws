@@ -11,6 +11,7 @@ echo "BASH_VERSION=$BASH_VERSION"
 
 which go
 
+go clean -testcache ./pkg/web/...
 make test
 make vet
 make build

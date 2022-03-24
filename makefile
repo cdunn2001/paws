@@ -17,7 +17,8 @@ all: test vet fmt lint build
 
 test:
 	go test ./pkg/... -v
-
+clean: # Use this if you alter bash scripts or data.
+	go clean -testcache ./pkg/web/...
 vet:
 	go vet ./pkg/...
 
