@@ -9,6 +9,7 @@ type BinaryPaths struct {
 
 type ValuesConfig struct {
 	DefaultFrameRate float64 // fps
+	JustOneBazFile   bool
 }
 
 //type StringMap map[string]string // would hide map as 'reference' type
@@ -19,16 +20,9 @@ type TopStruct struct {
 	flat     map[string]string // someday maybe put all here?
 }
 
-func UpdateWithConfig(kv map[string]string, tc TopStruct) {
-	for k, v := range tc.flat {
-		kv[k] = v
-	}
-}
-
 var top TopStruct // Should be considered "const", as changes would not be thread-safe.
 
 func FindBinaries() BinaryPaths {
-	// TODO: Replace w/ PpaConfig
 	return BinaryPaths{
 		Binary_baz2bam:         "baz2bam",
 		Binary_smrt_basecaller: "smrt-basecaller-launch.sh", // this script is necessary to configure NUMA. don't call smrt-basecaller binary directly.
@@ -38,11 +32,11 @@ func FindBinaries() BinaryPaths {
 }
 
 func init() {
-	// TODO: These should be configurable.
 	top = TopStruct{
 		Binaries: FindBinaries(),
 		Values: ValuesConfig{
 			DefaultFrameRate: 100.0, // fps
+			JustOneBazFile:   true,
 		},
 	}
 	top.flat = make(map[string]string)
