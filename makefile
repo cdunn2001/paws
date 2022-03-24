@@ -1,3 +1,6 @@
+VERSION=1.0.0
+GIT_COMMIT=$(shell git rev-parse HEAD)
+
 # from https://qvault.io/golang/golang-project-structure/
 #export GOPATH=$(pwd)
 #export GOPATH=~/gh/GO
@@ -40,6 +43,8 @@ serve: bin/pawsgo
 	${MAKE} local
 local:
 	bin/pawsgo --data-dir tmp --logoutput pa-wsgo.log #--config SNAFU.json
+release:
+	go build -ldflags "-X main.Version=${VERSION}-${GIT_COMMIT}" -o bin/pawsgo ./cmd/pawsgo
 
 .FORCE:
 .PHONY: test
