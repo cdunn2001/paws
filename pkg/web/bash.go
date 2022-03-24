@@ -261,6 +261,7 @@ const (
 var Template_baz2bam = `
 {{.Binary_baz2bam}} \
   {{.bazFile}} \
+  --config=multipleBazFiles=false \
   --statusfd 3 \
   --metadata {{.metadataFile}} \
   --uuid {{.acqId}} \
