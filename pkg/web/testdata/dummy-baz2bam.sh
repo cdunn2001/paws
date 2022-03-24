@@ -4,9 +4,15 @@
 POSITIONAL_ARGS=()
 FD=2
 LOG_OUTPUT="default.dummy-baz2bam.$$.log"
+PREFIX_OUT="foo"
 
 while [[ $# -gt 0 ]]; do
   case $1 in
+    -o)
+      PREFIX_OUT="$2"
+      shift # past argument
+      shift # past value
+      ;;
     --statusfd)
       FD="$2"
       shift # past argument
@@ -48,7 +54,8 @@ done
 set -- "${POSITIONAL_ARGS[@]}" # restore positional parameters
 
 BAZFILE=${POSITIONAL_ARGS[0]}
-BAMFILE=${BAZFILE%.baz}.bam
+#BAMFILE=${BAZFILE%.baz}.bam
+BAMFILE=${PREFIX_OUT}.bam
 echo "BAZFILE=${BAZFILE}"
 echo "BAMFILE=${BAMFILE}"
 
