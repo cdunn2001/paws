@@ -13,19 +13,19 @@ type ValuesConfig struct {
 
 //type StringMap map[string]string // would hide map as 'reference' type
 
-type TopConfigStruct struct {
+type TopStruct struct {
 	Values   ValuesConfig
 	Binaries BinaryPaths
 	flat     map[string]string // someday maybe put all here?
 }
 
-func UpdateWithConfig(kv map[string]string, tc *TopConfigStruct) {
+func UpdateWithConfig(kv map[string]string, tc TopStruct) {
 	for k, v := range tc.flat {
 		kv[k] = v
 	}
 }
 
-var TopConfig TopConfigStruct // Should be considered "const", as changes would not be thread-safe.
+var top TopStruct // Should be considered "const", as changes would not be thread-safe.
 
 func FindBinaries() BinaryPaths {
 	// TODO: Replace w/ PpaConfig
@@ -39,15 +39,20 @@ func FindBinaries() BinaryPaths {
 
 func init() {
 	// TODO: These should be configurable.
-	TopConfig = TopConfigStruct{
-		binaries: FindBinaries(),
-		values: ValuesConfig{
-			defaultFrameRate: 100.0, // fps
+	top = TopStruct{
+		Binaries: FindBinaries(),
+		Values: ValuesConfig{
+			DefaultFrameRate: 100.0, // fps
 		},
 	}
-	TopConfig.flat = make(map[string]string)
-	TopConfig.flat["Binary_baz2bam"] = TopConfig.binaries.Binary_baz2bam
-	TopConfig.flat["Binary_pa_cal"] = TopConfig.binaries.Binary_pa_cal
-	TopConfig.flat["Binary_reducestats"] = TopConfig.binaries.Binary_reducestats
-	TopConfig.flat["Binary_smrt_basecaller"] = TopConfig.binaries.Binary_smrt_basecaller
+	top.flat = make(map[string]string)
+	top.flat["Binary_baz2bam"] = top.Binaries.Binary_baz2bam
+	top.flat["Binary_pa_cal"] = top.Binaries.Binary_pa_cal
+	top.flat["Binary_reducestats"] = top.Binaries.Binary_reducestats
+	top.flat["Binary_smrt_basecaller"] = top.Binaries.Binary_smrt_basecaller
+}
+
+// Make Top config const by returning only a copy.
+func Top() TopStruct {
+	return top
 }

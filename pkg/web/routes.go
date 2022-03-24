@@ -10,6 +10,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"pacb.com/seq/paws/pkg/config"
 	"sort"
 	"sync"
 	"time"
@@ -246,8 +247,8 @@ func startBasecallerBySocketId(c *gin.Context, state *State) {
 	obj.ProcessStatus.Armed = false
 	state.Basecallers[id] = obj // TODO: Error if already running?
 	wr := new(bytes.Buffer)
-	if err = WriteBasecallerBash(wr, &TopConfig, obj, id); err != nil {
-		err = errors.Wrapf(err, "Error in WriteBasecallerBash(%v, %v, %v, %v)", wr, TopConfig, obj, id)
+	if err = WriteBasecallerBash(wr, config.Top(), obj, id); err != nil {
+		err = errors.Wrapf(err, "Error in WriteBasecallerBash(%v, %v, %v, %v)", wr, config.Top(), obj, id)
 		check(err)
 		//c.String(http.StatusInternalServerError, "Error generating bash.\n%v\n", err)
 		//return
@@ -326,8 +327,8 @@ func startDarkcalBySocketId(c *gin.Context, state *State) {
 	obj.ProcessStatus.Armed = false
 	state.Darkcals[id] = obj // TODO: Error if already running?
 	wr := new(bytes.Buffer)
-	if err := WriteDarkcalBash(wr, &TopConfig, obj, id); err != nil {
-		err = errors.Wrapf(err, "Error in WriteDarkcalBash(%v, %v, %v, %v)", wr, TopConfig, obj, id)
+	if err := WriteDarkcalBash(wr, config.Top(), obj, id); err != nil {
+		err = errors.Wrapf(err, "Error in WriteDarkcalBash(%v, %v, %v, %v)", wr, config.Top(), obj, id)
 		check(err)
 		//c.String(http.StatusInternalServerError, "Error generating bash.\n%v\n", err)
 		//return
@@ -408,8 +409,8 @@ func startLoadingcalBySocketId(c *gin.Context, state *State) {
 	obj.ProcessStatus.Armed = false
 	state.Loadingcals[id] = obj // TODO: Error if already running?
 	wr := new(bytes.Buffer)
-	if err := WriteLoadingcalBash(wr, &TopConfig, obj, id); err != nil {
-		err = errors.Wrapf(err, "Error in WriteLoadingcalBash(%v, %v, %v, %v)", wr, TopConfig, obj, id)
+	if err := WriteLoadingcalBash(wr, config.Top(), obj, id); err != nil {
+		err = errors.Wrapf(err, "Error in WriteLoadingcalBash(%v, %v, %v, %v)", wr, config.Top(), obj, id)
 		check(err)
 		//c.String(http.StatusInternalServerError, "Error generating bash.\n%v\n", err)
 		//return
@@ -495,8 +496,8 @@ func startPostprimary(c *gin.Context, state *State) {
 	obj.ProcessStatus.Armed = false // always false for Postprimary
 	state.Postprimaries[mid] = obj  // TODO: Error if already running?
 	wr := new(bytes.Buffer)
-	if err := WriteBaz2bamBash(wr, &TopConfig, obj); err != nil {
-		err = errors.Wrapf(err, "Error in WriteBaz2BamBash(%v, %v, %v)", wr, TopConfig, obj)
+	if err := WriteBaz2bamBash(wr, config.Top(), obj); err != nil {
+		err = errors.Wrapf(err, "Error in WriteBaz2BamBash(%v, %v, %v)", wr, config.Top(), obj)
 		check(err)
 	}
 	log.Printf("Wrote:'%s'\n", wr.String())

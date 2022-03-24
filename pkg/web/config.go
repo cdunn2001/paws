@@ -6,7 +6,7 @@ import (
 	"log"
 )
 
-// This might replace TopConfigStruct soon. Not sure yet.
+// This might replace config.TopStruct soon. Not sure yet.
 type PpaConfig struct {
 	Binary_baz2bam         string
 	Binary_pa_cal          string

@@ -21,6 +21,7 @@ import (
 	//"github.com/gofiber/template/html"
 	"github.com/coreos/go-systemd/v22/daemon"
 	"github.com/gin-gonic/gin"
+	"pacb.com/seq/paws/pkg/config"
 	"pacb.com/seq/paws/pkg/web"
 	"runtime" // only for GOOS
 )
@@ -164,7 +165,7 @@ func main() {
 
 	if *cfgPtr != "" {
 		log.Printf("config='%v'\n", *cfgPtr)
-		web.UpdatePpaConfigFromFile(*cfgPtr, &ppaConfig)
+		//web.UpdatePpaConfigFromFile(*cfgPtr, &ppaConfig)
 	}
 
 	if *dataDirPtr == "" {
@@ -175,7 +176,8 @@ func main() {
 	web.DataDir = *dataDirPtr
 	log.Printf("DataDir='%s'\n", web.DataDir)
 
-	//WriteConfig(web.TopConfig, "foo.paws.json")
+	log.Printf("tc: %v", config.Top())
+	//WriteConfig(config.Top(), "foo.paws.json")
 
 	listen(*portPtr, lw)
 }
