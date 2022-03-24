@@ -34,7 +34,7 @@ var Template_darkcal = `
   --timeoutSeconds {{.timeoutSeconds}} \
 `
 
-func WriteDarkcalBash(wr io.Writer, tc *TopConfig, obj *SocketDarkcalObject, SocketId string) error {
+func WriteDarkcalBash(wr io.Writer, tc *TopConfigStruct, obj *SocketDarkcalObject, SocketId string) error {
 	t := CreateTemplate(Template_darkcal, "")
 	kv := make(map[string]string)
 	UpdateWithConfig(kv, tc)
@@ -79,7 +79,7 @@ var Template_loadingcal = `
   --timeoutSeconds {{.timeoutSeconds}} \
 `
 
-func WriteLoadingcalBash(wr io.Writer, tc *TopConfig, obj *SocketLoadingcalObject, SocketId string) error {
+func WriteLoadingcalBash(wr io.Writer, tc *TopConfigStruct, obj *SocketLoadingcalObject, SocketId string) error {
 	t := CreateTemplate(Template_loadingcal, "")
 	kv := make(map[string]string)
 
@@ -205,7 +205,7 @@ var Template_basecaller = `
 //   algorithm
 
 // Doesn't this need the darkcalfile?
-func WriteBasecallerBash(wr io.Writer, tc *TopConfig, obj *SocketBasecallerObject, SocketId string) error {
+func WriteBasecallerBash(wr io.Writer, tc *TopConfigStruct, obj *SocketBasecallerObject, SocketId string) error {
 	t := CreateTemplate(Template_basecaller, "")
 	kv := make(map[string]string)
 
@@ -289,7 +289,7 @@ func WriteMetadata(fn string, content string) {
 	}
 	f.WriteString(content)
 }
-func WriteBaz2bamBash(wr io.Writer, tc *TopConfig, obj *PostprimaryObject) error {
+func WriteBaz2bamBash(wr io.Writer, tc *TopConfigStruct, obj *PostprimaryObject) error {
 	t := CreateTemplate(Template_baz2bam, "")
 	kv := make(map[string]string)
 	UpdateWithConfig(kv, tc)
@@ -337,7 +337,7 @@ var Template_reducestats = `
   --config=common.platform=Kestrel \
 `
 
-func WriteReduceStatsBash(wr io.Writer, tc *TopConfig, obj *PostprimaryObject, job Job) error {
+func WriteReduceStatsBash(wr io.Writer, tc *TopConfigStruct, obj *PostprimaryObject, job Job) error {
 	t := CreateTemplate(Template_reducestats, "")
 	kv := make(map[string]string)
 	UpdateWithConfig(kv, tc)

@@ -136,13 +136,21 @@ func listen(port int, lw io.Writer) {
 }
 func main() {
 	portPtr := flag.Int("port", 23632, "Listen on this port.")
-	cfgPtr := flag.String("config", "", "Read PpaConfig (JSON) from this file, to update default config.")
+	cfgPtr := flag.String("config", "", "Read paws config (JSON) from this file, to update default config.")
+	//cfgCommonPtr := flag.String("common-config", "", "Read PpaConfig (JSON) from this file, to update default config. (Not implemented.)")
 	lfnPtr := flag.String("logoutput", "/var/log/pacbio/pa-wsgo/pa-wsgo.log", "Logfile output")
 	dataDirPtr := flag.String("data-dir", "", "Directory for some outputs (usually under SRA subdir")
 	flag.Parse()
 	//flag.PrintDefaults()
 
-	//lfn := "/var/log/pacbio/pa-wsgo/pa-wsgo.log"
+	/*
+		ppaConfig := web.PpaConfig{}
+		ppaConfig.SetDefaults()
+		if *cfgCommonPtr != "" {
+			panic("--common-config not implemented")
+		}
+	*/
+
 	lfn := *lfnPtr
 	f, err := os.Create(lfn)
 	check(err)
@@ -154,8 +162,6 @@ func main() {
 	log.Println(strings.Join(os.Args[:], " "))
 	log.Printf("port='%v'\n", *portPtr)
 
-	ppaConfig := web.PpaConfig{}
-	ppaConfig.SetDefaults()
 	if *cfgPtr != "" {
 		log.Printf("config='%v'\n", *cfgPtr)
 		web.UpdatePpaConfigFromFile(*cfgPtr, &ppaConfig)
@@ -168,6 +174,8 @@ func main() {
 	}
 	web.DataDir = *dataDirPtr
 	log.Printf("DataDir='%s'\n", web.DataDir)
+
+	//WriteConfig(web.TopConfig, "foo.paws.json")
 
 	listen(*portPtr, lw)
 }

@@ -70,7 +70,7 @@ func init() {
 		top.state.Loadingcals[k] = CreateSocketLoadingcalObject()
 	}
 	// TODO: These should be configurable.
-	topconfig = TopConfig{
+	topconfig = TopConfigStruct{
 		binaries: FindBinaries(),
 		values: ValuesConfig{
 			defaultFrameRate: 100.0, // fps
@@ -96,19 +96,19 @@ type ValuesConfig struct {
 
 //type StringMap map[string]string // would hide map as 'reference' type
 
-type TopConfig struct {
+type TopConfigStruct struct {
 	values   ValuesConfig
 	binaries BinaryPaths
 	flat     map[string]string // someday maybe put all here?
 }
 
-func UpdateWithConfig(kv map[string]string, tc *TopConfig) {
+func UpdateWithConfig(kv map[string]string, tc *TopConfigStruct) {
 	for k, v := range tc.flat {
 		kv[k] = v
 	}
 }
 
-var topconfig TopConfig // Should be considered "const", as changes would not be thread-safe.
+var topconfig TopConfigStruct // Should be considered "const", as changes would not be thread-safe.
 
 func FindBinaries() BinaryPaths {
 	// TODO: Replace w/ PpaConfig
