@@ -138,19 +138,10 @@ func listen(port int, lw io.Writer) {
 func main() {
 	portPtr := flag.Int("port", 23632, "Listen on this port.")
 	cfgPtr := flag.String("config", "", "Read paws config (JSON) from this file, to update default config.")
-	//cfgCommonPtr := flag.String("common-config", "", "Read PpaConfig (JSON) from this file, to update default config. (Not implemented.)")
 	lfnPtr := flag.String("logoutput", "/var/log/pacbio/pa-wsgo/pa-wsgo.log", "Logfile output")
 	dataDirPtr := flag.String("data-dir", "", "Directory for some outputs (usually under SRA subdir")
 	flag.Parse()
 	//flag.PrintDefaults()
-
-	/*
-		ppaConfig := web.PpaConfig{}
-		ppaConfig.SetDefaults()
-		if *cfgCommonPtr != "" {
-			panic("--common-config not implemented")
-		}
-	*/
 
 	lfn := *lfnPtr
 	f, err := os.Create(lfn)
@@ -165,7 +156,7 @@ func main() {
 
 	if *cfgPtr != "" {
 		log.Printf("config='%v'\n", *cfgPtr)
-		//web.UpdatePpaConfigFromFile(*cfgPtr, &ppaConfig)
+		//config.UpdateConfigFromFile(*cfgPtr, &ppaConfig)
 	}
 
 	if *dataDirPtr == "" {
