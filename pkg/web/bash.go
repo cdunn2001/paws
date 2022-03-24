@@ -196,7 +196,7 @@ func TranslateDiscardableUrl(option string, url string) string {
 
 var Template_basecaller = `
 {{.Global.Binaries.Binary_smrt_basecaller}} \
-  --config=multipleBazFiles=false \
+  {{.Local.optMultiple}} \
   --statusfd 3 \
   --logoutput {{.Local.logoutput}} \
   --logfilter INFO \
@@ -251,6 +251,11 @@ func WriteBasecallerBash(wr io.Writer, tc config.TopStruct, obj *SocketBasecalle
 		check(err)
 		kv["optTraceFileRoi"] = "--traceFileRoi=" + string(raw)
 	}
+	optMultiple := ""
+	if tc.Values.JustOneBazFile {
+		optMultiple = "--config multipleBazFiles=false"
+	}
+	kv["optMultiple"] = optMultiple
 
 	ts := TemplateSub{
 		Local:  kv,
@@ -272,18 +277,8 @@ const (
 )
 
 var Template_baz2bam = `
-<<<<<<< HEAD
-{{.Binary_baz2bam}} \
-  {{.bazFile}} \
-||||||| constructed merge base
-{{.Binary_baz2bam}} \
-  {{.bazFile}} \
-  --config=multipleBazFiles=false \
-=======
 {{.Global.Binaries.Binary_baz2bam}} \
   {{.Local.bazFile}} \
-  --config=multipleBazFiles=false \
->>>>>>> Separate Global config from Local key-value pairs
   --statusfd 3 \
   --metadata {{.Local.metadataFile}} \
   --uuid {{.Local.acqId}} \

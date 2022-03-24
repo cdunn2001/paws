@@ -9,6 +9,7 @@ type BinaryPaths struct {
 
 type ValuesConfig struct {
 	DefaultFrameRate float64 // fps
+	JustOneBazFile   bool
 }
 
 //type StringMap map[string]string // would hide map as 'reference' type
@@ -31,11 +32,11 @@ func FindBinaries() BinaryPaths {
 }
 
 func init() {
-	// TODO: These should be configurable.
 	top = TopStruct{
 		Binaries: FindBinaries(),
 		Values: ValuesConfig{
 			DefaultFrameRate: 100.0, // fps
+			JustOneBazFile:   true,
 		},
 	}
 	top.flat = make(map[string]string)
