@@ -282,7 +282,7 @@ var Template_baz2bam = `
   {{.Local.bazFile}} \
   -o {{.Local.outputPrefix}} \
   --statusfd 3 \
-  --metadata {{.Local.metadataFile}} \
+  --subreadset {{.Local.metadataFile}} \
   --uuid {{.Local.acqId}} \
   -j 32 \
   -b 8 \
