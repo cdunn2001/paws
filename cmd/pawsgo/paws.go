@@ -39,15 +39,13 @@ func PanicHandleRecovery(c *gin.Context, err interface{}) {
 	msg := fmt.Sprintf("Panic:'%+v'\n", err)
 	c.String(http.StatusInternalServerError, msg)
 }
-func listen(port int, lw io.Writer, color bool) {
+func listen(port int, lw io.Writer) {
 	//router := gin.Default()
 	// Or explicitly:
 	router := gin.New()
 	router.SetTrustedProxies(nil) // https://pkg.go.dev/github.com/gin-gonic/gin#readme-don-t-trust-all-proxies
 	gin.DefaultWriter = lw
-	if color {
-		gin.ForceConsoleColor() // needed for colors w/ MultiWriter
-	}
+	//gin.ForceConsoleColor() // needed for colors w/ MultiWriter
 	router.Use(
 		gin.Logger(),
 		//gin.LoggerWithWriter(gin.DefaultWriter, "/pathsNotToLog/"), // useful!
@@ -141,7 +139,7 @@ func listen(port int, lw io.Writer, color bool) {
 }
 func main() {
 	versionPtr := flag.Bool("version", false, "Print version")
-	silentPtr := flag.Bool("silent", false, "Log, but do not report to console.")
+	consolePtr := flag.Bool("console", false, "Log to console. (Ignore --logoutput if any.)")
 	portPtr := flag.Int("port", 23632, "Listen on this port.")
 	cfgPtr := flag.String("config", "", "Read paws config (JSON) from this file, to update default config.")
 	lfnPtr := flag.String("logoutput", "/var/log/pacbio/pa-wsgo/pa-wsgo.log", "Logfile output")
@@ -154,16 +152,16 @@ func main() {
 		os.Exit(0)
 	}
 
-	lfn := *lfnPtr
-	f, err := os.Create(lfn)
-	check(err)
-	defer f.Close()
 	var lw io.Writer
-	if *silentPtr {
+	if !*consolePtr {
+		fmt.Printf("Logging to '%s'\n", *lfnPtr)
+		f, err := os.Create(*lfnPtr)
+		check(err)
+		defer f.Close()
 		lw = f
 	} else {
-		//lw = os.Stdout
-		lw = io.MultiWriter(f, os.Stdout)
+		lw = os.Stdout
+		//lw = io.MultiWriter(f, os.Stdout)
 	}
 	log.SetOutput(lw)
 	log.Println(strings.Join(os.Args[:], " "))
@@ -178,6 +176,7 @@ func main() {
 	}
 
 	if *dataDirPtr == "" {
+		var err error
 		*dataDirPtr, err = ioutil.TempDir("", "pawsgo.*.datadir")
 		check(err)
 		//defer os.RemoveAll(*dataDirPtr)
@@ -188,5 +187,5 @@ func main() {
 	log.Printf("tc: %+v", config.Top())
 	//WriteConfig(config.Top(), "foo.paws.json")
 
-	listen(*portPtr, lw, !*silentPtr)
+	listen(*portPtr, lw)
 }
