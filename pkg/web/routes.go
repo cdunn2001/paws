@@ -70,17 +70,17 @@ func init() {
 		top.state.Loadingcals[k] = CreateSocketLoadingcalObject()
 	}
 	// TODO: These should be configurable.
-	topconfig = TopConfigStruct{
+	TopConfig = TopConfigStruct{
 		binaries: FindBinaries(),
 		values: ValuesConfig{
 			defaultFrameRate: 100.0, // fps
 		},
 	}
-	topconfig.flat = make(map[string]string)
-	topconfig.flat["Binary_baz2bam"] = topconfig.binaries.Binary_baz2bam
-	topconfig.flat["Binary_pa_cal"] = topconfig.binaries.Binary_pa_cal
-	topconfig.flat["Binary_reducestats"] = topconfig.binaries.Binary_reducestats
-	topconfig.flat["Binary_smrt_basecaller"] = topconfig.binaries.Binary_smrt_basecaller
+	TopConfig.flat = make(map[string]string)
+	TopConfig.flat["Binary_baz2bam"] = TopConfig.binaries.Binary_baz2bam
+	TopConfig.flat["Binary_pa_cal"] = TopConfig.binaries.Binary_pa_cal
+	TopConfig.flat["Binary_reducestats"] = TopConfig.binaries.Binary_reducestats
+	TopConfig.flat["Binary_smrt_basecaller"] = TopConfig.binaries.Binary_smrt_basecaller
 }
 
 type BinaryPaths struct {
@@ -108,7 +108,7 @@ func UpdateWithConfig(kv map[string]string, tc *TopConfigStruct) {
 	}
 }
 
-var topconfig TopConfigStruct // Should be considered "const", as changes would not be thread-safe.
+var TopConfig TopConfigStruct // Should be considered "const", as changes would not be thread-safe.
 
 func FindBinaries() BinaryPaths {
 	// TODO: Replace w/ PpaConfig
@@ -295,8 +295,8 @@ func startBasecallerBySocketId(c *gin.Context, state *State) {
 	obj.ProcessStatus.Armed = false
 	state.Basecallers[id] = obj // TODO: Error if already running?
 	wr := new(bytes.Buffer)
-	if err = WriteBasecallerBash(wr, &topconfig, obj, id); err != nil {
-		err = errors.Wrapf(err, "Error in WriteBasecallerBash(%v, %v, %v, %v)", wr, topconfig, obj, id)
+	if err = WriteBasecallerBash(wr, &TopConfig, obj, id); err != nil {
+		err = errors.Wrapf(err, "Error in WriteBasecallerBash(%v, %v, %v, %v)", wr, TopConfig, obj, id)
 		check(err)
 		//c.String(http.StatusInternalServerError, "Error generating bash.\n%v\n", err)
 		//return
@@ -375,8 +375,8 @@ func startDarkcalBySocketId(c *gin.Context, state *State) {
 	obj.ProcessStatus.Armed = false
 	state.Darkcals[id] = obj // TODO: Error if already running?
 	wr := new(bytes.Buffer)
-	if err := WriteDarkcalBash(wr, &topconfig, obj, id); err != nil {
-		err = errors.Wrapf(err, "Error in WriteDarkcalBash(%v, %v, %v, %v)", wr, topconfig, obj, id)
+	if err := WriteDarkcalBash(wr, &TopConfig, obj, id); err != nil {
+		err = errors.Wrapf(err, "Error in WriteDarkcalBash(%v, %v, %v, %v)", wr, TopConfig, obj, id)
 		check(err)
 		//c.String(http.StatusInternalServerError, "Error generating bash.\n%v\n", err)
 		//return
@@ -457,8 +457,8 @@ func startLoadingcalBySocketId(c *gin.Context, state *State) {
 	obj.ProcessStatus.Armed = false
 	state.Loadingcals[id] = obj // TODO: Error if already running?
 	wr := new(bytes.Buffer)
-	if err := WriteLoadingcalBash(wr, &topconfig, obj, id); err != nil {
-		err = errors.Wrapf(err, "Error in WriteLoadingcalBash(%v, %v, %v, %v)", wr, topconfig, obj, id)
+	if err := WriteLoadingcalBash(wr, &TopConfig, obj, id); err != nil {
+		err = errors.Wrapf(err, "Error in WriteLoadingcalBash(%v, %v, %v, %v)", wr, TopConfig, obj, id)
 		check(err)
 		//c.String(http.StatusInternalServerError, "Error generating bash.\n%v\n", err)
 		//return
@@ -544,8 +544,8 @@ func startPostprimary(c *gin.Context, state *State) {
 	obj.ProcessStatus.Armed = false // always false for Postprimary
 	state.Postprimaries[mid] = obj  // TODO: Error if already running?
 	wr := new(bytes.Buffer)
-	if err := WriteBaz2bamBash(wr, &topconfig, obj); err != nil {
-		err = errors.Wrapf(err, "Error in WriteBaz2BamBash(%v, %v, %v)", wr, topconfig, obj)
+	if err := WriteBaz2bamBash(wr, &TopConfig, obj); err != nil {
+		err = errors.Wrapf(err, "Error in WriteBaz2BamBash(%v, %v, %v)", wr, TopConfig, obj)
 		check(err)
 	}
 	log.Printf("Wrote:'%s'\n", wr.String())

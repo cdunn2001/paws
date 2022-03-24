@@ -22,7 +22,7 @@ ppa-reducestats \
 		platform:     "PLATFORM",
 	}
 	var b bytes.Buffer
-	tc := &topconfig
+	tc := &TopConfig
 	err := WriteReduceStatsBash(&b, tc, obj, job)
 	check(err)
 	got := b.String()
