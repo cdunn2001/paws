@@ -1,7 +1,7 @@
 package web
 
 import (
-	"fmt"
+	"log"
 	"os"
 	"testing"
 	//"time"
@@ -13,7 +13,7 @@ func init() {
 	wd, err := os.Getwd()
 	check(err)
 	testdataDir = wd + "/testdata"
-	fmt.Printf("testdata='%s'\n", testdataDir)
+	log.Printf("testdata='%s'\n", testdataDir)
 	requireFile(testdataDir)
 }
 func requireFile(fn string) {
@@ -65,11 +65,11 @@ func TestWatchBashSucceed(t *testing.T) {
 	if err != nil {
 		t.Errorf("Got %d", err)
 	}
-	fmt.Printf("Waiting for chanComplete '%s'?", cp.cmd)
+	log.Printf("Waiting for chanComplete '%s'?", cp.cmd)
 	select {
 	case <-cp.chanComplete:
 	}
-	fmt.Printf("Done '%s'!\n", cp.cmd)
+	log.Printf("Done '%s'!\n", cp.cmd)
 	code := ps.ExitCode
 	if code != 0 {
 		t.Errorf("Expected 0, got exit-code %d", code)
@@ -83,25 +83,24 @@ func TestWatchBashKill(t *testing.T) {
 	env := []string{
 		"STATUS_COUNT=3",
 		"STATUS_DELAY_SECONDS=0.05", // Note: ".05" would not be valid.
+		"STATUS_TIMEOUT=0.001",
 	}
 	ps := &ProcessStatusObject{}
 	cp, err := WatchBash(bash, ps, env)
 	if err != nil {
 		t.Errorf("Got %d", err)
 	}
-	fmt.Printf("Sending to chanKill\n")
-	cp.chanKill <- true
-	fmt.Printf("Waiting for chanComplete '%s'?", cp.cmd)
+	log.Printf("Waiting for chanComplete '%s'?", cp.cmd)
 	select {
 	case <-cp.chanComplete:
 	}
-	fmt.Printf("Done '%s'!\n", cp.cmd)
+	log.Printf("Done '%s'!\n", cp.cmd)
 	code := ps.ExitCode
 	if code != -1 {
-		t.Errorf("Expected -1, got exit-code %d", code)
+		t.Errorf("Expected -1 (from timeout), got exit-code %d", code)
 	}
 	if ps.Armed {
-		t.Errorf("ProcessStatus.Armed should be false when the process is killed.")
+		t.Errorf("ProcessStatus.Armed should be false when the process completes.")
 	}
 }
 func TestString2StatusReport(t *testing.T) {

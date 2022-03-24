@@ -49,6 +49,7 @@ type StatusReport struct {
 func Json2StatusReport(raw []byte) (result StatusReport) {
 	err := json.Unmarshal(raw, &result)
 	if err != nil {
+		log.Printf("ERROR: Could not unmarshal StatusReport '%v'", string(raw))
 		check(err)
 	}
 	return result
@@ -56,7 +57,7 @@ func Json2StatusReport(raw []byte) (result StatusReport) {
 func String2StatusReport(text string) (result StatusReport, err error) {
 	found := json_regex.FindStringSubmatch(text)
 	if found == nil {
-		return result, errors.Errorf("Could not parse JSON from '%s'", text)
+		return result, errors.Errorf("Could not find start of JSON from '%s'", text)
 	}
 	json_raw := []byte(found[1])
 	result = Json2StatusReport(json_raw)
@@ -107,7 +108,7 @@ func StartControlledBashProcess(bash string, ps *ProcessStatusObject, stall stri
 }
 
 func (cp *ControlledProcess) cleanup() {
-	if strings.HasSuffix(cp.temp_dn, ".tempdir") {
+	if strings.HasSuffix(cp.temp_dn, ".tmpdir") {
 		log.Printf("DEBUG removing dir tree '%s'", cp.temp_dn)
 		err := os.RemoveAll(cp.temp_dn)
 		check(err)
@@ -139,7 +140,6 @@ func WatchBash(bash string, ps *ProcessStatusObject, envExtra []string) (*Contro
 	extraFiles := []*os.File{wpipe} // becomes fd 3 in child
 
 	{
-		fmt.Println("PATH:", os.Getenv("PATH"))
 		log.Println("PATH:", os.Getenv("PATH"))
 		out, err := exec.Command("which", "dummy-pa-cal.sh").Output()
 		if err != nil {
@@ -227,7 +227,6 @@ func WatchBash(bash string, ps *ProcessStatusObject, envExtra []string) (*Contro
 
 					// TODO: Make this thread-safe!!!
 					cbp.status.Timestamp = sr.Timestamp
-					// TODO: Should an exception alter the "ready" state? I think no.
 				} else {
 					// Count as a heartbeat and update timeout.
 					if sr.TimeoutForNextStatus > 0.0 {

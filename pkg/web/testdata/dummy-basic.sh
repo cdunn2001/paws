@@ -35,6 +35,8 @@ set -- "${POSITIONAL_ARGS[@]}" # restore positional parameters
 # Optional env-vars:
 : "${STATUS_COUNT:=0}"
 : "${STATUS_DELAY_SECONDS:=0.0}"
+DOUBLE_DELAY=$(perl -e "print $STATUS_DELAY_SECONDS * 2.0")
+: "${STATUS_TIMEOUT:=$DOUBLE_DELAY}"
 
 # date --utc +%Y%m%dT%TZ
 TIMESTAMP="20220223T146198.099Z" # arbitrary
@@ -55,16 +57,16 @@ EOF
 
 function count {
     for i in $(seq 1 ${STATUS_COUNT}); do
+        report_status 1 "basic" $i $STATUS_TIMEOUT
         sleep $STATUS_DELAY_SECONDS
-        report_status 1 "basic" $i $STATUS_DELAY_SECONDS
     done
 }
 
 set -vex
 
-report_status 0 "init" 0 1
+report_status 0 "init" 0 $STATUS_TIMEOUT
 count
-report_status 2 "fini" 0 1
+report_status 2 "fini" 0 $STATUS_TIMEOUT
 
 # Close the file-descriptor, to tell the parent we are done.
 # This might be required, so we need to think about how to avoid hanging.

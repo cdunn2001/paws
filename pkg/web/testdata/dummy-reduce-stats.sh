@@ -55,6 +55,8 @@ echo "BAMFILE=${BAMFILE}"
 # Optional env-vars:
 : "${STATUS_COUNT:=0}"
 : "${STATUS_DELAY_SECONDS:=0.0}"
+DOUBLE_DELAY=$(perl -e "print $STATUS_DELAY_SECONDS * 2.0")
+: "${STATUS_TIMEOUT:=$DOUBLE_DELAY}"
 
 TIMESTAMP="20220223T146198.099Z" # arbitrary
 STAGE_WEIGHTING="[0, 100, 0]"
@@ -70,8 +72,8 @@ EOF
 
 function count {
     for i in $(seq 1 ${STATUS_COUNT}); do
+        report_status 1 "baz2bam" $i $STATUS_TIMEOUT
         sleep $STATUS_DELAY_SECONDS
-        report_status 1 "baz2bam" $i $STATUS_DELAY_SECONDS
     done
 }
 
