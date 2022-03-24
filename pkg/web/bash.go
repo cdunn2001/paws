@@ -92,8 +92,6 @@ func WriteLoadingcalBash(wr io.Writer, tc config.TopStruct, obj *SocketLoadingca
 	t := CreateTemplate(Template_loadingcal, "")
 	kv := make(map[string]string)
 
-	config.UpdateWithConfig(kv, tc)
-
 	socketIdInt, err := strconv.Atoi(SocketId)
 	if err != nil {
 		return err
@@ -230,8 +228,6 @@ func WriteBasecallerBash(wr io.Writer, tc config.TopStruct, obj *SocketBasecalle
 	sra := socketIdInt - 1 // for now
 	sraName := strconv.Itoa(sra)
 
-	config.UpdateWithConfig(kv, tc)
-
 	outdir := filepath.Join(DataDir, sraName)
 	os.MkdirAll(outdir, 0777)
 	config_json_fn := filepath.Join(outdir, obj.Mid+".basecaller.config.json")
@@ -320,7 +316,6 @@ func WriteMetadata(fn string, content string) {
 func WriteBaz2bamBash(wr io.Writer, tc config.TopStruct, obj *PostprimaryObject) error {
 	t := CreateTemplate(Template_baz2bam, "")
 	kv := make(map[string]string)
-	config.UpdateWithConfig(kv, tc)
 	outdir := obj.OutputPrefixUrl // TODO: Translate URL
 	os.MkdirAll(outdir, 0777)
 	metadata_xml := filepath.Join(outdir, obj.Mid+".metadata.subreadset.xml")
@@ -373,7 +368,6 @@ var Template_reducestats = `
 func WriteReduceStatsBash(wr io.Writer, tc config.TopStruct, obj *PostprimaryObject, job Job) error {
 	t := CreateTemplate(Template_reducestats, "")
 	kv := make(map[string]string)
-	config.UpdateWithConfig(kv, tc)
 	job.outputPrefix = obj.OutputPrefixUrl // TODO
 	UpdateJob(kv, job)
 	//obj.OutputReduceStatsH5Url
