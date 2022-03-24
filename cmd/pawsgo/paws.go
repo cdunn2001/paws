@@ -26,6 +26,8 @@ import (
 	"runtime" // only for GOOS
 )
 
+var Version string = "0.0.0-local-non-release"
+
 func check(e error) {
 	if e != nil {
 		panic(e)
@@ -136,12 +138,18 @@ func listen(port int, lw io.Writer) {
 	log.Fatal(router.Run(portStr)) // logger maybe not needed, but does not seem to hurt
 }
 func main() {
+	versionPtr := flag.Bool("version", false, "Print version")
 	portPtr := flag.Int("port", 23632, "Listen on this port.")
 	cfgPtr := flag.String("config", "", "Read paws config (JSON) from this file, to update default config.")
 	lfnPtr := flag.String("logoutput", "/var/log/pacbio/pa-wsgo/pa-wsgo.log", "Logfile output")
 	dataDirPtr := flag.String("data-dir", "", "Directory for some outputs (usually under SRA subdir")
 	flag.Parse()
 	//flag.PrintDefaults()
+
+	if *versionPtr {
+		fmt.Printf(Version)
+		os.Exit(0)
+	}
 
 	lfn := *lfnPtr
 	f, err := os.Create(lfn)
@@ -152,6 +160,7 @@ func main() {
 	lw := io.MultiWriter(f, os.Stdout)
 	log.SetOutput(lw)
 	log.Println(strings.Join(os.Args[:], " "))
+	log.Printf("version=%s\n", Version)
 	log.Printf("port='%v'\n", *portPtr)
 
 	web.InitFixtures()

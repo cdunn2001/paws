@@ -14,5 +14,5 @@ which go
 go clean -testcache ./pkg/web/...
 make test
 make vet
-make build
-bin/pawsgo -h
+make release
+bin/pawsgo --version
