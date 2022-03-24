@@ -10,6 +10,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"pacb.com/seq/paws/pkg/config"
 	"sort"
 	"sync"
 	"time"
@@ -68,55 +69,6 @@ func init() {
 		top.state.Basecallers[k] = CreateSocketBasecallerObject()
 		top.state.Darkcals[k] = CreateSocketDarkcalObject()
 		top.state.Loadingcals[k] = CreateSocketLoadingcalObject()
-	}
-	// TODO: These should be configurable.
-	topconfig = TopConfig{
-		binaries: FindBinaries(),
-		values: ValuesConfig{
-			defaultFrameRate: 100.0, // fps
-		},
-	}
-	topconfig.flat = make(map[string]string)
-	topconfig.flat["Binary_baz2bam"] = topconfig.binaries.Binary_baz2bam
-	topconfig.flat["Binary_pa_cal"] = topconfig.binaries.Binary_pa_cal
-	topconfig.flat["Binary_reducestats"] = topconfig.binaries.Binary_reducestats
-	topconfig.flat["Binary_smrt_basecaller"] = topconfig.binaries.Binary_smrt_basecaller
-}
-
-type BinaryPaths struct {
-	Binary_baz2bam         string
-	Binary_pa_cal          string
-	Binary_reducestats     string
-	Binary_smrt_basecaller string
-}
-
-type ValuesConfig struct {
-	defaultFrameRate float64 // fps
-}
-
-//type StringMap map[string]string // would hide map as 'reference' type
-
-type TopConfig struct {
-	values   ValuesConfig
-	binaries BinaryPaths
-	flat     map[string]string // someday maybe put all here?
-}
-
-func UpdateWithConfig(kv map[string]string, tc *TopConfig) {
-	for k, v := range tc.flat {
-		kv[k] = v
-	}
-}
-
-var topconfig TopConfig // Should be considered "const", as changes would not be thread-safe.
-
-func FindBinaries() BinaryPaths {
-	// TODO: Replace w/ PpaConfig
-	return BinaryPaths{
-		Binary_baz2bam:         "baz2bam",
-		Binary_smrt_basecaller: "smrt-basecaller-launch.sh", // this script is necessary to configure NUMA. don't call smrt-basecaller binary directly.
-		Binary_pa_cal:          "pa-cal",
-		Binary_reducestats:     "ppa-reducestats",
 	}
 }
 
@@ -295,8 +247,8 @@ func startBasecallerBySocketId(c *gin.Context, state *State) {
 	obj.ProcessStatus.Armed = false
 	state.Basecallers[id] = obj // TODO: Error if already running?
 	wr := new(bytes.Buffer)
-	if err = WriteBasecallerBash(wr, &topconfig, obj, id); err != nil {
-		err = errors.Wrapf(err, "Error in WriteBasecallerBash(%v, %v, %v, %v)", wr, topconfig, obj, id)
+	if err = WriteBasecallerBash(wr, config.Top(), obj, id); err != nil {
+		err = errors.Wrapf(err, "Error in WriteBasecallerBash(%v, %v, %v, %v)", wr, config.Top(), obj, id)
 		check(err)
 		//c.String(http.StatusInternalServerError, "Error generating bash.\n%v\n", err)
 		//return
@@ -375,8 +327,8 @@ func startDarkcalBySocketId(c *gin.Context, state *State) {
 	obj.ProcessStatus.Armed = false
 	state.Darkcals[id] = obj // TODO: Error if already running?
 	wr := new(bytes.Buffer)
-	if err := WriteDarkcalBash(wr, &topconfig, obj, id); err != nil {
-		err = errors.Wrapf(err, "Error in WriteDarkcalBash(%v, %v, %v, %v)", wr, topconfig, obj, id)
+	if err := WriteDarkcalBash(wr, config.Top(), obj, id); err != nil {
+		err = errors.Wrapf(err, "Error in WriteDarkcalBash(%v, %v, %v, %v)", wr, config.Top(), obj, id)
 		check(err)
 		//c.String(http.StatusInternalServerError, "Error generating bash.\n%v\n", err)
 		//return
@@ -457,8 +409,8 @@ func startLoadingcalBySocketId(c *gin.Context, state *State) {
 	obj.ProcessStatus.Armed = false
 	state.Loadingcals[id] = obj // TODO: Error if already running?
 	wr := new(bytes.Buffer)
-	if err := WriteLoadingcalBash(wr, &topconfig, obj, id); err != nil {
-		err = errors.Wrapf(err, "Error in WriteLoadingcalBash(%v, %v, %v, %v)", wr, topconfig, obj, id)
+	if err := WriteLoadingcalBash(wr, config.Top(), obj, id); err != nil {
+		err = errors.Wrapf(err, "Error in WriteLoadingcalBash(%v, %v, %v, %v)", wr, config.Top(), obj, id)
 		check(err)
 		//c.String(http.StatusInternalServerError, "Error generating bash.\n%v\n", err)
 		//return
@@ -544,8 +496,8 @@ func startPostprimary(c *gin.Context, state *State) {
 	obj.ProcessStatus.Armed = false // always false for Postprimary
 	state.Postprimaries[mid] = obj  // TODO: Error if already running?
 	wr := new(bytes.Buffer)
-	if err := WriteBaz2bamBash(wr, &topconfig, obj); err != nil {
-		err = errors.Wrapf(err, "Error in WriteBaz2BamBash(%v, %v, %v)", wr, topconfig, obj)
+	if err := WriteBaz2bamBash(wr, config.Top(), obj); err != nil {
+		err = errors.Wrapf(err, "Error in WriteBaz2BamBash(%v, %v, %v)", wr, config.Top(), obj)
 		check(err)
 	}
 	log.Printf("Wrote:'%s'\n", wr.String())

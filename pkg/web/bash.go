@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"pacb.com/seq/paws/pkg/config"
 	"path/filepath"
 	"strconv"
 	"text/template"
@@ -34,10 +35,10 @@ var Template_darkcal = `
   --timeoutSeconds {{.timeoutSeconds}} \
 `
 
-func WriteDarkcalBash(wr io.Writer, tc *TopConfig, obj *SocketDarkcalObject, SocketId string) error {
+func WriteDarkcalBash(wr io.Writer, tc config.TopStruct, obj *SocketDarkcalObject, SocketId string) error {
 	t := CreateTemplate(Template_darkcal, "")
 	kv := make(map[string]string)
-	UpdateWithConfig(kv, tc)
+	config.UpdateWithConfig(kv, tc)
 
 	socketIdInt, err := strconv.Atoi(SocketId)
 	if err != nil {
@@ -56,7 +57,7 @@ func WriteDarkcalBash(wr io.Writer, tc *TopConfig, obj *SocketDarkcalObject, Soc
 	kv["outputFile"] = obj.CalibFileUrl // TODO: Convert from URL!
 	kv["logoutput"] = obj.LogUrl        // TODO: Convert from URL!
 
-	timeout := float64(numFrames) * 1.1 / tc.values.defaultFrameRate // default
+	timeout := float64(numFrames) * 1.1 / tc.Values.DefaultFrameRate // default
 	if obj.MovieMaxSeconds > 0 {
 		timeout = obj.MovieMaxSeconds
 	}
@@ -79,11 +80,11 @@ var Template_loadingcal = `
   --timeoutSeconds {{.timeoutSeconds}} \
 `
 
-func WriteLoadingcalBash(wr io.Writer, tc *TopConfig, obj *SocketLoadingcalObject, SocketId string) error {
+func WriteLoadingcalBash(wr io.Writer, tc config.TopStruct, obj *SocketLoadingcalObject, SocketId string) error {
 	t := CreateTemplate(Template_loadingcal, "")
 	kv := make(map[string]string)
 
-	UpdateWithConfig(kv, tc)
+	config.UpdateWithConfig(kv, tc)
 
 	socketIdInt, err := strconv.Atoi(SocketId)
 	if err != nil {
@@ -103,7 +104,7 @@ func WriteLoadingcalBash(wr io.Writer, tc *TopConfig, obj *SocketLoadingcalObjec
 	kv["logoutput"] = obj.LogUrl                  // TODO: Convert from URL!
 	kv["inputDarkCalFile"] = obj.DarkFrameFileUrl // TODO: Convert from URL!
 
-	timeout := float64(numFrames) * 1.1 / tc.values.defaultFrameRate // default
+	timeout := float64(numFrames) * 1.1 / tc.Values.DefaultFrameRate // default
 	if obj.MovieMaxSeconds > 0 {
 		timeout = obj.MovieMaxSeconds
 	}
@@ -205,7 +206,7 @@ var Template_basecaller = `
 //   algorithm
 
 // Doesn't this need the darkcalfile?
-func WriteBasecallerBash(wr io.Writer, tc *TopConfig, obj *SocketBasecallerObject, SocketId string) error {
+func WriteBasecallerBash(wr io.Writer, tc config.TopStruct, obj *SocketBasecallerObject, SocketId string) error {
 	t := CreateTemplate(Template_basecaller, "")
 	kv := make(map[string]string)
 
@@ -216,7 +217,7 @@ func WriteBasecallerBash(wr io.Writer, tc *TopConfig, obj *SocketBasecallerObjec
 	sra := socketIdInt - 1 // for now
 	sraName := strconv.Itoa(sra)
 
-	UpdateWithConfig(kv, tc)
+	config.UpdateWithConfig(kv, tc)
 
 	outdir := filepath.Join(DataDir, sraName)
 	os.MkdirAll(outdir, 0777)
@@ -289,10 +290,10 @@ func WriteMetadata(fn string, content string) {
 	}
 	f.WriteString(content)
 }
-func WriteBaz2bamBash(wr io.Writer, tc *TopConfig, obj *PostprimaryObject) error {
+func WriteBaz2bamBash(wr io.Writer, tc config.TopStruct, obj *PostprimaryObject) error {
 	t := CreateTemplate(Template_baz2bam, "")
 	kv := make(map[string]string)
-	UpdateWithConfig(kv, tc)
+	config.UpdateWithConfig(kv, tc)
 	outdir := obj.OutputPrefixUrl // TODO: Translate URL
 	os.MkdirAll(outdir, 0777)
 	metadata_xml := filepath.Join(outdir, obj.Mid+".metadata.subreadset.xml")
@@ -337,10 +338,10 @@ var Template_reducestats = `
   --config=common.platform=Kestrel \
 `
 
-func WriteReduceStatsBash(wr io.Writer, tc *TopConfig, obj *PostprimaryObject, job Job) error {
+func WriteReduceStatsBash(wr io.Writer, tc config.TopStruct, obj *PostprimaryObject, job Job) error {
 	t := CreateTemplate(Template_reducestats, "")
 	kv := make(map[string]string)
-	UpdateWithConfig(kv, tc)
+	config.UpdateWithConfig(kv, tc)
 	job.outputPrefix = obj.OutputPrefixUrl // TODO
 	UpdateJob(kv, job)
 	//obj.OutputReduceStatsH5Url

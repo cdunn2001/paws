@@ -2,6 +2,7 @@ package web
 
 import (
 	"bytes"
+	"pacb.com/seq/paws/pkg/config"
 	"testing"
 )
 
@@ -22,7 +23,7 @@ ppa-reducestats \
 		platform:     "PLATFORM",
 	}
 	var b bytes.Buffer
-	tc := &topconfig
+	tc := config.Top()
 	err := WriteReduceStatsBash(&b, tc, obj, job)
 	check(err)
 	got := b.String()
