@@ -3,6 +3,7 @@ package web
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/pkg/errors"
 	"io"
 	"log"
 	"os"
@@ -279,6 +280,7 @@ const (
 var Template_baz2bam = `
 {{.Global.Binaries.Binary_baz2bam}} \
   {{.Local.bazFile}} \
+  -o {{.Local.outputPrefix}} \
   --statusfd 3 \
   --metadata {{.Local.metadataFile}} \
   --uuid {{.Local.acqId}} \
@@ -290,8 +292,6 @@ var Template_baz2bam = `
   --zmwHeaderBatchMB 30000 \
   --maxOutputQueueMB 15000 \
 `
-
-//  -o OUT_SUFFIX (e.g. 'out')
 
 // alternatively, replace bazFile(s) w/
 // --filelist ${FILE_LIST}
@@ -311,9 +311,13 @@ func WriteMetadata(fn string, content string) {
 func WriteBaz2bamBash(wr io.Writer, tc config.TopStruct, obj *PostprimaryObject) error {
 	t := CreateTemplate(Template_baz2bam, "")
 	kv := make(map[string]string)
-	outdir := obj.OutputPrefixUrl // TODO: Translate URL
+	outdir := filepath.Dir(obj.OutputPrefixUrl) // TODO: Translate URL
+	if outdir == "" {
+		return errors.Errorf("Got empty dir for OutputPrefixUrl '%s'", obj.OutputPrefixUrl)
+	}
 	os.MkdirAll(outdir, 0777)
-	metadata_xml := filepath.Join(outdir, obj.Mid+".metadata.subreadset.xml")
+	metadata_xml := obj.OutputPrefixUrl + ".metadata.subreadset.xml"
+	log.Printf("Metadatafile:'%s'", metadata_xml)
 	WriteMetadata(metadata_xml, obj.SubreadsetMetadataXml)
 	kv["metadataFile"] = metadata_xml
 	kv["acqId"] = obj.Uuid
@@ -331,6 +335,7 @@ func WriteBaz2bamBash(wr io.Writer, tc config.TopStruct, obj *PostprimaryObject)
 	// ppaConfig.Baz2BamArgs();
 	// This envar is not to be used except for unit testing.
 	// getenv("PPA_BAZ2BAM_OPTIONS");
+	kv["outputPrefix"] = obj.OutputPrefixUrl
 
 	ts := TemplateSub{
 		Local:  kv,
