@@ -176,7 +176,7 @@ func main() {
 	web.DataDir = *dataDirPtr
 	log.Printf("DataDir='%s'\n", web.DataDir)
 
-	log.Printf("tc: %v", config.Top())
+	log.Printf("tc: %+v", config.Top())
 	//WriteConfig(config.Top(), "foo.paws.json")
 
 	listen(*portPtr, lw)
