@@ -294,6 +294,8 @@ func resetBasecallerBySocketId(c *gin.Context, state *State) {
 		c.String(http.StatusConflict, "Fails if basecaller is still in progress (was %s). POST to stop first.\n", obj.ProcessStatus.ExecutionStatus)
 		return
 	}
+	// Create a new one.
+	obj = &SocketBasecallerObject{}
 	obj.ProcessStatus.ExecutionStatus = Ready
 	obj.ProcessStatus.CompletionStatus = Incomplete
 	state.Basecallers[id] = obj
@@ -375,6 +377,8 @@ func resetDarkcalBySocketId(c *gin.Context, state *State) {
 		c.String(http.StatusConflict, "Fails if darkcal is still in progress. POST to stop first. State:'%s'\n", obj.ProcessStatus.ExecutionStatus)
 		return
 	}
+	// Create a new one.
+	obj = &SocketDarkcalObject{}
 	obj.ProcessStatus.ExecutionStatus = Ready
 	obj.ProcessStatus.CompletionStatus = Incomplete
 	state.Darkcals[id] = obj
@@ -456,6 +460,8 @@ func resetLoadingcalBySocketId(c *gin.Context, state *State) {
 		c.String(http.StatusConflict, "Fails if loadingcal is still in progress. POST to stop first.\n")
 		return
 	}
+	// Create a new one.
+	obj = &SocketLoadingcalObject{}
 	obj.ProcessStatus.ExecutionStatus = Ready
 	obj.ProcessStatus.CompletionStatus = Incomplete
 	state.Loadingcals[id] = obj
