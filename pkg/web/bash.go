@@ -23,22 +23,26 @@ func CreateTemplate(source string, name string) *template.Template {
 	return result
 }
 
+type TemplateSub struct {
+	Global config.TopStruct
+	Local  map[string]string
+}
+
 var Template_darkcal = `
-{{.Binary_pa_cal}} \
+{{.Global.Binaries.Binary_pa_cal}} \
   --statusfd 3 \
-  --logoutput {{.logoutput}} \
-  --sra {{.sra}} \
-  --movieNum {{.movieNum}} \
-  --numFrames {{.numFrames}} \
+  --logoutput {{.Local.logoutput}} \
+  --sra {{.Local.sra}} \
+  --movieNum {{.Local.movieNum}} \
+  --numFrames {{.Local.numFrames}} \
   --cal Dark \
-  --outputFile {{.outputFile}}  \
-  --timeoutSeconds {{.timeoutSeconds}} \
+  --outputFile {{.Local.outputFile}}  \
+  --timeoutSeconds {{.Local.timeoutSeconds}} \
 `
 
 func WriteDarkcalBash(wr io.Writer, tc config.TopStruct, obj *SocketDarkcalObject, SocketId string) error {
 	t := CreateTemplate(Template_darkcal, "")
 	kv := make(map[string]string)
-	config.UpdateWithConfig(kv, tc)
 
 	socketIdInt, err := strconv.Atoi(SocketId)
 	if err != nil {
@@ -62,22 +66,26 @@ func WriteDarkcalBash(wr io.Writer, tc config.TopStruct, obj *SocketDarkcalObjec
 		timeout = obj.MovieMaxSeconds
 	}
 	kv["timeoutSeconds"] = fmt.Sprintf("%g", timeout)
-
 	// Skip --inputDarkCalFile can be skipped for now.
-	return t.Execute(wr, kv)
+
+	ts := TemplateSub{
+		Local:  kv,
+		Global: tc,
+	}
+	return t.Execute(wr, &ts)
 }
 
 var Template_loadingcal = `
-{{.Binary_pa_cal}} \
+{{.Global.Binaries.Binary_pa_cal}} \
   --statusfd 3 \
-  --logoutput {{.logoutput}} \
-  --sra {{.sra}} \
-  --movieNum {{.movieNum}} \
-  --numFrames {{.numFrames}} \
+  --logoutput {{.Local.logoutput}} \
+  --sra {{.Local.sra}} \
+  --movieNum {{.Local.movieNum}} \
+  --numFrames {{.Local.numFrames}} \
   --cal Loading \
-  --outputFile {{.outputFile}}  \
-  --inputDarkCalFile {{.inputDarkCalFile}} \
-  --timeoutSeconds {{.timeoutSeconds}} \
+  --outputFile {{.Local.outputFile}}  \
+  --inputDarkCalFile {{.Local.inputDarkCalFile}} \
+  --timeoutSeconds {{.Local.timeoutSeconds}} \
 `
 
 func WriteLoadingcalBash(wr io.Writer, tc config.TopStruct, obj *SocketLoadingcalObject, SocketId string) error {
@@ -110,7 +118,11 @@ func WriteLoadingcalBash(wr io.Writer, tc config.TopStruct, obj *SocketLoadingca
 	}
 	kv["timeoutSeconds"] = fmt.Sprintf("%g", timeout)
 
-	return t.Execute(wr, kv)
+	ts := TemplateSub{
+		Local:  kv,
+		Global: tc,
+	}
+	return t.Execute(wr, &ts)
 }
 
 var defaultBasecallerConfig = `
@@ -185,18 +197,18 @@ func TranslateDiscardableUrl(option string, url string) string {
 }
 
 var Template_basecaller = `
-{{.Binary_smrt_basecaller}} \
+{{.Global.Binaries.Binary_smrt_basecaller}} \
   --config=multipleBazFiles=false \
   --statusfd 3 \
-  --logoutput {{.logoutput}} \
+  --logoutput {{.Local.logoutput}} \
   --logfilter INFO \
-  {{.optTraceFile}} \
-  {{.optTraceFileRoi}} \
-  --outputbazfile {{.outputbazfile}} \
-  --config {{.config_json_fn}} \
-  --config source.WXIPCDataSourceConfig.sraIndex={{.sra}} \
+  {{.Local.optTraceFile}} \
+  {{.Local.optTraceFileRoi}} \
+  --outputbazfile {{.Local.outputbazfile}} \
+  --config {{.Local.config_json_fn}} \
+  --config source.WXIPCDataSourceConfig.sraIndex={{.Local.sra}} \
   --config system.analyzerHardware=A100 \
-  --maxFrames {{.maxFrames}} \
+  --maxFrames {{.Local.maxFrames}} \
 `
 
 // Maybe better:
@@ -244,7 +256,11 @@ func WriteBasecallerBash(wr io.Writer, tc config.TopStruct, obj *SocketBasecalle
 		kv["optTraceFileRoi"] = "--traceFileRoi=" + string(raw)
 	}
 
-	return t.Execute(wr, kv)
+	ts := TemplateSub{
+		Local:  kv,
+		Global: tc,
+	}
+	return t.Execute(wr, &ts)
 }
 
 // I don't expect you to have to change these.  These are Sequel-II
@@ -260,11 +276,21 @@ const (
 )
 
 var Template_baz2bam = `
+<<<<<<< HEAD
 {{.Binary_baz2bam}} \
   {{.bazFile}} \
+||||||| constructed merge base
+{{.Binary_baz2bam}} \
+  {{.bazFile}} \
+  --config=multipleBazFiles=false \
+=======
+{{.Global.Binaries.Binary_baz2bam}} \
+  {{.Local.bazFile}} \
+  --config=multipleBazFiles=false \
+>>>>>>> Separate Global config from Local key-value pairs
   --statusfd 3 \
-  --metadata {{.metadataFile}} \
-  --uuid {{.acqId}} \
+  --metadata {{.Local.metadataFile}} \
+  --uuid {{.Local.acqId}} \
   -j 32 \
   -b 8 \
   --inlinePbi \
@@ -315,7 +341,12 @@ func WriteBaz2bamBash(wr io.Writer, tc config.TopStruct, obj *PostprimaryObject)
 	// ppaConfig.Baz2BamArgs();
 	// This envar is not to be used except for unit testing.
 	// getenv("PPA_BAZ2BAM_OPTIONS");
-	return t.Execute(wr, kv)
+
+	ts := TemplateSub{
+		Local:  kv,
+		Global: tc,
+	}
+	return t.Execute(wr, &ts)
 }
 
 type Job struct {
@@ -332,9 +363,9 @@ func UpdateJob(kv map[string]string, job Job) {
 }
 
 var Template_reducestats = `
-{{.Binary_reducestats}} \
-  --input {{.job_outputPrefix}}.sts.h5 \
-  --output {{.job_outputPrefix}}.rsts.h5 \
+{{.Global.Binaries.Binary_reducestats}} \
+  --input {{.Local.job_outputPrefix}}.sts.h5 \
+  --output {{.Local.job_outputPrefix}}.rsts.h5 \
   --config=common.chipClass=Kestrel \
   --config=common.platform=Kestrel \
 `
@@ -346,7 +377,12 @@ func WriteReduceStatsBash(wr io.Writer, tc config.TopStruct, obj *PostprimaryObj
 	job.outputPrefix = obj.OutputPrefixUrl // TODO
 	UpdateJob(kv, job)
 	//obj.OutputReduceStatsH5Url
-	return t.Execute(wr, kv)
+
+	ts := TemplateSub{
+		Local:  kv,
+		Global: tc,
+	}
+	return t.Execute(wr, &ts)
 }
 func CopyRsts(obj *PostprimaryObject, job Job) error {
 	// obj.OutputStatsH5Url
