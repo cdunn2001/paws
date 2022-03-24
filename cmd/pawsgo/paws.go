@@ -45,7 +45,7 @@ func listen(port int, lw io.Writer) {
 	router := gin.New()
 	router.SetTrustedProxies(nil) // https://pkg.go.dev/github.com/gin-gonic/gin#readme-don-t-trust-all-proxies
 	gin.DefaultWriter = lw
-	gin.ForceConsoleColor() // needed for colors w/ MultiWriter
+	//gin.ForceConsoleColor() // needed for colors w/ MultiWriter
 	router.Use(
 		gin.Logger(),
 		//gin.LoggerWithWriter(gin.DefaultWriter, "/pathsNotToLog/"), // useful!
@@ -139,6 +139,7 @@ func listen(port int, lw io.Writer) {
 }
 func main() {
 	versionPtr := flag.Bool("version", false, "Print version")
+	consolePtr := flag.Bool("console", false, "Log to console. (Ignore --logoutput if any.)")
 	portPtr := flag.Int("port", 23632, "Listen on this port.")
 	cfgPtr := flag.String("config", "", "Read paws config (JSON) from this file, to update default config.")
 	lfnPtr := flag.String("logoutput", "/var/log/pacbio/pa-wsgo/pa-wsgo.log", "Logfile output")
@@ -151,13 +152,17 @@ func main() {
 		os.Exit(0)
 	}
 
-	lfn := *lfnPtr
-	f, err := os.Create(lfn)
-	check(err)
-	defer f.Close()
-	//lw := os.Stdout
-	//lw := f
-	lw := io.MultiWriter(f, os.Stdout)
+	var lw io.Writer
+	if !*consolePtr {
+		fmt.Printf("Logging to '%s'\n", *lfnPtr)
+		f, err := os.Create(*lfnPtr)
+		check(err)
+		defer f.Close()
+		lw = f
+	} else {
+		lw = os.Stdout
+		//lw = io.MultiWriter(f, os.Stdout)
+	}
 	log.SetOutput(lw)
 	log.Println(strings.Join(os.Args[:], " "))
 	log.Printf("version=%s\n", Version)
@@ -171,6 +176,7 @@ func main() {
 	}
 
 	if *dataDirPtr == "" {
+		var err error
 		*dataDirPtr, err = ioutil.TempDir("", "pawsgo.*.datadir")
 		check(err)
 		//defer os.RemoveAll(*dataDirPtr)
