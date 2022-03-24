@@ -2,6 +2,7 @@
 #export GOPATH=$(pwd)
 #export GOPATH=~/gh/GO
 #vpath %.go cmd
+#export PAWS_TEST_LOG=1
 DUMMYDIR:=${PWD}/pkg/web/testdata
 export PATH:=${DUMMYDIR}:${PATH}
 #NOTIFY_SOCKET=/tmp/kpaws.sock
@@ -16,7 +17,7 @@ quick:
 all: test vet fmt lint build
 
 test:
-	go test ./pkg/... -v
+	go test ./pkg/... -v -timeout 30s
 clean: # Use this if you alter bash scripts or data.
 	go clean -testcache ./pkg/web/...
 vet:

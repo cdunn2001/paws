@@ -1,6 +1,7 @@
 package web
 
 import (
+	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
@@ -8,6 +9,10 @@ import (
 )
 
 func TestMain(m *testing.M) {
-	log.SetOutput(ioutil.Discard)
+	PAWS_TEST_LOG := os.Getenv("PAWS_TEST_LOG")
+	fmt.Printf("PAWS_TEST_LOG=%s\n", PAWS_TEST_LOG)
+	if PAWS_TEST_LOG == "" {
+		log.SetOutput(ioutil.Discard)
+	}
 	os.Exit(m.Run())
 }
