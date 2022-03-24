@@ -186,6 +186,7 @@ func TranslateDiscardableUrl(option string, url string) string {
 
 var Template_basecaller = `
 {{.Binary_smrt_basecaller}} \
+  --config=multipleBazFiles=false \
   --statusfd 3 \
   --logoutput {{.logoutput}} \
   --logfilter INFO \
@@ -261,7 +262,6 @@ const (
 var Template_baz2bam = `
 {{.Binary_baz2bam}} \
   {{.bazFile}} \
-  --config=multipleBazFiles=false \
   --statusfd 3 \
   --metadata {{.metadataFile}} \
   --uuid {{.acqId}} \
