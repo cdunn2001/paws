@@ -49,6 +49,7 @@ type StatusReport struct {
 func Json2StatusReport(raw []byte) (result StatusReport) {
 	err := json.Unmarshal(raw, &result)
 	if err != nil {
+		log.Printf("ERROR: Could not unmarshal StatusReport '%v'", string(raw))
 		check(err)
 	}
 	return result
@@ -56,7 +57,7 @@ func Json2StatusReport(raw []byte) (result StatusReport) {
 func String2StatusReport(text string) (result StatusReport, err error) {
 	found := json_regex.FindStringSubmatch(text)
 	if found == nil {
-		return result, errors.Errorf("Could not parse JSON from '%s'", text)
+		return result, errors.Errorf("Could not find start of JSON from '%s'", text)
 	}
 	json_raw := []byte(found[1])
 	result = Json2StatusReport(json_raw)

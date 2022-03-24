@@ -101,8 +101,8 @@ EOF
 
 function count {
     for i in $(seq 1 ${STATUS_COUNT}); do
+        report_status 1 "pa-cal" $i $STATUS_TIMEOUT
         sleep $STATUS_DELAY_SECONDS
-        report_status 1 "pa-cal" $i $STATUS_DELAY_SECONDS
     done
 }
 
@@ -132,7 +132,11 @@ fi
 
 echo "STATUS_COUNT=$STATUS_COUNT"
 echo "STATUS_DELAY_SECONDS=$STATUS_DELAY_SECONDS"
-sleep "$STATUS_DELAY_SECONDS"
+DOUBLE_DELAY=$(perl -e "print $STATUS_DELAY_SECONDS * 2.0")
+: "${STATUS_TIMEOUT:=$DOUBLE_DELAY}"
+
+## Not sure why I added this for pa-cal.
+#sleep "$STATUS_DELAY_SECONDS"
 
 TIMESTAMP="20220223T146198.099Z" # arbitrary
 STAGE_WEIGHTING="[0, 100, 0]"
