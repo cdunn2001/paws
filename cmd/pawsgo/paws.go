@@ -39,13 +39,15 @@ func PanicHandleRecovery(c *gin.Context, err interface{}) {
 	msg := fmt.Sprintf("Panic:'%+v'\n", err)
 	c.String(http.StatusInternalServerError, msg)
 }
-func listen(port int, lw io.Writer) {
+func listen(port int, lw io.Writer, color bool) {
 	//router := gin.Default()
 	// Or explicitly:
 	router := gin.New()
 	router.SetTrustedProxies(nil) // https://pkg.go.dev/github.com/gin-gonic/gin#readme-don-t-trust-all-proxies
 	gin.DefaultWriter = lw
-	gin.ForceConsoleColor() // needed for colors w/ MultiWriter
+	if color {
+		gin.ForceConsoleColor() // needed for colors w/ MultiWriter
+	}
 	router.Use(
 		gin.Logger(),
 		//gin.LoggerWithWriter(gin.DefaultWriter, "/pathsNotToLog/"), // useful!
@@ -139,6 +141,7 @@ func listen(port int, lw io.Writer) {
 }
 func main() {
 	versionPtr := flag.Bool("version", false, "Print version")
+	silentPtr := flag.Bool("silent", false, "Log, but do not report to console.")
 	portPtr := flag.Int("port", 23632, "Listen on this port.")
 	cfgPtr := flag.String("config", "", "Read paws config (JSON) from this file, to update default config.")
 	lfnPtr := flag.String("logoutput", "/var/log/pacbio/pa-wsgo/pa-wsgo.log", "Logfile output")
@@ -155,9 +158,13 @@ func main() {
 	f, err := os.Create(lfn)
 	check(err)
 	defer f.Close()
-	//lw := os.Stdout
-	//lw := f
-	lw := io.MultiWriter(f, os.Stdout)
+	var lw io.Writer
+	if *silentPtr {
+		lw = f
+	} else {
+		//lw = os.Stdout
+		lw = io.MultiWriter(f, os.Stdout)
+	}
 	log.SetOutput(lw)
 	log.Println(strings.Join(os.Args[:], " "))
 	log.Printf("version=%s\n", Version)
@@ -181,5 +188,5 @@ func main() {
 	log.Printf("tc: %+v", config.Top())
 	//WriteConfig(config.Top(), "foo.paws.json")
 
-	listen(*portPtr, lw)
+	listen(*portPtr, lw, !*silentPtr)
 }
