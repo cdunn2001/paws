@@ -76,6 +76,18 @@ type ProcessStatusObject struct {
 
 	// The process ID of the process
 	PID int `json:"PID"`
+
+	Progress ProgressMetricsObject
+}
+type ProgressMetricsObject struct {
+	Counter       uint64  `json:"counter"`
+	CounterMax    uint64  `json:"counterMax"`
+	Ready         bool    `json:"ready"`
+	StageName     string  `json:"stageName"`
+	StageNumber   int32   `json:"stageNumber"`
+	StageWeights  []int32 `json:"stageWeights"`
+	StageProgress float64 `json:"stageProgress"`
+	NetProgress   float64 `json:"netProgress"`
 }
 
 // For composition in others
