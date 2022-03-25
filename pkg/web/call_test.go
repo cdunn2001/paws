@@ -158,4 +158,11 @@ func TestFirstWord(t *testing.T) {
 			t.Errorf("Got '%v', expected '%v'", got, expected)
 		}
 	}
+	{
+		got := FirstWord("")
+		expected := ""
+		if got != expected {
+			t.Errorf("Got '%v', expected '%v'", got, expected)
+		}
+	}
 }
