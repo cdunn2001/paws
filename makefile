@@ -1,4 +1,4 @@
-VERSION=1.0.1
+VERSION=1.0.2
 GIT_COMMIT=$(shell git rev-parse HEAD)
 
 # from https://qvault.io/golang/golang-project-structure/
