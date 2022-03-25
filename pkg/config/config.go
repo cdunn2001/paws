@@ -1,5 +1,7 @@
 package config
 
+var Version string = "0.0.0-local-non-release"
+
 type BinaryPaths struct {
 	Binary_baz2bam         string
 	Binary_pa_cal          string
