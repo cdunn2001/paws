@@ -1,3 +1,5 @@
+# TODO: Use this VERSION for rpm stuff too.
+VERSION=1.0.4
 RPM_BASENAME?=pa-wsgo
 
 build-rpm:
@@ -6,8 +8,8 @@ build-rpm:
 	${MAKE} tar
 	${MAKE} rpm
 files:
-	(cd .. && make release)
-	./generate_rpm_files.py
+	${MAKE} -C .. release VERSION=${VERSION}
+	#./generate_rpm_files.py
 tar:
 	rm -f ${RPM_BASENAME}.tar
 	tar -C ./tard -cvf ${RPM_BASENAME}.tar .
