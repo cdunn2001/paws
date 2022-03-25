@@ -4,7 +4,7 @@ import (
 	"log"
 	"os"
 	"testing"
-	//"time"
+	"time"
 )
 
 var testdataDir string
@@ -130,5 +130,16 @@ func TestString2StatusReport(t *testing.T) {
 		} else if sr.TimeoutForNextStatus != 300 {
 			t.Errorf("Got TimeoutForNextStatus=%f", sr.TimeoutForNextStatus)
 		}
+	}
+}
+func TestTimestamp(t *testing.T) {
+	layout := "Mon Jan 02 2006 15:04:05 GMT-0700"
+	sample := "Fri Sep 23 2017 15:38:22 GMT+0630"
+	expected := "2017-09-23T09:08:22Z"
+	tt, err := time.Parse(layout, sample)
+	check(err)
+	ts := Timestamp(tt)
+	if ts != expected {
+		t.Errorf("Got %v", ts)
 	}
 }

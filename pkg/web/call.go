@@ -132,6 +132,16 @@ func WriteStringToFile(content string, fn string) {
 	_, err = f.WriteString(content)
 	check(err)
 }
+
+// date --utc +%Y%m%dT%TZ
+//TIMESTAMP="20220223T146198.099Z" # arbitrary
+//RFC3339     = "2006-01-02T15:04:05Z07:00"
+func Timestamp(t time.Time) string {
+	return t.UTC().Format(time.RFC3339)
+}
+func TimestampNow() string {
+	return Timestamp(time.Now())
+}
 func WatchBash(bash string, ps *ProcessStatusObject, envExtra []string) (*ControlledProcess, error) {
 	rpipe, wpipe, err := os.Pipe()
 	if err != nil {
@@ -226,7 +236,8 @@ func WatchBash(bash string, ps *ProcessStatusObject, envExtra []string) (*Contro
 					log.Printf("PID: %d Status exception:%s\n", pid, srText)
 
 					// TODO: Make this thread-safe!!!
-					cbp.status.Timestamp = sr.Timestamp
+					//cbp.status.Timestamp = sr.Timestamp
+					cbp.status.Timestamp = TimestampNow() // Much better if paws sets this.
 				} else {
 					// Count as a heartbeat and update timeout.
 					if sr.TimeoutForNextStatus > 0.0 {
@@ -237,7 +248,7 @@ func WatchBash(bash string, ps *ProcessStatusObject, envExtra []string) (*Contro
 					}
 
 					// TODO: Make this thread-safe!!!
-					cbp.status.Timestamp = sr.Timestamp
+					cbp.status.Timestamp = TimestampNow() // Much better if paws sets this.
 
 					cbp.status.Armed = sr.Ready // Yes, "Ready" means something different here.
 				}
@@ -257,6 +268,7 @@ func WatchBash(bash string, ps *ProcessStatusObject, envExtra []string) (*Contro
 		// TODO: Make these thread-safe!!!
 		cbp.status.ExecutionStatus = Complete
 		cbp.status.Armed = false // TODO: Does it matter here?
+		cbp.status.Timestamp = TimestampNow()
 		cbp.status.ExitCode = int32(cmd.ProcessState.ExitCode())
 
 		if !cmd.ProcessState.Exited() {

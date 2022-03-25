@@ -147,11 +147,12 @@ func getStatus(c *gin.Context, state *State) {
 	status.UptimeMessage = fmt.Sprintf("%g seconds", status.Uptime)
 
 	// Current epoch time in seconds as seen by pa-ws (UTC)
-	utc := time.Now().UTC()
+	now := time.Now()
+	utc := now.UTC()
 	status.Time = float64(utc.UnixMilli()) * 0.001
 
 	// ISO8601 timestamp (with milliseconds) of time field
-	status.Timestamp = utc.Format("2006-01-02T15:04:05-0700Z")
+	status.Timestamp = Timestamp(now)
 
 	// Version of software, including git hash of last commit
 	status.Version = "0.0.0" // TODO
@@ -245,6 +246,7 @@ func startBasecallerBySocketId(c *gin.Context, state *State) {
 	}
 	obj.ProcessStatus.ExecutionStatus = Running
 	obj.ProcessStatus.Armed = false
+	obj.ProcessStatus.Timestamp = TimestampNow()
 	state.Basecallers[id] = obj // TODO: Error if already running?
 	wr := new(bytes.Buffer)
 	if err = WriteBasecallerBash(wr, config.Top(), obj, id); err != nil {
@@ -277,6 +279,7 @@ func stopBasecallerBySocketId(c *gin.Context, state *State) {
 	}
 	obj.ProcessStatus.ExecutionStatus = Complete
 	obj.ProcessStatus.CompletionStatus = Aborted
+	obj.ProcessStatus.Timestamp = TimestampNow()
 	state.Basecallers[id] = obj
 	c.Status(http.StatusOK)
 }
@@ -298,6 +301,7 @@ func resetBasecallerBySocketId(c *gin.Context, state *State) {
 	obj = &SocketBasecallerObject{}
 	obj.ProcessStatus.ExecutionStatus = Ready
 	obj.ProcessStatus.CompletionStatus = Incomplete
+	obj.ProcessStatus.Timestamp = TimestampNow()
 	state.Basecallers[id] = obj
 	c.Status(http.StatusOK)
 }
@@ -327,6 +331,7 @@ func startDarkcalBySocketId(c *gin.Context, state *State) {
 	}
 	obj.ProcessStatus.ExecutionStatus = Running
 	obj.ProcessStatus.Armed = false
+	obj.ProcessStatus.Timestamp = TimestampNow()
 	state.Darkcals[id] = obj // TODO: Error if already running?
 	wr := new(bytes.Buffer)
 	if err := WriteDarkcalBash(wr, config.Top(), obj, id); err != nil {
@@ -360,6 +365,7 @@ func stopDarkcalBySocketId(c *gin.Context, state *State) {
 	// TODO: Do this elsewhere?
 	obj.ProcessStatus.ExecutionStatus = Complete
 	obj.ProcessStatus.CompletionStatus = Aborted
+	obj.ProcessStatus.Timestamp = TimestampNow()
 	state.Darkcals[id] = obj // TODO: Invalidates ProcessStatus pointer?
 	c.Status(http.StatusOK)
 }
@@ -381,6 +387,7 @@ func resetDarkcalBySocketId(c *gin.Context, state *State) {
 	obj = &SocketDarkcalObject{}
 	obj.ProcessStatus.ExecutionStatus = Ready
 	obj.ProcessStatus.CompletionStatus = Incomplete
+	obj.ProcessStatus.Timestamp = TimestampNow()
 	state.Darkcals[id] = obj
 	c.Status(http.StatusOK)
 }
@@ -411,6 +418,7 @@ func startLoadingcalBySocketId(c *gin.Context, state *State) {
 	}
 	obj.ProcessStatus.ExecutionStatus = Running
 	obj.ProcessStatus.Armed = false
+	obj.ProcessStatus.Timestamp = TimestampNow()
 	state.Loadingcals[id] = obj // TODO: Error if already running?
 	wr := new(bytes.Buffer)
 	if err := WriteLoadingcalBash(wr, config.Top(), obj, id); err != nil {
@@ -443,6 +451,7 @@ func stopLoadingcalBySocketId(c *gin.Context, state *State) {
 	}
 	obj.ProcessStatus.ExecutionStatus = Complete
 	obj.ProcessStatus.CompletionStatus = Aborted
+	obj.ProcessStatus.Timestamp = TimestampNow()
 	state.Loadingcals[id] = obj // TODO: not thread-safe!!!
 	c.Status(http.StatusOK)
 }
@@ -464,6 +473,7 @@ func resetLoadingcalBySocketId(c *gin.Context, state *State) {
 	obj = &SocketLoadingcalObject{}
 	obj.ProcessStatus.ExecutionStatus = Ready
 	obj.ProcessStatus.CompletionStatus = Incomplete
+	obj.ProcessStatus.Timestamp = TimestampNow()
 	state.Loadingcals[id] = obj
 	c.Status(http.StatusOK)
 }
@@ -500,7 +510,8 @@ func startPostprimary(c *gin.Context, state *State) {
 	}
 	obj.ProcessStatus.ExecutionStatus = Running
 	obj.ProcessStatus.Armed = false // always false for Postprimary
-	state.Postprimaries[mid] = obj  // TODO: Error if already running?
+	obj.ProcessStatus.Timestamp = TimestampNow()
+	state.Postprimaries[mid] = obj // TODO: Error if already running?
 	wr := new(bytes.Buffer)
 	if err := WriteBaz2bamBash(wr, config.Top(), obj); err != nil {
 		err = errors.Wrapf(err, "Error in WriteBaz2BamBash(%v, %v, %v)", wr, config.Top(), obj)
@@ -580,6 +591,7 @@ func stopPostprimaryByMid(c *gin.Context, state *State) {
 	}
 	obj.ProcessStatus.ExecutionStatus = Complete
 	obj.ProcessStatus.CompletionStatus = Aborted
+	obj.ProcessStatus.Timestamp = TimestampNow()
 	state.Postprimaries[mid] = obj
 	c.String(http.StatusOK, "The process for mid '%s' was stopped, and now the resource can be DELETEd.\n", mid)
 }

@@ -241,6 +241,7 @@ func WriteBasecallerBash(wr io.Writer, tc config.TopStruct, obj *SocketBasecalle
 	kv["logoutput"] = obj.LogUrl     // TODO: Convert from URL!
 	kv["maxFrames"] = strconv.Itoa(int(obj.MovieMaxFrames))
 
+	// TODO: Fill these from Config first.
 	if kv["optTraceFileRoi"] == "" || kv["optTraceFileRoi"] == "[]" {
 		kv["optTraceFile"] = ""
 		kv["optTraceFileRoi"] = ""
