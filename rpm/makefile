@@ -17,6 +17,8 @@ tar:
 rpm:
 	rm -rf ~/rpmbuild
 	./tar2rpm.sh --version 0.0.0 --arch x86_64 --target /opt/pacbio/pa-wsgo-0.0.0 ${RPM_BASENAME}.tar
+	mkdir -p BUILD/
+	mv ~/rpmbuild/RPMS/x86_64/*.rpm BUILD/pa-wsgo.rpm
 spec:
 	./tar2rpm.sh --version 0.0.0 --arch x86_64 --target /opt/pacbio/pa-wsgo-0.0.0 --print ${RPM_BASENAME}.tar > foo.spec
 clean:
