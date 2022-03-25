@@ -142,6 +142,14 @@ func Timestamp(t time.Time) string {
 func TimestampNow() string {
 	return Timestamp(time.Now())
 }
+func FirstWord(sentence string) string {
+	words := strings.Fields(sentence)
+	if len(words) == 0 {
+		return ""
+	} else {
+		return words[0]
+	}
+}
 func WatchBash(bash string, ps *ProcessStatusObject, envExtra []string) (*ControlledProcess, error) {
 	rpipe, wpipe, err := os.Pipe()
 	if err != nil {

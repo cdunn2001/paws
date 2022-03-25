@@ -143,3 +143,19 @@ func TestTimestamp(t *testing.T) {
 		t.Errorf("Got %v", ts)
 	}
 }
+func TestFirstWord(t *testing.T) {
+	{
+		got := FirstWord("hello world")
+		expected := "hello"
+		if got != expected {
+			t.Errorf("Got '%v', expected '%v'", got, expected)
+		}
+	}
+	{
+		got := FirstWord(" after space ")
+		expected := "after"
+		if got != expected {
+			t.Errorf("Got '%v', expected '%v'", got, expected)
+		}
+	}
+}
