@@ -6,7 +6,7 @@ build-rpm:
 	${MAKE} tar
 	${MAKE} rpm
 files:
-	(cd .. && make build )
+	(cd .. && make release)
 	./generate_rpm_files.py
 tar:
 	rm -f ${RPM_BASENAME}.tar
