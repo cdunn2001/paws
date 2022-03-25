@@ -26,8 +26,6 @@ import (
 	"runtime" // only for GOOS
 )
 
-var Version string = "0.0.0-local-non-release"
-
 func check(e error) {
 	if e != nil {
 		panic(e)
@@ -148,7 +146,7 @@ func main() {
 	//flag.PrintDefaults()
 
 	if *versionPtr {
-		fmt.Printf(Version)
+		fmt.Printf(config.Version)
 		os.Exit(0)
 	}
 
@@ -165,7 +163,7 @@ func main() {
 	}
 	log.SetOutput(lw)
 	log.Println(strings.Join(os.Args[:], " "))
-	log.Printf("version=%s\n", Version)
+	log.Printf("version=%s\n", config.Version)
 	log.Printf("port='%v'\n", *portPtr)
 
 	web.InitFixtures()

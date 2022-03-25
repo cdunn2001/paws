@@ -155,7 +155,7 @@ func getStatus(c *gin.Context, state *State) {
 	status.Timestamp = Timestamp(now)
 
 	// Version of software, including git hash of last commit
-	status.Version = "0.0.0" // TODO
+	status.Version = config.Version
 
 	c.IndentedJSON(http.StatusOK, status)
 }
