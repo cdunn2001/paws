@@ -142,6 +142,14 @@ func Timestamp(t time.Time) string {
 func TimestampNow() string {
 	return Timestamp(time.Now())
 }
+func FirstWord(sentence string) string {
+	words := strings.Fields(sentence)
+	if len(words) == 0 {
+		return ""
+	} else {
+		return words[0]
+	}
+}
 func WatchBash(bash string, ps *ProcessStatusObject, envExtra []string) (*ControlledProcess, error) {
 	rpipe, wpipe, err := os.Pipe()
 	if err != nil {
@@ -150,14 +158,15 @@ func WatchBash(bash string, ps *ProcessStatusObject, envExtra []string) (*Contro
 	extraFiles := []*os.File{wpipe} // becomes fd 3 in child
 
 	{
-		log.Println("PATH:", os.Getenv("PATH"))
-		out, err := exec.Command("which", "dummy-pa-cal.sh").Output()
+		prog := FirstWord(bash)
+		log.Printf("which %s: ", prog)
+		out, err := exec.Command("which", prog).Output()
 		if err != nil {
 			log.Printf("%s\n", err)
+			log.Println("PATH:", os.Getenv("PATH"))
+		} else {
+			log.Println(string(out))
 		}
-		log.Println("Command Successfully Executed")
-		output := string(out[:])
-		log.Println(output)
 	}
 
 	temp_dn, err := ioutil.TempDir("", "WatchBash.*.tmpdir")
