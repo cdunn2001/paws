@@ -166,3 +166,39 @@ func TestFirstWord(t *testing.T) {
 		}
 	}
 }
+func TestProgressMetricsObjectFromStatusReport(t *testing.T) {
+	{
+		sr := StatusReport{
+			Counter:      0,
+			CounterMax:   0,
+			StageWeights: []int32{1, 99},
+		}
+		expected := ProgressMetricsObject{}
+		got := ProgressMetricsObjectFromStatusReport(sr)
+		if got.StageProgress != expected.StageProgress {
+			t.Errorf("Got StageProgress '%v', expected '%v'", got.StageProgress, expected.StageProgress)
+		}
+		if got.NetProgress != expected.NetProgress {
+			t.Errorf("Got NetProgress '%v', expected '%v'", got.NetProgress, expected.NetProgress)
+		}
+	}
+	{
+		sr := StatusReport{
+			Counter:      1,
+			CounterMax:   2,
+			StageNumber:  2,
+			StageWeights: []int32{99, 0, 1},
+		}
+		expected := ProgressMetricsObject{
+			StageProgress: 0.5,
+			NetProgress:   0.005,
+		}
+		got := ProgressMetricsObjectFromStatusReport(sr)
+		if got.StageProgress != expected.StageProgress {
+			t.Errorf("Got StageProgress '%v', expected '%v'", got.StageProgress, expected.StageProgress)
+		}
+		if got.NetProgress != expected.NetProgress {
+			t.Errorf("Got NetProgress '%v', expected '%v'", got.NetProgress, expected.NetProgress)
+		}
+	}
+}
