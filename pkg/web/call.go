@@ -63,6 +63,33 @@ func String2StatusReport(text string) (result StatusReport, err error) {
 	result = Json2StatusReport(json_raw)
 	return result, nil
 }
+func ProgressMetricsObjectFromStatusReport(sr StatusReport) ProgressMetricsObject {
+	var (
+		wsum          float64 = 0.0
+		stageProgress float64 = 0.0
+		netProgress   float64 = 0.0
+	)
+	if sr.CounterMax > 0 {
+		stageProgress = float64(sr.Counter) / float64(sr.CounterMax)
+	}
+	for _, w := range sr.StageWeights {
+		wsum += float64(w)
+	}
+	if wsum > 0 {
+		netProgress = stageProgress * float64(sr.StageWeights[sr.StageNumber]) / wsum
+	}
+	result := ProgressMetricsObject{
+		Counter:       sr.Counter,
+		CounterMax:    sr.CounterMax,
+		Ready:         sr.Ready,
+		StageName:     sr.StageName,
+		StageNumber:   sr.StageNumber,
+		StageWeights:  sr.StageWeights,
+		StageProgress: stageProgress,
+		NetProgress:   netProgress,
+	}
+	return result
+}
 
 // This can be used to set the env for our dummy bash scripts, causing
 // them to waste "stall" seconds (float).
@@ -247,6 +274,7 @@ func WatchBash(bash string, ps *ProcessStatusObject, envExtra []string) (*Contro
 					// TODO: Make this thread-safe!!!
 					//cbp.status.Timestamp = sr.Timestamp
 					cbp.status.Timestamp = TimestampNow() // Much better if paws sets this.
+					// Do not update ProgressMetricsObject on exceptions?
 				} else {
 					// Count as a heartbeat and update timeout.
 					if sr.TimeoutForNextStatus > 0.0 {
@@ -260,6 +288,7 @@ func WatchBash(bash string, ps *ProcessStatusObject, envExtra []string) (*Contro
 					cbp.status.Timestamp = TimestampNow() // Much better if paws sets this.
 
 					cbp.status.Armed = sr.Ready // Yes, "Ready" means something different here.
+					cbp.status.Progress = ProgressMetricsObjectFromStatusReport(sr)
 				}
 			}
 		}
