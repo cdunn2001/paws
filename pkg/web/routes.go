@@ -17,7 +17,7 @@ import (
 )
 
 type State struct {
-	Sockets       map[string]SocketObject
+	Sockets       map[string]int
 	Storages      map[string]*StorageObject
 	Basecallers   map[string]*SocketBasecallerObject
 	Darkcals      map[string]*SocketDarkcalObject
@@ -44,19 +44,12 @@ var top LockableState
 func InitFixtures() {
 	log.Println("Initializing fixtures")
 	top.state = State{
-		Sockets: map[string]SocketObject{
-			"1": SocketObject{
-				SocketId: "1",
-			},
-			"2": SocketObject{
-				SocketId: "2",
-			},
-			"3": SocketObject{
-				SocketId: "3",
-			},
-			"4": SocketObject{
-				SocketId: "4",
-			},
+		// ints are not important here; we calculate as needed.
+		Sockets: map[string]int{
+			"1": 0,
+			"2": 1,
+			"3": 2,
+			"4": 3,
 		},
 		Storages:      make(map[string]*StorageObject),
 		Basecallers:   make(map[string]*SocketBasecallerObject),
@@ -174,10 +167,19 @@ func getSockets(c *gin.Context, state *State) {
 func getSocketById(c *gin.Context, state *State) {
 	id := c.Param("id")
 
-	obj, found := state.Sockets[id]
+	_, found := state.Sockets[id]
 	if !found {
 		c.String(http.StatusNotFound, "The socket '%s' was not found in the list of attached sensor FPGA boards.\n", id)
 		return
+	}
+	Darkcal, _ := state.Darkcals[id]
+	Loadingcal, _ := state.Loadingcals[id]
+	Basecaller, _ := state.Basecallers[id]
+	obj := SocketObject{
+		SocketId:   id,
+		Darkcal:    Darkcal,
+		Loadingcal: Loadingcal,
+		Basecaller: Basecaller,
 	}
 	c.IndentedJSON(http.StatusOK, obj)
 }

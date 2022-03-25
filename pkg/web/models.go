@@ -224,10 +224,10 @@ type AnalogObject struct {
 }
 type SocketObject struct {
 	// The socket identifier, typically "1" thru "4".
-	SocketId   string                 `json:"socketId"`
-	Darkcal    SocketDarkcalObject    `json:"darkcal"`
-	Loadingcal SocketLoadingcalObject `json:"loadingcal"`
-	Basecaller SocketBasecallerObject `json:"basecaller"`
+	SocketId   string                  `json:"socketId"`
+	Darkcal    *SocketDarkcalObject    `json:"darkcal"`
+	Loadingcal *SocketLoadingcalObject `json:"loadingcal"`
+	Basecaller *SocketBasecallerObject `json:"basecaller"`
 }
 type PostprimaryStatusObject struct {
 
