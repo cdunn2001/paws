@@ -241,8 +241,8 @@ func WriteBasecallerBash(wr io.Writer, tc config.TopStruct, obj *SocketBasecalle
 	kv["logoutput"] = obj.LogUrl     // TODO: Convert from URL!
 	kv["maxFrames"] = strconv.Itoa(int(obj.MovieMaxFrames))
 
-	// TODO: Fill these from Config first.
-	if kv["optTraceFileRoi"] == "" || kv["optTraceFileRoi"] == "[]" {
+	// TODO: Fill these from tc.Values first?
+	if len(obj.TraceFileRoi) == 0 {
 		kv["optTraceFile"] = ""
 		kv["optTraceFileRoi"] = ""
 	} else {
@@ -251,8 +251,9 @@ func WriteBasecallerBash(wr io.Writer, tc config.TopStruct, obj *SocketBasecalle
 
 		raw, err := json.Marshal(obj.TraceFileRoi)
 		check(err)
-		kv["optTraceFileRoi"] = "--traceFileRoi=" + string(raw)
+		kv["optTraceFileRoi"] = "--config traceSaver.roi='" + string(raw) + "'"
 	}
+
 	optMultiple := ""
 	if tc.Values.JustOneBazFile {
 		optMultiple = "--config multipleBazFiles=false"
