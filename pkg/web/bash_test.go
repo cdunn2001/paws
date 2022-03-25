@@ -7,6 +7,22 @@ import (
 	"testing"
 )
 
+func TestTranslateDiscardableUrl(t *testing.T) {
+	{
+		got := TranslateDiscardableUrl("--foo", "discard:")
+		expected := ""
+		if got != expected {
+			t.Errorf("Got %s", got)
+		}
+	}
+	{
+		got := TranslateDiscardableUrl("--foo", "bar")
+		expected := "--foo bar"
+		if got != expected {
+			t.Errorf("Got %s", got)
+		}
+	}
+}
 func TestWriteReduceStatsBash(t *testing.T) {
 	expected := `
 ppa-reducestats \
