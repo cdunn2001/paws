@@ -43,7 +43,7 @@ serve: bin/pawsgo
 local:
 	bin/pawsgo --data-dir tmp --logoutput pa-wsgo.log #--config SNAFU.json
 release:
-	go build -ldflags "-X config.Version=${VERSION}-${GIT_COMMIT}" -o bin/pawsgo ./cmd/pawsgo
+	go build -ldflags "-X pacb.com/seq/paws/pkg/config.Version=${VERSION}-${GIT_COMMIT}" -o bin/pawsgo ./cmd/pawsgo
 
 .FORCE:
 .PHONY: test
