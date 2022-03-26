@@ -146,7 +146,7 @@ func main() {
 	//flag.PrintDefaults()
 
 	if *versionPtr {
-		fmt.Printf(config.Version)
+		fmt.Println(config.Version)
 		os.Exit(0)
 	}
 
