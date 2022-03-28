@@ -8,6 +8,10 @@
 #  Licensed under the MIT license
 #  See included LICENSE file
 
+# PACBIO changes:
+#   Include some pre-selected % "scriptlets".
+#   By convention, scripts are in ./BUILD/extra/*
+
 ARCH=''
 DESCRIPTION=''
 GROUP='Applications'
@@ -90,17 +94,17 @@ function spec {
     echo
     if [ 1 ]; then
         echo "%pre"
-        cat extra/preInstall.sh
+        cat ./BUILD/extra/preInstall.sh
         echo
     fi
     if [ 1 ]; then
         echo "%preun"
-        cat extra/preUninstall.sh
+        cat ./BUILD/extra/preUninstall.sh
         echo
     fi
     if [ 1 ]; then
         echo "%post"
-        cat extra/postInstall.sh
+        cat ./BUILD/extra/postInstall.sh
         echo
     fi
     echo "%files"

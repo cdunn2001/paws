@@ -19,14 +19,14 @@ in_files = {
     'systemd/pacbio-pa-X.service.in': './tard/systemd/pacbio-pa-@NAME@-@V@.service',
     'systemd/precheck-pa-wsgo.sh.in': './tard/bin/precheck-pa-@NAME@.sh',
 }
-VERSION = '0.0.0'
+VERSION = '?.?.?'
 NAME = 'wsgo'  # Call it "pa-wsgo" for now.
 subs = {
     "@V@": VERSION,
     "@NAME@": NAME,
     "@SYSTEM_EXEC@": "pa-wsgo",
-    "@APP_VERSION@": "QAPP_VERSIONQ",
-    "@SOFTWARE_VERSION@": "QSOFTWARE_VERSIONQ",
+    "@APP_VERSION@": VERSION,
+    "@SOFTWARE_VERSION@": "(overall-pa-version?)",
     "@SYSTEMD_DEPENDENCIES@": "",
     "@SYSTEMD_CONF_PATH@": "", #opt/pacbio/pa-@NAME@-@V@/systemd/pacbio-pa-@NAME@.conf
     "@SYSTEMD_PREEXEC1@": "",
@@ -49,7 +49,9 @@ def CopyStatics():
   for ifn, ofn in statics.items():
     ofn = CmakeSub(ofn)
     Copy(ifn, ofn)
-def Build():
+def Build(prog, version):
+  global VERSION
+  VERSION = version
   SubstituteAll()
   CopyStatics()
   Tar()
@@ -81,4 +83,4 @@ def GenerateRpm():
   pass
 
 if __name__ == "__main__":
-  Build()
+  Build(**sys.argv)
