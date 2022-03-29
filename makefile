@@ -40,7 +40,7 @@ bin/%: .FORCE
 	go build -o $@ ./cmd/$*
 serve: bin/pawsgo
 	${MAKE} local
-local: bin/pawsgo
+local:
 	bin/pawsgo --data-dir tmp --logoutput pa-wsgo.log #--config SNAFU.json
 # this target runs paws slower, to be used by end to end python testing
 slowlocal: bin/pawsgo
