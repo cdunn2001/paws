@@ -69,14 +69,19 @@ func ProgressMetricsObjectFromStatusReport(sr StatusReport) ProgressMetricsObjec
 		stageProgress float64 = 0.0
 		netProgress   float64 = 0.0
 	)
-	if sr.CounterMax > 0 {
-		stageProgress = float64(sr.Counter) / float64(sr.CounterMax)
-	}
 	for _, w := range sr.StageWeights {
 		wsum += float64(w)
 	}
-	if wsum > 0 {
-		netProgress = stageProgress * float64(sr.StageWeights[sr.StageNumber]) / wsum
+	if sr.CounterMax > 0 {
+		stageProgress = float64(sr.Counter) / float64(sr.CounterMax)
+	}
+	for i, w := range sr.StageWeights {
+		num := int32(i)
+		if num < sr.StageNumber {
+			netProgress += float64(w) * 1.0 / wsum
+		} else if num == sr.StageNumber {
+			netProgress += float64(w) * stageProgress / wsum
+		}
 	}
 	result := ProgressMetricsObject{
 		Counter:       sr.Counter,

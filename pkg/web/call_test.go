@@ -191,7 +191,7 @@ func TestProgressMetricsObjectFromStatusReport(t *testing.T) {
 		}
 		expected := ProgressMetricsObject{
 			StageProgress: 0.5,
-			NetProgress:   0.005,
+			NetProgress:   0.995,
 		}
 		got := ProgressMetricsObjectFromStatusReport(sr)
 		if got.StageProgress != expected.StageProgress {
