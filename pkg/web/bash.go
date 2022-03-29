@@ -199,11 +199,11 @@ var Template_basecaller = `
 {{.Global.Binaries.Binary_smrt_basecaller}} \
   {{.Local.optMultiple}} \
   --statusfd 3 \
-  --logoutput {{.Local.logoutput}} \
+  {{.Local.optLogOutput}} \
   --logfilter INFO \
   {{.Local.optTraceFile}} \
   {{.Local.optTraceFileRoi}} \
-  --outputbazfile {{.Local.outputbazfile}} \
+  {{.Local.optOutputBazFile}} \
   --config {{.Local.config_json_fn}} \
   --config source.WXIPCDataSourceConfig.sraIndex={{.Local.sra}} \
   --config system.analyzerHardware=A100 \
@@ -237,8 +237,6 @@ func WriteBasecallerBash(wr io.Writer, tc config.TopStruct, obj *SocketBasecalle
 
 	kv["sra"] = strconv.Itoa(sra)
 	kv["config_json_fn"] = config_json_fn
-	kv["outputbazfile"] = obj.BazUrl // TODO: Convert from URL!
-	kv["logoutput"] = obj.LogUrl     // TODO: Convert from URL!
 	kv["maxFrames"] = strconv.Itoa(int(obj.MovieMaxFrames))
 
 	// TODO: Fill these from tc.Values first?
@@ -253,7 +251,17 @@ func WriteBasecallerBash(wr io.Writer, tc config.TopStruct, obj *SocketBasecalle
 		check(err)
 		kv["optTraceFileRoi"] = "--config traceSaver.roi='" + string(raw) + "'"
 	}
-
+	if len(obj.BazUrl) == 0 {
+		kv["optOutputBazFile"] = ""
+	} else {
+		kv["optOutputBazFile"] = TranslateDiscardableUrl("--outputbazfile", obj.BazUrl) 
+	}
+	if len(obj.LogUrl) == 0 {
+		kv["optLogOutput"] = ""
+	} else {
+		kv["optLogOutput"] = TranslateDiscardableUrl("--logoutput", obj.LogUrl) 
+	}
+  
 	optMultiple := ""
 	if tc.Values.JustOneBazFile {
 		optMultiple = "--config multipleBazFiles=false"
