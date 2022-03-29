@@ -42,6 +42,10 @@ serve: bin/pawsgo
 	${MAKE} local
 local:
 	bin/pawsgo --data-dir tmp --logoutput pa-wsgo.log #--config SNAFU.json
+# this target runs paws slower, to be used by end to end python testing
+slowlocal: bin/pawsgo
+	STATUS_COUNT=5 STATUS_DELAY_SECONDS=1 ./bin/pawsgo --console
+
 release:
 	go build -ldflags "-X pacb.com/seq/paws/pkg/config.Version=${VERSION}-${GIT_COMMIT}" -o bin/pawsgo ./cmd/pawsgo
 

@@ -95,13 +95,13 @@ function report_status {
     # Not reported: counterMax
     # Do we need "timestamp"?
     cat >&$FD << EOF
-INFO | PA_CAL_STATUS {"state": "progress", "stageNumber": $1, "stageName": "$2", "counter": $3, "timeoutForNextStatus": $4, "stageWeighting": "$STAGE_WEIGHTING", "timestamp": "$TIMESTAMP"}
+INFO | PA_CAL_STATUS {"state": "progress", "stageNumber": $1, "stageName": "$2", "counter": $3, "timeoutForNextStatus": $4, "stageWeighting": "$STAGE_WEIGHTING", "timestamp": "$TIMESTAMP", "ready": $5}
 EOF
 }
 
 function count {
     for i in $(seq 1 ${STATUS_COUNT}); do
-        report_status 1 "pa-cal" $i $STATUS_TIMEOUT
+        report_status 1 "pa-cal" $i $STATUS_TIMEOUT true
         sleep $STATUS_DELAY_SECONDS
     done
 }
@@ -145,9 +145,10 @@ STAGE_WEIGHTING="[0, 100, 0]"
 
 date > ${LOG_OUTPUT}
 log "Starting pa-cal"
-report_status 0 "init" 0 1
+report_status 0 "init" 0 2 false
+sleep $STATUS_DELAY_SECONDS
 count
-report_status 2 "fini" 0 1
+report_status 2 "fini" 0 2 false
 
 log "Ending pa-cal"
 date >> ${LOG_OUTPUT}
