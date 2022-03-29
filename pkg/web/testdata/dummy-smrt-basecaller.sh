@@ -4,6 +4,8 @@
 POSITIONAL_ARGS=()
 FD=2
 LOG_OUTPUT="default.dummy-smrt-basecaller.$$.log"
+OUTPUT_TRC_FILE=""
+OUTPUT_BAZ_FILE=""
 
 while [[ $# -gt 0 ]]; do
   case $1 in
@@ -89,23 +91,31 @@ function report_status {
     # Not reported: counterMax
     # Do we need "timestamp"?
     cat >&$FD << EOF
-INFO | SMRT_BASECALLER_STATUS {"state": "progress", "stageNumber": $1, "stageName": "$2", "counter": $3, "timeoutForNextStatus": $4, "stageWeighting": "$STAGE_WEIGHTING", "timestamp": "$TIMESTAMP"}
+INFO | SMRT_BASECALLER_STATUS {"state": "progress", "stageNumber": $1, "stageName": "$2", "counter": $3, "timeoutForNextStatus": $4, "stageWeighting": "$STAGE_WEIGHTING", "timestamp": "$TIMESTAMP", "ready": $5}
 EOF
 }
 
 function count {
     for i in $(seq 1 ${STATUS_COUNT}); do
-        report_status 1 "baz2bam" $i $STATUS_TIMEOUT
+        report_status 1 "baz2bam" $i $STATUS_TIMEOUT true
         sleep $STATUS_DELAY_SECONDS
     done
 }
 
 set -vex
 
-report_status 0 "init" 0 1
+report_status 0 "init" 0 2 false
+sleep $STATUS_DELAY_SECONDS
 count
-report_status 2 "fini" 0 1
+report_status 2 "fini" 0 2 false
+sleep $STATUS_DELAY_SECONDS
 
 touch ${LOG_OUTPUT}
-touch ${OUTPUT_BAZ_FILE}
-touch ${OUTPUT_TRC_FILE}
+if [[ $OUTPUT_BAZ_FILE != "" ]]
+then
+  touch ${OUTPUT_BAZ_FILE}
+fi  
+if [[ $OUTPUT_TRC_FILE != "" ]]
+then
+  touch ${OUTPUT_TRC_FILE}
+fi
