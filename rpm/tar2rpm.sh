@@ -108,6 +108,7 @@ function spec {
         echo
     fi
     echo "%files"
+    echo "%defattr(-,root,root,-)"
     #echo "/"
     #while IFS='/' read -ra pathSegments; do
     #    path=''
@@ -118,7 +119,13 @@ function spec {
     #done <<< $TARGET
     while IFS= read -ra fileNames; do
         for fileName in "${fileNames[@]}"; do
-            echo %attr\($FILEPERM, $FILEUSER, $FILEGROUP\) \""$TARGET/${fileName#./}"\"
+            last="${fileName: -1}"
+            full="$TARGET/${fileName#./}"
+            if [[ "$last" == "/" ]]; then
+                echo %dir \"${full%?}\"
+            else
+                echo \"$full\"
+            fi
         done
     done <<< "$(tar -tf $TARFILE)"
 }
