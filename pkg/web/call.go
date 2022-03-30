@@ -401,7 +401,7 @@ func VerifyBinary(label string, path string) {
 		out, err := exec.Command(path, "--version").Output()
 		if err != nil {
 			log.Printf("%s", err)
-			//check(err)
+			check(err)
 		} else {
 			log.Println(string(out))
 		}
