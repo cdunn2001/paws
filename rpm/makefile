@@ -1,5 +1,5 @@
 # TODO: Use this VERSION for rpm stuff too.
-VERSION=1.0.7
+VERSION=1.0.8
 RPM_BASENAME?=pa-wsgo
 
 build-rpm:
