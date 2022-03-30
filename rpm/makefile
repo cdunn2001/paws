@@ -10,7 +10,8 @@ build-rpm:
 files:
 	${MAKE} -C .. release VERSION=${VERSION}
 	rm -rf ./tard
-	./generate_rpm_files.py ${VERSION} ./BUILD/extra/
+	./generate_rpm_files.py ${VERSION}
+	rsync -av extra ./BUILD/
 tar:
 	tard/bin/pa-wsgo --version
 	rm -f ${RPM_BASENAME}.tar

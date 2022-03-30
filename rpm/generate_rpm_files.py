@@ -14,28 +14,29 @@ Caller should 'rm -rf ./opt' before running.
 """
 import os, sys
 
-in_files = {
+IN_FILES = {
     'systemd/pacbio-pa-X.conf.in': './tard/systemd/pacbio-pa-@NAME@.conf',
     'systemd/pacbio-pa-X.service.in': './tard/systemd/pacbio-pa-@NAME@-@V@.service',
     'systemd/precheck-pa-wsgo.sh.in': './tard/bin/precheck-pa-@NAME@.sh',
 }
-VERSION = '?.?.?'
 NAME = 'wsgo'  # Call it "pa-wsgo" for now.
-subs = {
-    "@V@": VERSION,
+STATICS = {
+    '../bin/pawsgo': './tard/bin/pa-wsgo', # Note dash.
+}
+def Init(version):
+  global SUBS
+  SUBS = {
+    "@V@": version,
     "@NAME@": NAME,
     "@SYSTEM_EXEC@": "pa-wsgo",
-    "@APP_VERSION@": VERSION,
+    "@APP_VERSION@": version,
     "@SOFTWARE_VERSION@": "(overall-pa-version?)",
     "@SYSTEMD_DEPENDENCIES@": "",
     "@SYSTEMD_CONF_PATH@": "", #opt/pacbio/pa-@NAME@-@V@/systemd/pacbio-pa-@NAME@.conf
     "@SYSTEMD_PREEXEC1@": "",
     "@SYSTEMD_COMMON_JSON@": "/etc/pacbio/pa-common.json",
     "@SYSTEMD_ALIAS@": "pacbio-pa-wsgo",
-}
-statics = {
-    '../bin/pawsgo': './tard/bin/pa-wsgo', # Note dash.
-}
+  }
 def Log(msg):
   print(msg + '\n', file=sys.stderr)
 def System(call, nothrow=False):
@@ -46,22 +47,15 @@ def System(call, nothrow=False):
 def Copy(ifn, ofn):
   System(f'cp -f {ifn} {ofn}')
 def CopyStatics():
-  for ifn, ofn in statics.items():
+  for ifn, ofn in STATICS.items():
     ofn = CmakeSub(ofn)
     Copy(ifn, ofn)
-def Build(prog, version):
-  global VERSION
-  VERSION = version
-  SubstituteAll()
-  CopyStatics()
-  Tar()
-  GenerateRpm()
 def SubstituteAll():
-  for (ifn, ofn) in in_files.items():
+  for (ifn, ofn) in IN_FILES.items():
     ofn = CmakeSub(ofn)
     Substitute(ifn, ofn)
 def CmakeSub(str):
-  for at_key, repl in subs.items():
+  for at_key, repl in SUBS.items():
     str = str.replace(at_key, repl)
   return str
 def MakeDirs(dn):
@@ -81,6 +75,12 @@ def Tar():
   pass
 def GenerateRpm():
   pass
+def Build(prog, version):
+  Init(version)
+  SubstituteAll()
+  CopyStatics()
+  Tar()
+  GenerateRpm()
 
 if __name__ == "__main__":
-  Build(**sys.argv)
+  Build(*sys.argv)
