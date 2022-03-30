@@ -10,32 +10,37 @@ Method:
   * 'tar' that directory.
   * Run tar2rpm.sh to generate the '.rpm'.
 
-Caller should 'rm -rf ./opt' before running.
+Caller should 'rm -rf ./tard' before running.
 """
 import os, sys
 
-in_files = {
+# tar2rpm takes the 'extra' scriptlets from ./BUILD/extra/
+IN_FILES = {
     'systemd/pacbio-pa-X.conf.in': './tard/systemd/pacbio-pa-@NAME@.conf',
     'systemd/pacbio-pa-X.service.in': './tard/systemd/pacbio-pa-@NAME@-@V@.service',
     'systemd/precheck-pa-wsgo.sh.in': './tard/bin/precheck-pa-@NAME@.sh',
+    'extra/preInstall.sh': './BUILD/extra/preInstall.sh',
+    'extra/preUninstall.sh': './BUILD/extra/preUninstall.sh',
+    'extra/postInstall.sh': './BUILD/extra/postInstall.sh',
 }
-VERSION = '0.0.0'
 NAME = 'wsgo'  # Call it "pa-wsgo" for now.
-subs = {
-    "@V@": VERSION,
+STATICS = {
+    '../bin/pawsgo': './tard/bin/pa-wsgo', # Note dash.
+}
+def Init(version):
+  global SUBS
+  SUBS = {
+    "@V@": version,
     "@NAME@": NAME,
     "@SYSTEM_EXEC@": "pa-wsgo",
-    "@APP_VERSION@": "QAPP_VERSIONQ",
-    "@SOFTWARE_VERSION@": "QSOFTWARE_VERSIONQ",
+    "@APP_VERSION@": version,
+    "@SOFTWARE_VERSION@": "11.1.0", # Is this 'repository'? I.e. 'sequel-11.1.0'?
     "@SYSTEMD_DEPENDENCIES@": "",
     "@SYSTEMD_CONF_PATH@": "", #opt/pacbio/pa-@NAME@-@V@/systemd/pacbio-pa-@NAME@.conf
     "@SYSTEMD_PREEXEC1@": "",
     "@SYSTEMD_COMMON_JSON@": "/etc/pacbio/pa-common.json",
     "@SYSTEMD_ALIAS@": "pacbio-pa-wsgo",
-}
-statics = {
-    '../bin/pawsgo': './tard/bin/pa-wsgo', # Note dash.
-}
+  }
 def Log(msg):
   print(msg + '\n', file=sys.stderr)
 def System(call, nothrow=False):
@@ -46,20 +51,15 @@ def System(call, nothrow=False):
 def Copy(ifn, ofn):
   System(f'cp -f {ifn} {ofn}')
 def CopyStatics():
-  for ifn, ofn in statics.items():
+  for ifn, ofn in STATICS.items():
     ofn = CmakeSub(ofn)
     Copy(ifn, ofn)
-def Build():
-  SubstituteAll()
-  CopyStatics()
-  Tar()
-  GenerateRpm()
 def SubstituteAll():
-  for (ifn, ofn) in in_files.items():
+  for (ifn, ofn) in IN_FILES.items():
     ofn = CmakeSub(ofn)
     Substitute(ifn, ofn)
 def CmakeSub(str):
-  for at_key, repl in subs.items():
+  for at_key, repl in SUBS.items():
     str = str.replace(at_key, repl)
   return str
 def MakeDirs(dn):
@@ -79,6 +79,12 @@ def Tar():
   pass
 def GenerateRpm():
   pass
+def Build(prog, version):
+  Init(version)
+  SubstituteAll()
+  CopyStatics()
+  Tar()
+  GenerateRpm()
 
 if __name__ == "__main__":
-  Build()
+  Build(*sys.argv)

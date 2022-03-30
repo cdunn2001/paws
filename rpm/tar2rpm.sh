@@ -8,6 +8,10 @@
 #  Licensed under the MIT license
 #  See included LICENSE file
 
+# PACBIO changes:
+#   Include some pre-selected % "scriptlets".
+#   By convention, scripts are in ./BUILD/extra/*
+
 ARCH=''
 DESCRIPTION=''
 GROUP='Applications'
@@ -55,6 +59,10 @@ function usage {
 }
 
 function spec {
+    echo "# Restore old style debuginfo creation for rpm >= 4.14."
+    echo "%undefine _debugsource_packages"
+    echo "%undefine _debuginfo_subpackages"
+    echo
     echo "Name: $NAME"
     echo "Summary: $SUMMARY"
     echo "Version: $VERSION"
@@ -90,20 +98,21 @@ function spec {
     echo
     if [ 1 ]; then
         echo "%pre"
-        cat extra/preInstall.sh
+        cat ./BUILD/extra/preInstall.sh
         echo
     fi
     if [ 1 ]; then
         echo "%preun"
-        cat extra/preUninstall.sh
+        cat ./BUILD/extra/preUninstall.sh
         echo
     fi
     if [ 1 ]; then
         echo "%post"
-        cat extra/postInstall.sh
+        cat ./BUILD/extra/postInstall.sh
         echo
     fi
     echo "%files"
+    echo "%defattr(-,root,root,-)"
     #echo "/"
     #while IFS='/' read -ra pathSegments; do
     #    path=''
@@ -114,7 +123,13 @@ function spec {
     #done <<< $TARGET
     while IFS= read -ra fileNames; do
         for fileName in "${fileNames[@]}"; do
-            echo %attr\($FILEPERM, $FILEUSER, $FILEGROUP\) \""$TARGET/${fileName#./}"\"
+            last="${fileName: -1}"
+            full="$TARGET/${fileName#./}"
+            if [[ "$last" == "/" ]]; then
+                echo %dir \"${full%?}\"
+            else
+                echo \"$full\"
+            fi
         done
     done <<< "$(tar -tf $TARFILE)"
 }

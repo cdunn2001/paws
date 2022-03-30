@@ -1,36 +1,36 @@
 
-unalias=`systemctl show -p Id pacbio-pa-wsgo | cut -d= -f2`
+unalias=`systemctl show -p Id pacbio-pa-@NAME@ | cut -d= -f2`
 
-if systemctl status pacbio-pa-wsgo-0.0.0.service >/dev/null
+if systemctl status pacbio-pa-@NAME@-@V@.service >/dev/null
 then
-  echo "    ERROR pacbio-pa-wsgo-0.0.0.service is RUNNING, won't uninstall."
+  echo "    ERROR pacbio-pa-@NAME@-@V@.service is RUNNING, won't uninstall."
   echo "       Please issue the following commands before uninstalling this package."
-  echo "           sudo systemctl stop    pacbio-pa-wsgo-0.0.0.service"
+  echo "           sudo systemctl stop    pacbio-pa-@NAME@-@V@.service"
   exit 1
 #else
-#  echo "INFO  pacbio-pa-wsgo-0.0.0.service is not running, continuing..."
+#  echo "INFO  pacbio-pa-@NAME@-@V@.service is not running, continuing..."
 fi
 
-if [ "$unalias" == "pacbio-pa-wsgo-0.0.0.service" -a "$1" == "0" ]
+if [ "$unalias" == "pacbio-pa-@NAME@-@V@.service" -a "$1" == "0" ]
 then
-    if systemctl is-enabled pacbio-pa-wsgo>/dev/null 2>&1
+    if systemctl is-enabled pacbio-pa-@NAME@>/dev/null 2>&1
     then
-      echo "    ERROR pacbio-pa-wsgo is ENABLED, won't uninstall."
+      echo "    ERROR pacbio-pa-@NAME@ is ENABLED, won't uninstall."
       echo "        Please issue the following command before uninstalling this package."
-      echo "            sudo systemctl disable pacbio-pa-wsgo-0.0.0.service "
+      echo "            sudo systemctl disable pacbio-pa-@NAME@-@V@.service "
       exit 1
     else
-      echo "    INFO pacbio-pa-wsgo is disabled, continuing..."
+      echo "    INFO pacbio-pa-@NAME@ is disabled, continuing..."
     fi
 fi
 
 
 if [ "$1" == "0" ]
 then
-    echo Removing systemd server pacbio-pa-wsgo-0.0.0.service
-    rm -f /etc/systemd/system/pacbio-pa-wsgo-0.0.0.service
-    #rm -f /etc/modulefiles/pacbio-pa-wsgo/0.0.0
+    echo Removing systemd server pacbio-pa-@NAME@-@V@.service
+    rm -f /etc/systemd/system/pacbio-pa-@NAME@-@V@.service
+    #rm -f /etc/modulefiles/pacbio-pa-@NAME@/@V@
 else
-    echo Leaving systemd server pacbio-pa-wsgo-0.0.0.service
+    echo Leaving systemd server pacbio-pa-@NAME@-@V@.service
 fi
 

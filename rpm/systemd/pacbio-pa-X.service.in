@@ -53,7 +53,7 @@ ExecStartPre=/usr/bin/ldd $RPM_INSTALL_PREFIX/bin/@SYSTEM_EXEC@
 #ExecStartPre=/usr/bin/sleep 1
 #ExecStart=/usr/bin/taskset $NUMA_WS $RPM_INSTALL_PREFIX/bin/@SYSTEM_EXEC@ --daemon=/var/run/pacbio/pa-wsgo.pid --logoutput=/var/log/pacbio/pa-wsgo/pa-wsgo $PA_WS_OPTIONS $PA_COMMON_CONFIG --config=@SYSTEMD_COMMON_JSON@
 #ExecStart=/usr/bin/taskset $NUMA_WS $RPM_INSTALL_PREFIX/bin/@SYSTEM_EXEC@ $PA_WS_OPTIONS $PA_COMMON_CONFIG
-ExecStart=/opt/pacbio/pa-wsgo-0.0.0/bin/@SYSTEM_EXEC@ $PA_WS_OPTIONS $PA_COMMON_CONFIG
+ExecStart=/opt/pacbio/@NAME@-@V@/bin/@SYSTEM_EXEC@ $PA_WS_OPTIONS $PA_COMMON_CONFIG
 #ExecStart=/usr/bin/echo CDUNN_TRY2
 #PIDFile=/var/run/pacbio/pa-ws.pid
 #ExecReload=/bin/kill -HUP $MAINPID

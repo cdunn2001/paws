@@ -56,15 +56,15 @@ fi
 #  echo "ALL ALL=NOPASSWD: $RPM_INSTALL_PREFIX/bin/show_hugepage_usage.sh" >> /etc/sudoers
 #fi
 
-#mkdir -p /etc/modulefiles/pacbio-pa-wsgo
-#envsubst '$RPM_INSTALL_PREFIX' < $RPM_INSTALL_PREFIX/etc/modulefiles/pacbio-pa-wsgo/0.0.0 > /etc/modulefiles/pacbio-pa-wsgo/0.0.0
+#mkdir -p /etc/modulefiles/pacbio-pa-@NAME@
+#envsubst '$RPM_INSTALL_PREFIX' < $RPM_INSTALL_PREFIX/etc/modulefiles/pacbio-pa-@NAME@/@V@ > /etc/modulefiles/pacbio-pa-@NAME@/@V@
 
 
-if [ ! -e /etc/pacbio/pacbio-pa-wsgo.conf ]
+if [ ! -e /etc/pacbio/pacbio-pa-@NAME@.conf ]
 then
-   echo "    Creating template /etc/pacbio/pacbio-pa-wsgo.conf, as it does not exist yet."
+   echo "    Creating template /etc/pacbio/pacbio-pa-@NAME@.conf, as it does not exist yet."
    mkdir -p /etc/pacbio
-   cp -f $RPM_INSTALL_PREFIX/systemd/pacbio-pa-wsgo.conf /etc/pacbio/pacbio-pa-wsgo.conf
+   cp -f $RPM_INSTALL_PREFIX/systemd/pacbio-pa-@NAME@.conf /etc/pacbio/pacbio-pa-@NAME@.conf
 fi
 
 if [ ! -e /etc/pacbio/app-common.json ]
@@ -73,10 +73,10 @@ then
    echo "{}" > /etc/pacbio/app-common.json
 fi
 
-echo "    Installing systemd service pacbio-pa-wsgo-0.0.0.service"
+echo "    Installing systemd service pacbio-pa-@NAME@-@V@.service"
 if [[ $RPM_INSTALL_PREFIX != "" ]]
 then
-    envsubst '$RPM_INSTALL_PREFIX' < $RPM_INSTALL_PREFIX/systemd/pacbio-pa-wsgo-0.0.0.service > /etc/systemd/system/pacbio-pa-wsgo-0.0.0.service
+    envsubst '$RPM_INSTALL_PREFIX' < $RPM_INSTALL_PREFIX/systemd/pacbio-pa-@NAME@-@V@.service > /etc/systemd/system/pacbio-pa-@NAME@-@V@.service
     systemctl daemon-reload
 fi    
 
