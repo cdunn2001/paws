@@ -8,6 +8,10 @@ PREFIX_OUT="foo"
 
 while [[ $# -gt 0 ]]; do
   case $1 in
+    --version) # maybe?
+      VERSION=1
+      shift # past argument
+      ;;
     -o)
       PREFIX_OUT="$2"
       shift # past argument
@@ -52,6 +56,12 @@ while [[ $# -gt 0 ]]; do
 done
 
 set -- "${POSITIONAL_ARGS[@]}" # restore positional parameters
+
+if [[ ! -z "${VERSION}" ]]
+then
+    echo "0.0.0"
+    exit 0
+fi
 
 BAZFILE=${POSITIONAL_ARGS[0]}
 #BAMFILE=${BAZFILE%.baz}.bam

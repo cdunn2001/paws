@@ -10,22 +10,22 @@ Method:
   * 'tar' that directory.
   * Run tar2rpm.sh to generate the '.rpm'.
 
-Caller should 'rm -rf ./tard' before running.
+Caller should 'rm -rf BUILD/tard' (currently hard-coded) before running.
 """
 import os, sys
 
 # tar2rpm takes the 'extra' scriptlets from ./BUILD/extra/
 IN_FILES = {
-    'systemd/pacbio-pa-X.conf.in': './tard/systemd/pacbio-pa-@NAME@.conf',
-    'systemd/pacbio-pa-X.service.in': './tard/systemd/pacbio-pa-@NAME@-@V@.service',
-    'systemd/precheck-pa-wsgo.sh.in': './tard/bin/precheck-pa-@NAME@.sh',
+    'systemd/pacbio-pa-X.conf.in': 'BUILD/tard/systemd/pacbio-pa-@NAME@.conf',
+    'systemd/pacbio-pa-X.service.in': 'BUILD/tard/systemd/pacbio-pa-@NAME@-@V@.service',
+    'systemd/precheck-pa-wsgo.sh.in': 'BUILD/tard/bin/precheck-pa-@NAME@.sh',
     'extra/preInstall.sh': './BUILD/extra/preInstall.sh',
     'extra/preUninstall.sh': './BUILD/extra/preUninstall.sh',
     'extra/postInstall.sh': './BUILD/extra/postInstall.sh',
 }
 NAME = 'wsgo'  # Call it "pa-wsgo" for now.
 STATICS = {
-    '../bin/pawsgo': './tard/bin/pa-wsgo', # Note dash.
+    '../bin/pawsgo': 'BUILD/tard/bin/pa-wsgo', # Note dash.
 }
 def Init(version):
   global SUBS

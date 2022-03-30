@@ -7,6 +7,10 @@ LOG_OUTPUT="default.pawnee.$$.log"
 
 while [[ $# -gt 0 ]]; do
   case $1 in
+    --version)
+      VERSION=1
+      shift # past argument
+      ;;
     --status-fd)
       FD="$2"
       shift # past argument
@@ -69,6 +73,12 @@ while [[ $# -gt 0 ]]; do
 done
 
 set -- "${POSITIONAL_ARGS[@]}" # restore positional parameters
+
+if [[ ! -z "${VERSION}" ]]
+then
+    echo "0.0.0"
+    exit 0
+fi
 
 # Optional env-vars:
 : "${STATUS_COUNT:=0}"
