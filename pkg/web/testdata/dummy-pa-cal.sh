@@ -1,7 +1,6 @@
 #!/bin/bash
 # https://stackoverflow.com/a/14203146
 set -vex
-pwd
 
 POSITIONAL_ARGS=()
 FD=2
@@ -113,6 +112,12 @@ function report_exception {
 ERROR | PA_CAL_STATUS {"state": "exception", "message": "$1"}
 EOF
 }
+
+if [[ ! -z "${VERSION}" ]]
+then
+    echo "0.0.0"
+    exit 0
+fi
 
 if [[ -z "${CAL}" || (${CAL} != "Dark" && ${CAL} != "Loading") ]]
 then

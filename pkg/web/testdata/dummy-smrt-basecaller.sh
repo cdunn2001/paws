@@ -73,6 +73,12 @@ done
 
 set -- "${POSITIONAL_ARGS[@]}" # restore positional parameters
 
+if [[ ! -z "${VERSION}" ]]
+then
+    echo "0.0.0"
+    exit 0
+fi
+
 # Optional env-vars:
 : "${STATUS_COUNT:=0}"
 : "${STATUS_DELAY_SECONDS:=0.0}"
