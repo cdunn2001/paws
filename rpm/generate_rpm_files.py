@@ -34,7 +34,7 @@ def Init(version):
     "@NAME@": NAME,
     "@SYSTEM_EXEC@": "pa-wsgo",
     "@APP_VERSION@": version,
-    "@SOFTWARE_VERSION@": "(overall-pa-version?)",
+    "@SOFTWARE_VERSION@": "11.1.0", # Is this 'repository'? I.e. 'sequel-11.1.0'?
     "@SYSTEMD_DEPENDENCIES@": "",
     "@SYSTEMD_CONF_PATH@": "", #opt/pacbio/pa-@NAME@-@V@/systemd/pacbio-pa-@NAME@.conf
     "@SYSTEMD_PREEXEC1@": "",
