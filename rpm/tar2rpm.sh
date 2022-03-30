@@ -59,6 +59,10 @@ function usage {
 }
 
 function spec {
+    echo "# Restore old style debuginfo creation for rpm >= 4.14."
+    echo "%undefine _debugsource_packages"
+    echo "%undefine _debuginfo_subpackages"
+    echo
     echo "Name: $NAME"
     echo "Summary: $SUMMARY"
     echo "Version: $VERSION"
