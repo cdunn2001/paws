@@ -1,6 +1,9 @@
 # TODO: Use this VERSION for rpm stuff too.
+NAME=pa-wsgo
 VERSION=1.0.8
-RPM_BASENAME?=pa-wsgo
+#RELEASE:=$(shell date --utc +%Y%m%dT%H%M%SZ)
+RPM_VERSION:=${VERSION}
+RPM_BASENAME:=${NAME}
 ARTEFACT:=${RPM_BASENAME}.rpm.tar
 RPM_FILENAME:=${RPM_BASENAME}-${VERSION}.x86_64.rpm
 
@@ -13,7 +16,7 @@ build-rpm:
 files:
 	${MAKE} -C .. release VERSION=${VERSION}
 	rm -rf BUILD/tard
-	./generate_rpm_files.py ${VERSION}
+	./generate_rpm_files.py ${VERSION} ${RPM_VERSION}
 tar:
 	BUILD/tard/bin/pa-wsgo --version
 	rm -f BUILD/${RPM_BASENAME}.tar
@@ -21,7 +24,7 @@ tar:
 	tar tvf BUILD/${RPM_BASENAME}.tar
 rpm:
 	rm -rf ~/rpmbuild
-	./tar2rpm.sh --version ${VERSION} --arch x86_64 -A --target /opt/pacbio/pa-wsgo-${VERSION} BUILD/${RPM_BASENAME}.tar
+	./tar2rpm.sh --name ${NAME}-${VERSION} --version ${RPM_VERSION} --arch x86_64 -A --target /opt/pacbio/pa-wsgo-${VERSION} BUILD/${RPM_BASENAME}.tar
 artefact:
 	rm -rf BUILD/tara
 	mkdir -p BUILD/tara/rpm
@@ -29,7 +32,7 @@ artefact:
 	tar -C BUILD/tara -cvf BUILD/${ARTEFACT} .
 	tar tvf BUILD/${ARTEFACT}
 spec:
-	./tar2rpm.sh --version ${VERSION} --arch x86_64 -A --target /opt/pacbio/pa-wsgo-${VERSION} --print BUILD/${RPM_BASENAME}.tar > foo.spec
+	./tar2rpm.sh --name ${NAME}-${VERSION} --version ${RPM_VERSION} --arch x86_64 -A --target /opt/pacbio/pa-wsgo-${VERSION} --print BUILD/${RPM_BASENAME}.tar > foo.spec
 clean:
 	rm -rf opt/
 	rm -rf /tmp/tar2rpm-*

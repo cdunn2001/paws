@@ -23,20 +23,21 @@ IN_FILES = {
     'extra/preUninstall.sh': './BUILD/extra/preUninstall.sh',
     'extra/postInstall.sh': './BUILD/extra/postInstall.sh',
 }
-NAME = 'wsgo'  # Call it "pa-wsgo" for now.
+NAME = 'wsgo'  # Call it "pa-wsgo" for now. TODO: Use NAME=pa-wsgo
 STATICS = {
     '../bin/pawsgo': 'BUILD/tard/bin/pa-wsgo', # Note dash.
 }
-def Init(version):
+def Init(version, rpm_version):
   global SUBS
   SUBS = {
     "@V@": version,
+    "@RV@": rpm_version,
     "@NAME@": NAME,
     "@SYSTEM_EXEC@": "pa-wsgo",
     "@APP_VERSION@": version,
     "@SOFTWARE_VERSION@": "11.1.0", # Is this 'repository'? I.e. 'sequel-11.1.0'?
     "@SYSTEMD_DEPENDENCIES@": "",
-    "@SYSTEMD_CONF_PATH@": "", #opt/pacbio/pa-@NAME@-@V@/systemd/pacbio-pa-@NAME@.conf
+    "@SYSTEMD_CONF_PATH@": "", #opt/pacbio/pa-@NAME@-@RV@/systemd/pacbio-pa-@NAME@.conf
     "@SYSTEMD_PREEXEC1@": "",
     "@SYSTEMD_COMMON_JSON@": "/etc/pacbio/pa-common.json",
     "@SYSTEMD_ALIAS@": "pacbio-pa-wsgo",
@@ -79,8 +80,8 @@ def Tar():
   pass
 def GenerateRpm():
   pass
-def Build(prog, version):
-  Init(version)
+def Build(prog, version, rpm_version):
+  Init(version, rpm_version)
   SubstituteAll()
   CopyStatics()
   Tar()
