@@ -1,12 +1,15 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"io"
+	"io/fs"
 	"io/ioutil"
 	"log" // log.Fatal()
 	"net/http"
+	"path/filepath"
 	"sync/atomic"
 	//"net/http/httputil"
 	"os"
@@ -135,12 +138,44 @@ func listen(port int, lw io.Writer) {
 	portStr := fmt.Sprintf(":%d", port)
 	log.Fatal(router.Run(portStr)) // logger maybe not needed, but does not seem to hurt
 }
+
+// If a file of this name exists, then move it to something that does not.
+// If this is actually a symlink, remove the symlink.
+func MoveExistingLogfile(specified string) {
+	fi, err := os.Lstat(specified)
+	if err == nil {
+		if fi.Mode()&os.ModeSymlink == os.ModeSymlink {
+			// This is a symlink, so remove just the symlink.
+			err := os.Remove(specified)
+			if err != nil {
+				fmt.Printf("FATAL: Could not remove symlink of logfile %q: %+v\n",
+					specified, err)
+				check(err)
+			}
+		} else {
+			// Not a symlink. Must have been created by older version of paws.
+			// Choose a new name and move this file to it.
+			newname := web.ChooseLoggerFilenameLegacy(specified)
+			err := os.Rename(specified, newname)
+			if err != nil {
+				fmt.Printf("ERROR: Could not rename logfile from %q to %q: %+v\nLost old logfile.\n",
+					specified, newname, err)
+			}
+		}
+	} else if errors.Is(err, fs.ErrNotExist) {
+		// No problem.
+	} else {
+		fmt.Printf("FATAL: Unexpected error testing logfile %q: %+v\n",
+			specified, err)
+		check(err)
+	}
+}
 func main() {
 	versionPtr := flag.Bool("version", false, "Print version")
 	consolePtr := flag.Bool("console", false, "Log to console. (Ignore --logoutput if any.)")
 	portPtr := flag.Int("port", 23632, "Listen on this port.")
 	cfgPtr := flag.String("config", "", "Read paws config (JSON) from this file, to update default config.")
-	lfnPtr := flag.String("logoutput", "/var/log/pacbio/pa-wsgo/pa-wsgo.log", "Logfile output")
+	lfnPtr := flag.String("logoutput", "/var/log/pacbio/pa-wsgo/pa-wsgo.log", "Logfile output. We actually choose a unique name (maybe based on timestamp and pid), and (sym?)link the named path to it. We avoid over-writing the pre-existing named path.")
 	dataDirPtr := flag.String("data-dir", "", "Directory for some outputs (usually under SRA subdir")
 	flag.Parse()
 	//flag.PrintDefaults()
@@ -152,8 +187,17 @@ func main() {
 
 	var lw io.Writer
 	if !*consolePtr {
-		fmt.Printf("Logging to '%s'\n", *lfnPtr)
-		f, err := os.Create(*lfnPtr)
+		MoveExistingLogfile(*lfnPtr)
+		fn := web.ChooseLoggerFilename(*lfnPtr)
+		{
+			err := os.Symlink(filepath.Base(fn), *lfnPtr)
+			if err != nil {
+				fmt.Printf("ERROR: Failed to create convenient symlink from %q to %q: %+v\nContinuing.",
+					fn, *lfnPtr, err)
+			}
+		}
+		fmt.Printf("Logging to '%s'\n", fn)
+		f, err := os.Create(fn)
 		check(err)
 		defer f.Close()
 		lw = f

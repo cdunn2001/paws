@@ -202,3 +202,60 @@ func TestProgressMetricsObjectFromStatusReport(t *testing.T) {
 		}
 	}
 }
+func TestSplitExt(t *testing.T) {
+	{
+		gotBase, gotExt := SplitExt("foo.bar.baz")
+		expectedBase := "foo.bar"
+		expectedExt := ".baz"
+		if gotBase != expectedBase {
+			t.Errorf("Got Base '%v', expected '%v'", gotBase, expectedBase)
+		}
+		if gotExt != expectedExt {
+			t.Errorf("Got Ext '%v', expected '%v'", gotExt, expectedExt)
+		}
+	}
+	{
+		gotBase, gotExt := SplitExt("fubar")
+		expectedBase := "fubar"
+		expectedExt := ""
+		if gotBase != expectedBase {
+			t.Errorf("Got Base '%v', expected '%v'", gotBase, expectedBase)
+		}
+		if gotExt != expectedExt {
+			t.Errorf("Got Ext '%v', expected '%v'", gotExt, expectedExt)
+		}
+	}
+	{
+		gotBase, gotExt := SplitExt(".snafu")
+		expectedBase := ""
+		expectedExt := ".snafu"
+		if gotBase != expectedBase {
+			t.Errorf("Got Base '%v', expected '%v'", gotBase, expectedBase)
+		}
+		if gotExt != expectedExt {
+			t.Errorf("Got Ext '%v', expected '%v'", gotExt, expectedExt)
+		}
+	}
+}
+func TestChooseLoggerFilenameTestable(t *testing.T) {
+	{
+		mytime, err := time.Parse("Jan 2 15:04:05 2006 MST", "Jan 2 15:04:05 2006 MST")
+		check(err)
+		got := chooseLoggerFilenameTestable("foo.log", mytime, 123)
+		expected := "foo.06-01-02.123.log"
+		if got != expected {
+			t.Errorf("Got '%v', expected '%v'", got, expected)
+		}
+	}
+}
+func TestChooseLoggerFilenameLegacyTestable(t *testing.T) {
+	{
+		mytime, err := time.Parse("Jan 2 15:04:05 2006 MST", "Jan 2 15:04:05 2006 MST")
+		check(err)
+		got := chooseLoggerFilenameLegacyTestable("foo.log", mytime)
+		expected := "foo.06-01-02.log"
+		if got != expected {
+			t.Errorf("Got '%v', expected '%v'", got, expected)
+		}
+	}
+}
