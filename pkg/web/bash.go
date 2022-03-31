@@ -290,7 +290,8 @@ const (
 var Template_baz2bam = `
 {{.Global.Binaries.Binary_baz2bam}} \
   {{.Local.bazFile}} \
-  --logoutput {{.Local.logFile}} \
+  {{.Local.logoutput}} \
+  {{.Local.logfilter}} \
   -o {{.Local.outputPrefix}} \
   --statusfd 3 \
   --subreadset {{.Local.metadataFile}} \
@@ -335,11 +336,22 @@ func WriteBaz2bamBash(wr io.Writer, tc config.TopStruct, obj *PostprimaryObject)
 	kv["metadataFile"] = metadata_xml
 	kv["acqId"] = obj.Uuid
 	kv["bazFile"] = obj.BazFileUrl // TODO
-	logFile := filepath.Join(outputPrefix, ".baz2bam.log")
-	if obj.LogUrl != "discard:" {
-		logFile = obj.LogUrl // TODO
+	loglevel := obj.LogLevel
+	logoutput := ""
+	if obj.LogUrl == "" {
+		logoutput = outputPrefix + ".baz2bam.log"
+	} else if obj.LogUrl == "discard:" {
+		logoutput = "/dev/null"
+		loglevel = Error
+	} else {
+		logoutput = obj.LogUrl // TODO
 	}
-	kv["logFile"] = logFile
+	if loglevel == "" {
+		kv["logfilter"] = ""
+	} else {
+		kv["logfilter"] = "--logfilter " + string(loglevel)
+	}
+	kv["logoutput"] = "--logoutput " + logoutput
 	//kv["baz2bamComputingThreads"] = "16"
 	//kv["bamThreads"] = "16"
 	//kv["inlinePbi"] = "true"
