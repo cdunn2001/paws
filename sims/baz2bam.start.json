@@ -3,7 +3,7 @@
     "uuid": "MyUuid",
     "bazFileUrl": "tmp/foo.baz",
     "outputPrefixUrl": "tmp/out",
-    "logUrl": "tmp/log.loadingcal.txt",
+    "logUrl": "tmp/log.baz2bam.txt",
     "subreadsetMetadataXml": "<SubreadSet></SubreadSet>",
     "logLevel": "INFO"
 }

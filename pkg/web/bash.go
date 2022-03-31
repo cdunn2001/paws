@@ -254,14 +254,14 @@ func WriteBasecallerBash(wr io.Writer, tc config.TopStruct, obj *SocketBasecalle
 	if len(obj.BazUrl) == 0 {
 		kv["optOutputBazFile"] = ""
 	} else {
-		kv["optOutputBazFile"] = TranslateDiscardableUrl("--outputbazfile", obj.BazUrl) 
+		kv["optOutputBazFile"] = TranslateDiscardableUrl("--outputbazfile", obj.BazUrl)
 	}
 	if len(obj.LogUrl) == 0 {
 		kv["optLogOutput"] = ""
 	} else {
-		kv["optLogOutput"] = TranslateDiscardableUrl("--logoutput", obj.LogUrl) 
+		kv["optLogOutput"] = TranslateDiscardableUrl("--logoutput", obj.LogUrl)
 	}
-  
+
 	optMultiple := ""
 	if tc.Values.JustOneBazFile {
 		optMultiple = "--config multipleBazFiles=false"
@@ -290,6 +290,7 @@ const (
 var Template_baz2bam = `
 {{.Global.Binaries.Binary_baz2bam}} \
   {{.Local.bazFile}} \
+  --logoutput {{.Local.logFile}} \
   -o {{.Local.outputPrefix}} \
   --statusfd 3 \
   --subreadset {{.Local.metadataFile}} \
@@ -321,17 +322,24 @@ func WriteMetadata(fn string, content string) {
 func WriteBaz2bamBash(wr io.Writer, tc config.TopStruct, obj *PostprimaryObject) error {
 	t := CreateTemplate(Template_baz2bam, "")
 	kv := make(map[string]string)
-	outdir := filepath.Dir(obj.OutputPrefixUrl) // TODO: Translate URL
+	outputPrefix := obj.OutputPrefixUrl // TODO: Translate URL
+	kv["outputPrefix"] = outputPrefix
+	outdir := filepath.Dir(outputPrefix)
 	if outdir == "" {
-		return errors.Errorf("Got empty dir for OutputPrefixUrl '%s'", obj.OutputPrefixUrl)
+		return errors.Errorf("Got empty dir for OutputPrefixUrl '%s'", outputPrefix)
 	}
 	os.MkdirAll(outdir, 0777)
-	metadata_xml := obj.OutputPrefixUrl + ".metadata.subreadset.xml"
+	metadata_xml := outputPrefix + ".metadata.subreadset.xml"
 	log.Printf("Metadatafile:'%s'", metadata_xml)
 	WriteMetadata(metadata_xml, obj.SubreadsetMetadataXml)
 	kv["metadataFile"] = metadata_xml
 	kv["acqId"] = obj.Uuid
 	kv["bazFile"] = obj.BazFileUrl // TODO
+	logFile := filepath.Join(outputPrefix, ".baz2bam.log")
+	if obj.LogUrl != "discard:" {
+		logFile = obj.LogUrl // TODO
+	}
+	kv["logFile"] = logFile
 	//kv["baz2bamComputingThreads"] = "16"
 	//kv["bamThreads"] = "16"
 	//kv["inlinePbi"] = "true"
@@ -345,7 +353,6 @@ func WriteBaz2bamBash(wr io.Writer, tc config.TopStruct, obj *PostprimaryObject)
 	// ppaConfig.Baz2BamArgs();
 	// This envar is not to be used except for unit testing.
 	// getenv("PPA_BAZ2BAM_OPTIONS");
-	kv["outputPrefix"] = obj.OutputPrefixUrl
 
 	ts := TemplateSub{
 		Local:  kv,
