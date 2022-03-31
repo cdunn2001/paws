@@ -335,7 +335,7 @@ func WriteBaz2bamBash(wr io.Writer, tc config.TopStruct, obj *PostprimaryObject)
 	kv["metadataFile"] = metadata_xml
 	kv["acqId"] = obj.Uuid
 	kv["bazFile"] = obj.BazFileUrl // TODO
-	logFile := filepath.Join(outputPrefix, "default.baz2bam.log")
+	logFile := filepath.Join(outputPrefix, ".baz2bam.log")
 	if obj.LogUrl != "discard:" {
 		logFile = obj.LogUrl // TODO
 	}
