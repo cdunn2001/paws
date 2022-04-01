@@ -3,7 +3,6 @@ set -vex
 P=23632
 E=localhost:$P
 mkdir -p tmp
-rm -rf tmp/*
 F="-i -f"
 
 #NOTIFY_SOCKET=/tmp/kpaws.sock
