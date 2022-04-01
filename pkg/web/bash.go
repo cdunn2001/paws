@@ -308,6 +308,8 @@ var Template_baz2bam = `
   {{.Local.moveOutputStatsH5}}
   touch {{.Local.outputPrefix}}.rsts.h5
   {{.Local.moveOutputReduceStatsH5}}
+
+  touch {{.Local.DesiredLogOutput}}
 `
 
 // alternatively, replace bazFile(s) w/
@@ -334,7 +336,8 @@ func WriteMetadata(fn string, content string) {
 func WriteBaz2bamBash(wr io.Writer, tc config.TopStruct, obj *PostprimaryObject) error {
 	t := CreateTemplate(Template_baz2bam, "")
 	kv := make(map[string]string)
-	outputPrefix := obj.OutputPrefixUrl // TODO: Translate URL
+	outputPrefix := obj.OutputPrefixUrl                             // TODO: Translate URL
+	kv["DesiredLogOutput"] = obj.OutputPrefixUrl + ".baz2bam_1.log" // temp fix
 	kv["outputPrefix"] = outputPrefix
 	outdir := filepath.Dir(outputPrefix)
 	if outdir == "" {
@@ -355,7 +358,8 @@ func WriteBaz2bamBash(wr io.Writer, tc config.TopStruct, obj *PostprimaryObject)
 		logoutput = "/dev/null"
 		loglevel = Error
 	} else {
-		logoutput = obj.LogUrl // TODO
+		logoutput = obj.LogUrl              // TODO
+		kv["DesiredLogOutput"] = obj.LogUrl // temp fix
 	}
 	if loglevel == "" {
 		kv["logfilter"] = ""
@@ -363,6 +367,11 @@ func WriteBaz2bamBash(wr io.Writer, tc config.TopStruct, obj *PostprimaryObject)
 		kv["logfilter"] = "--logfilter " + string(loglevel)
 	}
 	kv["logoutput"] = "--logoutput " + logoutput
+
+	// baz2bam does not have these options right now.
+	kv["logoutput"] = "" // temp fix
+	kv["logfilter"] = "" // temp fix
+
 	kv["moveOutputStatsXml"] = MoveIfDifferent(obj.OutputPrefixUrl+".sts.xml",
 		obj.OutputStatsXmlUrl)
 	kv["moveOutputStatsH5"] = MoveIfDifferent(obj.OutputPrefixUrl+".sts.h5",
