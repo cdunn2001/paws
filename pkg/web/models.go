@@ -1,5 +1,9 @@
 package web
 
+import (
+	"pacb.com/seq/paws/pkg/config"
+)
+
 // Top level status of the pa-ws process
 type PawsStatusObject struct {
 
@@ -17,6 +21,9 @@ type PawsStatusObject struct {
 
 	// Version of software, including git hash of last commit
 	Version string `json:"version"`
+
+	// Purely informational. Discovered at program start-up.
+	Binaries config.BinaryDescriptions
 }
 type LogLevelEnum string
 

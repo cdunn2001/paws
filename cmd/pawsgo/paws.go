@@ -229,7 +229,7 @@ func main() {
 	log.Printf("tc: %+v", config.Top())
 	//WriteConfig(config.Top(), "foo.paws.json")
 
-	web.VerifyBinaries(config.Top().Binaries)
+	config.VerifyBinaries(config.Top().Binaries)
 
 	listen(*portPtr, lw)
 }

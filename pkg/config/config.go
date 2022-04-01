@@ -24,6 +24,7 @@ type TopStruct struct {
 
 var top TopStruct // Should be considered "const", as changes would not be thread-safe.
 
+// TODO: Allow config override.
 func FindBinaries() BinaryPaths {
 	return BinaryPaths{
 		Binary_baz2bam:         "baz2bam",
