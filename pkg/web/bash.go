@@ -306,6 +306,7 @@ var Template_baz2bam = `
 
   {{.Local.moveOutputStatsXml}}
   {{.Local.moveOutputStatsH5}}
+  touch {{.Local.outputPrefix}}.rsts.h5
   {{.Local.moveOutputReduceStatsH5}}
 `
 
