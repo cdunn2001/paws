@@ -4,7 +4,7 @@
     "darkCalFileUrl": "tmp/darkcal.h5",
     "bazUrl": "tmp/foo.baz",
     "traceFileUrl": "tmp/foo.trc.h5",
-    "logUrl": "tmp/log.basecaller.txt",
+    "logUrl": "tmp/foo.basecaller.log",
     "logLevel": "INFO",
   "movieMaxFrames": 3600000,
   "movieMaxSeconds": 36000,
