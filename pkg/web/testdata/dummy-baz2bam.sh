@@ -64,10 +64,7 @@ then
 fi
 
 BAZFILE=${POSITIONAL_ARGS[0]}
-#BAMFILE=${BAZFILE%.baz}.bam
-BAMFILE=${PREFIX_OUT}.bam
 echo "BAZFILE=${BAZFILE}"
-echo "BAMFILE=${BAMFILE}"
 
 # Optional env-vars:
 : "${STATUS_COUNT:=0}"
@@ -105,9 +102,10 @@ count
 report_status 2 "fini" 0 1
 
 touch ${LOG_OUTPUT}
-touch ${BAMFILE}
-
-# Technically, the xml is an output, but that is named
-# in a config file. We can simply touch a hard-coded file that
-# is expected by the tests.
-#touch prefix.consensusreadset.xml
+touch ${PREFIX_OUT}.subreadset.xml
+touch ${PREFIX_OUT}.subreads.bam
+touch ${PREFIX_OUT}.subreads.bam.pbi
+touch ${PREFIX_OUT}.scraps.bam
+touch ${PREFIX_OUT}.scraps.bam.pbi
+touch ${PREFIX_OUT}.sts.xml
+touch ${PREFIX_OUT}.sts.h5
