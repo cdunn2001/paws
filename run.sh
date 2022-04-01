@@ -12,7 +12,7 @@ F="-i -f"
 # This gives: "Nothing sent to systemd watchdog. dial unixgram /tmp/kpaws.sock: connect: protocol wrong type for socket"
 
 curl -i -X PUT $E/feed-watchdog
-
+curl $f -X GET $E/status
 curl $f -X GET $E/sockets
 # Should print [1,2,3,4] quoted.
 
