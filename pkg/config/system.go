@@ -53,7 +53,6 @@ func DescribeBinaries(bps BinaryPaths) BinaryDescriptions {
 			Version: version,
 		}
 	}
-
 	{
 		name := "basecaller"
 		path := FindBinary("smrt-basecaller-launch.sh") // this script is necessary to configure NUMA. don't call smrt-basecaller binary directly.
@@ -63,7 +62,6 @@ func DescribeBinaries(bps BinaryPaths) BinaryDescriptions {
 			Version: version,
 		}
 	}
-
 	{
 		name := "pa-cal"
 		path := FindBinary(name)
@@ -73,7 +71,6 @@ func DescribeBinaries(bps BinaryPaths) BinaryDescriptions {
 			Version: version,
 		}
 	}
-
 	{
 		name := "reducestats"
 		path := FindBinary("ppa-reducestats")
@@ -81,6 +78,19 @@ func DescribeBinaries(bps BinaryPaths) BinaryDescriptions {
 		if path != "" {
 			version = GetStdout(path, "--version")
 		}
+		result[name] = BinaryDescription{
+			Path:    path,
+			Version: version,
+		}
+	}
+	{
+		name := "pa-wsgo"
+		path, err := os.Executable()
+		if err != nil {
+			log.Printf("Error from os.Executable(): %+v\n", err)
+			path = "<err>"
+		}
+		version := Version
 		result[name] = BinaryDescription{
 			Path:    path,
 			Version: version,
