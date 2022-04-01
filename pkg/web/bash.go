@@ -303,6 +303,9 @@ var Template_baz2bam = `
   --zmwBatchMB 50000 \
   --zmwHeaderBatchMB 30000 \
   --maxOutputQueueMB 15000 \
+
+  {{.Local.moveOutputStatsXml}}
+  {{.Local.moveOutputStatsH5}}
 `
 
 // alternatively, replace bazFile(s) w/
@@ -310,6 +313,12 @@ var Template_baz2bam = `
 
 // --silent //?
 
+func MoveIfDifferent(implicitFn, desiredFn string) string {
+	if desiredFn == "" || implicitFn == desiredFn || desiredFn == "discard:" {
+		return ""
+	}
+	return fmt.Sprintf("mv -f '%s' '%s'", implicitFn, desiredFn)
+}
 func WriteMetadata(fn string, content string) {
 	f, err := os.Create(fn)
 	defer f.Close()
@@ -352,6 +361,10 @@ func WriteBaz2bamBash(wr io.Writer, tc config.TopStruct, obj *PostprimaryObject)
 		kv["logfilter"] = "--logfilter " + string(loglevel)
 	}
 	kv["logoutput"] = "--logoutput " + logoutput
+	kv["moveOutputStatsXml"] = MoveIfDifferent(obj.OutputPrefixUrl+".sts.xml",
+		obj.OutputStatsXmlUrl)
+	kv["moveOutputStatsH5"] = MoveIfDifferent(obj.OutputPrefixUrl+".sts.h5",
+		obj.OutputStatsH5Url)
 	//kv["baz2bamComputingThreads"] = "16"
 	//kv["bamThreads"] = "16"
 	//kv["inlinePbi"] = "true"
