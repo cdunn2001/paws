@@ -1,6 +1,6 @@
 # TODO: Use this VERSION for rpm stuff too.
 NAME=pa-wsgo
-VERSION=1.0.8
+VERSION=1.0.9
 #RELEASE:=$(shell date --utc +%Y%m%dT%H%M%SZ)
 RPM_VERSION:=${VERSION}
 RPM_BASENAME:=${NAME}
