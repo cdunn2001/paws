@@ -102,8 +102,11 @@ count
 report_status 2 "fini" 0 1
 
 touch ${LOG_OUTPUT}
+touch ${PREFIX_OUT}.subreadset.xml
 touch ${PREFIX_OUT}.subreads.bam
 touch ${PREFIX_OUT}.subreads.bam.pbi
-touch ${PREFIX_OUT}.subreadset.xml
+touch ${PREFIX_OUT}.scraps.bam
+touch ${PREFIX_OUT}.scraps.bam.pbi
 touch ${PREFIX_OUT}.sts.xml
 touch ${PREFIX_OUT}.sts.h5
+touch ${PREFIX_OUT}.rsts.h5 # TODO: Move to reduce-stats
