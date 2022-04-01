@@ -5,12 +5,89 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"strings"
 )
 
 func check(e error) {
 	if e != nil {
 		panic(fmt.Sprintf("Stacktrace: %+v", e))
 	}
+}
+
+func FindBinary(basename string) string {
+	out, err := exec.Command("which", basename).Output() // .CombinedOutput()?
+	if err != nil {
+		log.Printf("Failed to find %q in PATH:%s\n", basename, os.Getenv("PATH"))
+		return ""
+	} else {
+		return strings.TrimSpace(string(out))
+	}
+}
+
+func GetStdout(prog string, args ...string) string {
+	out, err := exec.Command(prog, args...).Output()
+	if err != nil {
+		log.Printf("Command failed %s %s: %s\n", prog, strings.Join(args, " "), err)
+		return ""
+	} else {
+		return strings.TrimSpace(string(out))
+	}
+}
+
+type BinaryDescription struct {
+	Path    string
+	Version string
+}
+
+type BinaryDescriptions map[string]BinaryDescription
+
+func DescribeBinaries(bps BinaryPaths) BinaryDescriptions {
+	result := make(BinaryDescriptions)
+
+	{
+		name := "baz2bam"
+		path := FindBinary(name)
+		version := GetStdout(path, "--version")
+		result[name] = BinaryDescription{
+			Path:    path,
+			Version: version,
+		}
+	}
+
+	{
+		name := "basecaller"
+		path := FindBinary("smrt-basecaller-launch.sh") // this script is necessary to configure NUMA. don't call smrt-basecaller binary directly.
+		version := GetStdout(path, "--version")
+		result[name] = BinaryDescription{
+			Path:    path,
+			Version: version,
+		}
+	}
+
+	{
+		name := "pa-cal"
+		path := FindBinary(name)
+		version := GetStdout(path, "--version")
+		result[name] = BinaryDescription{
+			Path:    path,
+			Version: version,
+		}
+	}
+
+	{
+		name := "reducestats"
+		path := FindBinary("ppa-reducestats")
+		version := ""
+		if path != "" {
+			version = GetStdout(path, "--version")
+		}
+		result[name] = BinaryDescription{
+			Path:    path,
+			Version: version,
+		}
+	}
+
+	return result
 }
 
 func VerifyBinary(label string, path string) {

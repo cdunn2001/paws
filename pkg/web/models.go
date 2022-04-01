@@ -23,7 +23,7 @@ type PawsStatusObject struct {
 	Version string `json:"version"`
 
 	// Purely informational. Discovered at program start-up.
-	Binaries config.BinaryPaths
+	Binaries config.BinaryDescriptions
 }
 type LogLevelEnum string
 

@@ -150,8 +150,8 @@ func getStatus(c *gin.Context, state *State) {
 	// Version of software, including git hash of last commit
 	status.Version = config.Version
 
-	bps := config.Top().Binaries
-	status.Binaries = bps
+	bds := config.DescribeBinaries(config.Top().Binaries)
+	status.Binaries = bds
 
 	c.IndentedJSON(http.StatusOK, status)
 }
