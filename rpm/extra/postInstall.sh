@@ -32,12 +32,12 @@ echo -n "    INFO Reloading firewall :"
 firewall-cmd --reload
 
 
-if [ ! -d /var/log/pacbio ]
+if [ ! -d /var/log/pacbio/pa-wsgo ]
 then
-  echo "    Creating /var/log/pacbio"
-  mkdir -p  /var/log/pacbio
-  chmod 777 /var/log/pacbio
-  chmod o+t /var/log/pacbio
+  echo "    Creating /var/log/pacbio/pa-wsgo"
+  mkdir -p  /var/log/pacbio/pa-wsgo
+  chmod 777 /var/log/pacbio/pa-wsgo
+  chmod o+t /var/log/pacbio/pa-wsgo
 fi
 
 if [ ! -d /var/run/pacbio ]
