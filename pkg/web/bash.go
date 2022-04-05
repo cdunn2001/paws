@@ -313,8 +313,6 @@ var Template_baz2bam = `
 
   {{.Local.moveOutputStatsXml}}
   {{.Local.moveOutputStatsH5}}
-  touch {{.Local.outputPrefix}}.rsts.h5
-  {{.Local.moveOutputReduceStatsH5}}
 
   touch {{.Local.DesiredLogOutput}}
 `
@@ -398,9 +396,6 @@ func WriteBaz2bamBash(wr io.Writer, tc config.TopStruct, obj *PostprimaryObject)
 		obj.OutputStatsXmlUrl)
 	kv["moveOutputStatsH5"] = MoveIfDifferent(obj.OutputPrefixUrl+".sts.h5",
 		obj.OutputStatsH5Url)
-	// TODO: Move this to reduce-stats.
-	kv["moveOutputReduceStatsH5"] = MoveIfDifferent(obj.OutputPrefixUrl+".rsts.h5",
-		obj.OutputReduceStatsH5Url)
 	//kv["baz2bamComputingThreads"] = "16"
 	//kv["bamThreads"] = "16"
 	//kv["inlinePbi"] = "true"
@@ -422,71 +417,42 @@ func WriteBaz2bamBash(wr io.Writer, tc config.TopStruct, obj *PostprimaryObject)
 	return t.Execute(wr, &ts)
 }
 
-type Job struct {
-	outputPrefix string
-	chipClass    string
-	platform     string
-}
-
-func UpdateJob(kv map[string]string, job Job) {
-	// TODO: Where should these come from? (outputPrefix is on PpObj.)
-	kv["job_outputPrefix"] = job.outputPrefix
-	kv["job_chipClass"] = job.chipClass
-	kv["job_platform"] = job.platform
-}
-
 var Template_reducestats = `
 {{.Global.Binaries.Binary_reducestats}} \
-  --input {{.Local.job_outputPrefix}}.sts.h5 \
-  --output {{.Local.job_outputPrefix}}.rsts.h5 \
-  --config=common.chipClass=Kestrel \
-  --config=common.platform=Kestrel \
+  {{.Local.OutputStatsH5}} \
+  {{.Local.OutputReduceStatsH5}} \
 `
 
-func WriteReduceStatsBash(wr io.Writer, tc config.TopStruct, obj *PostprimaryObject, job Job) error {
+// Skip --logoutput for now.
+
+func WriteReduceStatsBash(wr io.Writer, tc config.TopStruct, obj *PostprimaryObject) error {
 	t := CreateTemplate(Template_reducestats, "")
 	kv := make(map[string]string)
-	job.outputPrefix = obj.OutputPrefixUrl // TODO
-	UpdateJob(kv, job)
-	//obj.OutputReduceStatsH5Url
+	// TODO: Urls
+
+	OutputStatsH5 := obj.OutputStatsH5Url
+	if OutputStatsH5 == "" {
+		OutputStatsH5 = obj.OutputPrefixUrl + ".sts.h5"
+	}
+	if OutputStatsH5 == "discard:" {
+		kv["OutputStatsH5"] = ""
+	} else {
+		kv["OutputStatsH5"] = "--input " + OutputStatsH5
+	}
+
+	OutputReduceStatsH5 := obj.OutputReduceStatsH5Url
+	if OutputReduceStatsH5 == "" {
+		OutputReduceStatsH5 = obj.OutputPrefixUrl + ".rsts.h5"
+	}
+	if OutputReduceStatsH5 == "discard:" {
+		kv["OutputReduceStatsH5"] = ""
+	} else {
+		kv["OutputReduceStatsH5"] = "--output " + OutputReduceStatsH5
+	}
 
 	ts := TemplateSub{
 		Local:  kv,
 		Global: tc,
 	}
 	return t.Execute(wr, &ts)
-}
-func CopyRsts(obj *PostprimaryObject, job Job) error {
-	// obj.OutputStatsH5Url
-	// obj.OutputStatsXmlUrl
-	/*
-		void PpaControllerOld::CopyRsts(const PPAJob& job)
-		{
-		    std::stringstream ss;
-		    const std::string movieContext = job.movieContext;
-		    const std::string rstsFilename = job.outputPrefix + ".rsts.h5";
-		    if (PacBio::POSIX::IsFile(rstsFilename))
-		    {
-		        ss << "scp -o StrictHostKeyChecking=no " << rstsFilename
-		           << " " << ppaConfig_.RstsDestinationPrefix() << "/" + movieContext;
-		        PBLOG_INFO << ss.str();
-		        const std::string capturedStdout = PacBio::System::Run(ss.str());
-		        PBLOG_INFO << capturedStdout;
-
-		        if (true)
-		        {
-		            if (unlink(rstsFilename.c_str()))
-		            {
-		                errors_++;
-		                PBLOG_ERROR << "Could not delete " << rstsFilename;
-		            }
-		        }
-		    }
-		    else
-		    {
-		        PBLOG_WARN << "Won't copy and delete " << rstsFilename << " because it doesn't exist";
-		    }
-		}
-	*/
-	return nil
 }

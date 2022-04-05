@@ -16,6 +16,16 @@ while [[ $# -gt 0 ]]; do
       shift # past argument
       shift # past value
       ;;
+    --input)
+      INPUT="$2"
+      shift # past argument
+      shift # past value
+      ;;
+    --output)
+      OUTPUT="$2"
+      shift # past argument
+      shift # past value
+      ;;
     --logfilter)
       LOG_FILTER="$2"
       shift # past argument
@@ -23,11 +33,6 @@ while [[ $# -gt 0 ]]; do
       ;;
     --logoutput)
       LOG_OUTPUT="$2"
-      shift # past argument
-      shift # past value
-      ;;
-    --metadata)
-      METADATA="$2"
       shift # past argument
       shift # past value
       ;;
@@ -56,11 +61,6 @@ then
     echo "0.0.0"
     exit 0
 fi
-
-BAZFILE=${POSITIONAL_ARGS[0]}
-BAMFILE=${BAZFILE%.baz}.bam
-echo "BAZFILE=${BAZFILE}"
-echo "BAMFILE=${BAMFILE}"
 
 # Optional env-vars:
 : "${STATUS_COUNT:=0}"
@@ -94,7 +94,7 @@ count
 report_status 2 "fini" 0 1
 
 touch ${LOG_OUTPUT}
-touch ${BAMFILE}
+touch ${OUTPUT}
 
 # Technically, the xml is an output, but that is named
 # in a config file. We can simply touch a hard-coded file that
