@@ -313,8 +313,6 @@ var Template_baz2bam = `
 
   {{.Local.moveOutputStatsXml}}
   {{.Local.moveOutputStatsH5}}
-  touch {{.Local.outputPrefix}}.rsts.h5
-  {{.Local.moveOutputReduceStatsH5}}
 
   touch {{.Local.DesiredLogOutput}}
 `
@@ -398,9 +396,6 @@ func WriteBaz2bamBash(wr io.Writer, tc config.TopStruct, obj *PostprimaryObject)
 		obj.OutputStatsXmlUrl)
 	kv["moveOutputStatsH5"] = MoveIfDifferent(obj.OutputPrefixUrl+".sts.h5",
 		obj.OutputStatsH5Url)
-	// TODO: Move this to reduce-stats.
-	kv["moveOutputReduceStatsH5"] = MoveIfDifferent(obj.OutputPrefixUrl+".rsts.h5",
-		obj.OutputReduceStatsH5Url)
 	//kv["baz2bamComputingThreads"] = "16"
 	//kv["bamThreads"] = "16"
 	//kv["inlinePbi"] = "true"
