@@ -10,6 +10,7 @@ import (
 	"pacb.com/seq/paws/pkg/config"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"text/template"
 )
 
@@ -260,6 +261,12 @@ func WriteBasecallerBash(wr io.Writer, tc config.TopStruct, obj *SocketBasecalle
 		kv["optLogOutput"] = ""
 	} else {
 		kv["optLogOutput"] = TranslateDiscardableUrl("--logoutput", obj.LogUrl)
+	}
+	if !strings.HasSuffix(kv["optLogOutput"], ".log") {
+		msg := fmt.Sprintf("ERROR! For baz2bam, log output is %q but must end w/ '.log' (for now).",
+			kv["optLogOutput"])
+		log.Printf(msg)
+		//panic(msg)
 	}
 
 	optMultiple := ""
