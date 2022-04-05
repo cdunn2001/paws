@@ -301,7 +301,7 @@ var Template_baz2bam = `
   {{.Local.logfilter}} \
   -o {{.Local.outputPrefix}} \
   --statusfd 3 \
-  --subreadset {{.Local.metadataFile}} \
+  {{.Local.metadata}} \
   --uuid {{.Local.acqId}} \
   -j 32 \
   -b 8 \
@@ -340,6 +340,24 @@ func WriteMetadata(fn string, content string) {
 	}
 	f.WriteString(content)
 }
+func HasFullDataModel(content string) bool {
+	// https://jira.pacificbiosciences.com/browse/ICS-1079
+	return strings.Contains(content, "PacBioDataModel")
+}
+func HandleMetadata(content string, outputPrefix string) string {
+	var metadata_xml, arg string
+	gotFullDataModel := HasFullDataModel(content)
+	if gotFullDataModel {
+		metadata_xml = outputPrefix + ".metadata.subreadset.xml"
+		arg = "--subreadset " + metadata_xml
+	} else {
+		metadata_xml = outputPrefix + ".metadata.xml"
+		arg = "--metadata " + metadata_xml
+	}
+	log.Printf("Metadatafile:'%s'", metadata_xml)
+	WriteMetadata(metadata_xml, content)
+	return arg
+}
 func WriteBaz2bamBash(wr io.Writer, tc config.TopStruct, obj *PostprimaryObject) error {
 	t := CreateTemplate(Template_baz2bam, "")
 	kv := make(map[string]string)
@@ -351,10 +369,7 @@ func WriteBaz2bamBash(wr io.Writer, tc config.TopStruct, obj *PostprimaryObject)
 		return errors.Errorf("Got empty dir for OutputPrefixUrl '%s'", outputPrefix)
 	}
 	os.MkdirAll(outdir, 0777)
-	metadata_xml := outputPrefix + ".metadata.subreadset.xml"
-	log.Printf("Metadatafile:'%s'", metadata_xml)
-	WriteMetadata(metadata_xml, obj.SubreadsetMetadataXml)
-	kv["metadataFile"] = metadata_xml
+	kv["metadata"] = HandleMetadata(obj.SubreadsetMetadataXml, outputPrefix)
 	kv["acqId"] = obj.Uuid
 	kv["bazFile"] = obj.BazFileUrl // TODO
 	loglevel := obj.LogLevel
