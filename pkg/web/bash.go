@@ -417,19 +417,6 @@ func WriteBaz2bamBash(wr io.Writer, tc config.TopStruct, obj *PostprimaryObject)
 	return t.Execute(wr, &ts)
 }
 
-type Job struct {
-	outputPrefix string
-	chipClass    string
-	platform     string
-}
-
-func UpdateJob(kv map[string]string, job Job) {
-	// TODO: Where should these come from? (outputPrefix is on PpObj.)
-	kv["job_outputPrefix"] = job.outputPrefix
-	kv["job_chipClass"] = job.chipClass
-	kv["job_platform"] = job.platform
-}
-
 var Template_reducestats = `
 {{.Global.Binaries.Binary_reducestats}} \
   {{.Local.OutputStatsH5}} \
@@ -468,38 +455,4 @@ func WriteReduceStatsBash(wr io.Writer, tc config.TopStruct, obj *PostprimaryObj
 		Global: tc,
 	}
 	return t.Execute(wr, &ts)
-}
-func CopyRsts(obj *PostprimaryObject, job Job) error {
-	// obj.OutputStatsH5Url
-	// obj.OutputStatsXmlUrl
-	/*
-		void PpaControllerOld::CopyRsts(const PPAJob& job)
-		{
-		    std::stringstream ss;
-		    const std::string movieContext = job.movieContext;
-		    const std::string rstsFilename = job.outputPrefix + ".rsts.h5";
-		    if (PacBio::POSIX::IsFile(rstsFilename))
-		    {
-		        ss << "scp -o StrictHostKeyChecking=no " << rstsFilename
-		           << " " << ppaConfig_.RstsDestinationPrefix() << "/" + movieContext;
-		        PBLOG_INFO << ss.str();
-		        const std::string capturedStdout = PacBio::System::Run(ss.str());
-		        PBLOG_INFO << capturedStdout;
-
-		        if (true)
-		        {
-		            if (unlink(rstsFilename.c_str()))
-		            {
-		                errors_++;
-		                PBLOG_ERROR << "Could not delete " << rstsFilename;
-		            }
-		        }
-		    }
-		    else
-		    {
-		        PBLOG_WARN << "Won't copy and delete " << rstsFilename << " because it doesn't exist";
-		    }
-		}
-	*/
-	return nil
 }
