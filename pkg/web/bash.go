@@ -437,18 +437,36 @@ func UpdateJob(kv map[string]string, job Job) {
 
 var Template_reducestats = `
 {{.Global.Binaries.Binary_reducestats}} \
-  --input {{.Local.job_outputPrefix}}.sts.h5 \
-  --output {{.Local.job_outputPrefix}}.rsts.h5 \
-  --config=common.chipClass=Kestrel \
-  --config=common.platform=Kestrel \
+  {{.Local.OutputStatsH5}} \
+  {{.Local.OutputReduceStatsH5}} \
 `
 
-func WriteReduceStatsBash(wr io.Writer, tc config.TopStruct, obj *PostprimaryObject, job Job) error {
+// Skip --logoutput for now.
+
+func WriteReduceStatsBash(wr io.Writer, tc config.TopStruct, obj *PostprimaryObject) error {
 	t := CreateTemplate(Template_reducestats, "")
 	kv := make(map[string]string)
-	job.outputPrefix = obj.OutputPrefixUrl // TODO
-	UpdateJob(kv, job)
-	//obj.OutputReduceStatsH5Url
+	// TODO: Urls
+
+	OutputStatsH5 := obj.OutputStatsH5Url
+	if OutputStatsH5 == "" {
+		OutputStatsH5 = obj.OutputPrefixUrl + ".sts.h5"
+	}
+	if OutputStatsH5 == "discard:" {
+		kv["OutputStatsH5"] = ""
+	} else {
+		kv["OutputStatsH5"] = "--input " + OutputStatsH5
+	}
+
+	OutputReduceStatsH5 := obj.OutputReduceStatsH5Url
+	if OutputReduceStatsH5 == "" {
+		OutputReduceStatsH5 = obj.OutputPrefixUrl + ".rsts.h5"
+	}
+	if OutputReduceStatsH5 == "discard:" {
+		kv["OutputReduceStatsH5"] = ""
+	} else {
+		kv["OutputReduceStatsH5"] = "--output " + OutputReduceStatsH5
+	}
 
 	ts := TemplateSub{
 		Local:  kv,
