@@ -518,8 +518,12 @@ func startPostprimary(c *gin.Context, state *State) {
 	obj.ProcessStatus.Timestamp = TimestampNow()
 	state.Postprimaries[mid] = obj // TODO: Error if already running?
 	wr := new(bytes.Buffer)
-	if err := WriteBaz2bamBash(wr, config.Top(), obj); err != nil {
+	if err = WriteBaz2bamBash(wr, config.Top(), obj); err != nil {
 		err = errors.Wrapf(err, "Error in WriteBaz2BamBash(%v, %v, %v)", wr, config.Top(), obj)
+		check(err)
+	}
+	if err = WriteReduceStatsBash(wr, config.Top(), obj); err != nil {
+		err = errors.Wrapf(err, "Error in WriteReduceStatsBash(%v, %v, %v)", wr, config.Top(), obj)
 		check(err)
 	}
 	log.Printf("Wrote:'%s'\n", wr.String())
