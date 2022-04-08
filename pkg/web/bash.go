@@ -222,7 +222,6 @@ func TranslateDiscardableUrl(option string, url string) string {
 	if url == "discard:" {
 		return ""
 	} else {
-		// TODO: Convert from URL!
 		return fmt.Sprintf("%s %s", option, TranslateUrl(url))
 	}
 }
@@ -276,7 +275,7 @@ func WriteBasecallerBash(wr io.Writer, tc config.TopStruct, obj *SocketBasecalle
 
 	raw, err := json.Marshal(obj.PixelSpreadFunction)
 	check(err)
-	kv["imagePsfKernel"] = string(raw) // "[[1.0]]" // FIXME. This needs to be a 5x5 kernel passed by ICS.
+	kv["imagePsfKernel"] = string(raw)
 
 	// TODO: Fill these from tc.Values first?
 	if len(obj.TraceFileRoi) == 0 {
