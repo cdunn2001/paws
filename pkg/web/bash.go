@@ -184,6 +184,37 @@ func CopyDefaultBasecallerConfig(dest_fn string) {
 	log.Printf("Copy basecaller config to file '%s'", dest_fn)
 	WriteStringToFile(defaultBasecallerConfig, dest_fn)
 }
+
+// Supports:
+//  file:/path
+//  /path
+//  localfile    <- I would like to drop support for this, but I don't want to break anything (MTL) I want all paths to be absolute.
+//  discard:
+
+// eventually will support
+//  file://host/path
+//  http://host:port/storages/mid
+
+func TranslateUrl(url string) string {
+	if strings.HasPrefix(url, "/") {
+		return url
+	} else if strings.HasPrefix(url, "file://") {
+		// TODO skip the hostname field (i.e. file://hostname/path0/path1/path2 to /path0/path1/path2 )
+		panic("file:// not supported")
+	} else if strings.HasPrefix(url, "file:/") {
+		return url[5:]
+	} else if url == "discard:" {
+		return "" // or "/dev/null" ? not sure
+	} else if ! strings.Contains(url,":") {
+		return url
+	} else {
+		// TODO support http:/storages
+		msg := fmt.Sprintf("Unable to translate URL (%s) into linux path", url)
+		log.Printf(msg)
+		panic(msg)
+	}
+}
+
 func TranslateDiscardableUrl(option string, url string) string {
 	// ex. Translate("discard:", "--outputtrcfile")
 	// If "discard:", then return "".
@@ -192,7 +223,7 @@ func TranslateDiscardableUrl(option string, url string) string {
 		return ""
 	} else {
 		// TODO: Convert from URL!
-		return fmt.Sprintf("%s %s", option, url)
+		return fmt.Sprintf("%s %s", option, TranslateUrl(url))
 	}
 }
 
@@ -207,6 +238,8 @@ var Template_basecaller = `
   {{.Local.optOutputBazFile}} \
   --config {{.Local.config_json_fn}} \
   --config source.WXIPCDataSourceConfig.sraIndex={{.Local.sra}} \
+  --config source.dataSource.darkCalFileName={{.Local.darkCalFileName}} \
+  --config source.dataSource.imagePsfKernel={{.Local.imagePsfKernel}} \
   --config system.analyzerHardware=A100 \
   --maxFrames {{.Local.maxFrames}} \
 `
@@ -239,6 +272,11 @@ func WriteBasecallerBash(wr io.Writer, tc config.TopStruct, obj *SocketBasecalle
 	kv["sra"] = strconv.Itoa(sra)
 	kv["config_json_fn"] = config_json_fn
 	kv["maxFrames"] = strconv.Itoa(int(obj.MovieMaxFrames))
+	kv["darkCalFileName"] = TranslateUrl(obj.DarkCalFileUrl)
+
+	raw, err := json.Marshal(obj.PixelSpreadFunction)
+	check(err)
+	kv["imagePsfKernel"] = string(raw) // "[[1.0]]" // FIXME. This needs to be a 5x5 kernel passed by ICS.
 
 	// TODO: Fill these from tc.Values first?
 	if len(obj.TraceFileRoi) == 0 {

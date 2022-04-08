@@ -167,7 +167,7 @@ type SocketBasecallerObject struct {
 	// Example: List [ List [ 0, 0.1, 0 ], List [ 0.1, 0.6, 0.1 ], List [ 0, 0.1, 0 ] ]
 	PixelSpreadFunction [][]float64 `json:"pixelSpreadFunction"`
 
-	// Optional kernel definition of the crosstalk deconvolution. THe pixelSpreadFunction is used to automatically calculate one if this is not specified.
+	// Optional kernel definition of the crosstalk deconvolution. The pixelSpreadFunction is used to automatically calculate one if this is not specified.
 	// Example: List [ List [ 0, 0.1, 0 ], List [ 0.1, 0.6, 0.1 ], List [ 0, 0.1, 0 ] ]
 	CrosstalkFilter [][]float64 `json:"crosstalkFilter"`
 
