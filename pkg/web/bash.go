@@ -186,15 +186,13 @@ func CopyDefaultBasecallerConfig(dest_fn string) {
 }
 
 // Supports:
-//  file:/path
-//  /path
+//  file:/path   <- strips off file: and returns /path
+//  /path        <- returns /path
 //  localfile    <- I would like to drop support for this, but I don't want to break anything (MTL) I want all paths to be absolute.
-//  discard:
-
+//  discard:     <- returns ""
 // eventually will support
-//  file://host/path
-//  http://host:port/storages/mid
-
+//  file://host/path  <- returns /path assuming the path is NFS mounted, otherwise panics
+//  http://host:port/storages/mid  <- will convert to a Linux path after being processed by the storages framework
 func TranslateUrl(url string) string {
 	if strings.HasPrefix(url, "/") {
 		return url
@@ -205,7 +203,7 @@ func TranslateUrl(url string) string {
 		return url[5:]
 	} else if url == "discard:" {
 		return "" // or "/dev/null" ? not sure
-	} else if ! strings.Contains(url,":") {
+	} else if !strings.Contains(url, ":") {
 		return url
 	} else {
 		// TODO support http:/storages
@@ -215,14 +213,16 @@ func TranslateUrl(url string) string {
 	}
 }
 
+// Translates the arguments into a command line option, or empty string if the URL is discardable.
+//  ex. Translate("--outputtrcfile", "discard:", ) returns ""
+//  ex. Translate("--foo","file:/bar") returns "--foo /bar"
+// Otherwise return the flag with the translated path.
 func TranslateDiscardableUrl(option string, url string) string {
-	// ex. Translate("discard:", "--outputtrcfile")
-	// If "discard:", then return "".
-	// Otherwise return the flag with the translated path.
-	if url == "discard:" {
+	path := TranslateUrl(url)
+	if path == "" {
 		return ""
 	} else {
-		return fmt.Sprintf("%s %s", option, TranslateUrl(url))
+		return fmt.Sprintf("%s %s", option, path)
 	}
 }
 
