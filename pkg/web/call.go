@@ -133,11 +133,13 @@ type ControlledProcess struct {
 func StartControlledShellProcess(setup ProcessSetupObject, ps *ProcessStatusObject) (result *ControlledProcess) {
 	bash := ""
 	if setup.Hostname == "" {
-		fmt.Sprintf("bash -vex %s", setup.ScriptFn)
+		bash = fmt.Sprintf("bash -vex %s", setup.ScriptFn)
 	} else {
 		sshGood := "ssh -q -oBatchMode=yes -oStrictHostKeyChecking=no -oUserKnownHostsFile=/dev/null"
 		user := "cdunn@"
-		fmt.Sprintf("%s %s%s %s", sshGood, user, setup.Hostname, setup.ScriptFn)
+		absScriptFn, err := filepath.Abs(setup.ScriptFn)
+		check(err) // never happens in prod
+		bash = fmt.Sprintf("%s %s%s bash -vex %s", sshGood, user, setup.Hostname, absScriptFn)
 	}
 	env := DummyEnv(setup.Stall)
 	result, err := WatchBash(bash, ps, env)

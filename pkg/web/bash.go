@@ -418,6 +418,12 @@ func GetPostprimaryHostname(hostname string, rundir string) string {
 		return ""
 	}
 }
+func DumpBash(setup ProcessSetupObject, bash string) {
+	content := "cd " + setup.RunDir + "\n"
+	content += "export PATH=" + os.Getenv("PATH") + ":$PATH"
+	content += bash
+	WriteStringToFile(content, setup.ScriptFn)
+}
 func DumpBasecallerScript(tc config.TopStruct, obj *SocketBasecallerObject, id string) ProcessSetupObject {
 	setup := ProcessSetupObject{}
 	rundir := filepath.Dir(TranslateUrl(obj.BazUrl))
@@ -429,7 +435,7 @@ func DumpBasecallerScript(tc config.TopStruct, obj *SocketBasecallerObject, id s
 		err = errors.Wrapf(err, "Error in WriteBasecallerBash(%v, %v, %v, %v)", wr, config.Top(), obj, id)
 		check(err)
 	}
-	WriteStringToFile(wr.String(), setup.ScriptFn)
+	DumpBash(setup, wr.String())
 	return setup
 }
 func DumpDarkcalScript(tc config.TopStruct, obj *SocketDarkcalObject, id string) ProcessSetupObject {
@@ -443,7 +449,7 @@ func DumpDarkcalScript(tc config.TopStruct, obj *SocketDarkcalObject, id string)
 		err = errors.Wrapf(err, "Error in WriteDarkcalBash(%v, %v, %v, %v)", wr, config.Top(), obj, id)
 		check(err)
 	}
-	WriteStringToFile(wr.String(), setup.ScriptFn)
+	DumpBash(setup, wr.String())
 	return setup
 }
 func DumpLoadingcalScript(tc config.TopStruct, obj *SocketLoadingcalObject, id string) ProcessSetupObject {
@@ -457,7 +463,7 @@ func DumpLoadingcalScript(tc config.TopStruct, obj *SocketLoadingcalObject, id s
 		err = errors.Wrapf(err, "Error in WriteLoadingcalBash(%v, %v, %v, %v)", wr, config.Top(), obj, id)
 		check(err)
 	}
-	WriteStringToFile(wr.String(), setup.ScriptFn)
+	DumpBash(setup, wr.String())
 	return setup
 }
 func DumpPostprimaryScript(tc config.TopStruct, obj *PostprimaryObject) ProcessSetupObject {
@@ -475,7 +481,7 @@ func DumpPostprimaryScript(tc config.TopStruct, obj *PostprimaryObject) ProcessS
 		err = errors.Wrapf(err, "Error in WriteReduceStatsBash(%v, %v, %v)", wr, config.Top(), obj)
 		check(err)
 	}
-	WriteStringToFile(wr.String(), setup.ScriptFn)
+	DumpBash(setup, wr.String())
 	return setup
 }
 func WriteBaz2bamBash(wr io.Writer, tc config.TopStruct, obj *PostprimaryObject) error {

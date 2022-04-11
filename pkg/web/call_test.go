@@ -45,6 +45,7 @@ func TestCont(t *testing.T) {
 	//bash := testdataDir + "/dummy-pa-cal.sh --statusfd 3"
 	ps := &ProcessStatusObject{}
 	setup := ProcessSetupObject{
+		Hostname: "localhost",
 		Stall:    "0",        //"0.3"
 		ScriptFn: "where.sh", // TODO: Clean up this file!
 	}
