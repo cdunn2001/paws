@@ -48,7 +48,7 @@ curl $F -X GET $E/sockets/1/basecaller
 
 curl $F -X GET $E/postprimaries
 curl $F -X POST -d @sims/baz2bam.start.json $E/postprimaries
-sleep 0.1
+sleep 2.0
 curl $F -X GET $E/postprimaries/m123
 curl $F -X DELETE $E/postprimaries/m123
 curl $F -X GET $E/postprimaries

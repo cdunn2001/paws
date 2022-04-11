@@ -419,7 +419,12 @@ func GetPostprimaryHostname(hostname string, rundir string) string {
 	}
 }
 func DumpBash(setup ProcessSetupObject, bash string) {
-	content := "cd " + setup.RunDir + "\n"
+	// For now, ignore RunDir. (Needs work.) Use cwd.
+	//absRunDir, err := filepath.Abs(setup.RunDir)
+	absRunDir, err := os.Getwd()
+	check(err)
+	content := "set -vex\n"
+	content += "cd " + absRunDir + "\n"
 	content += "export PATH=" + os.Getenv("PATH") + ":$PATH"
 	content += bash
 	WriteStringToFile(content, setup.ScriptFn)

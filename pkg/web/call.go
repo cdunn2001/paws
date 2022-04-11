@@ -139,10 +139,11 @@ func StartControlledShellProcess(setup ProcessSetupObject, ps *ProcessStatusObje
 		user := "cdunn@"
 		absScriptFn, err := filepath.Abs(setup.ScriptFn)
 		check(err) // never happens in prod
-		bash = fmt.Sprintf("%s %s%s bash -vex %s", sshGood, user, setup.Hostname, absScriptFn)
+		bash = fmt.Sprintf("%s %s%s /usr/bin/bash %s", sshGood, user, setup.Hostname, absScriptFn)
+		//bash = fmt.Sprintf("%s %s%s /usr/bin/bash -vex ls", sshGood, user, setup.Hostname)
 	}
 	env := DummyEnv(setup.Stall)
-	result, err := WatchBash(bash, ps, env)
+	result, err := WatchBashStderr(bash, ps, env)
 	if err != nil {
 		panic(err)
 	}
@@ -246,12 +247,6 @@ func FirstWord(sentence string) string {
 	}
 }
 func WatchBashStderr(bash string, ps *ProcessStatusObject, envExtra []string) (*ControlledProcess, error) {
-	rpipe, wpipe, err := os.Pipe()
-	if err != nil {
-		return nil, err
-	}
-	extraFiles := []*os.File{wpipe} // becomes fd 3 in child
-
 	{
 		prog := FirstWord(bash)
 		log.Printf("which %s: ", prog)
@@ -273,8 +268,9 @@ func WatchBashStderr(bash string, ps *ProcessStatusObject, envExtra []string) (*
 		check(err)
 	}
 	stdout_fn := filepath.Join(temp_dn, "stdout.txt")
-	stderr_fn := filepath.Join(temp_dn, "stderr.txt")
-	bash = bash + " >" + stdout_fn + " 2> " + stderr_fn
+	//stderr_fn := filepath.Join(temp_dn, "stderr.txt")
+	//bash = bash + " >" + stdout_fn + " 2> " + stderr_fn
+	bash = bash + " >" + stdout_fn
 	log.Println("bash:", bash)
 	//fn := "/home/UNIXHOME/cdunn/repo/bb/paws/tmp/run.sh"
 	//WriteStringToFile(bash, fn)
@@ -284,27 +280,19 @@ func WatchBashStderr(bash string, ps *ProcessStatusObject, envExtra []string) (*
 
 	cmd := exec.Command("/bin/bash", "-c", bash)
 	cmd.Env = env
-	cmd.ExtraFiles = extraFiles
+	//cmd.ExtraFiles = extraFiles
 	cmd.Start()
-	mustClose := func(f *os.File) {
-		err = f.Close()
-		check(err)
-	}
-	// immediately close our dup'ed fds (write end of our signal pipe)
-	for _, f := range extraFiles {
-		mustClose(f)
-	}
 	chanStatusReportText := make(chan string)
 	chanDone := make(chan bool)
 	chanComplete := make(chan bool)
 	chanKill := make(chan bool)
 
 	cbp := &ControlledProcess{
-		cmd:          cmd,
-		status:       ps,
-		temp_dn:      temp_dn,
-		stdout_fn:    stdout_fn,
-		stderr_fn:    stderr_fn,
+		cmd:       cmd,
+		status:    ps,
+		temp_dn:   temp_dn,
+		stdout_fn: stdout_fn,
+		//stderr_fn:    stderr_fn,
 		chanKill:     chanKill,
 		chanComplete: chanComplete,
 	}
@@ -386,16 +374,16 @@ func WatchBashStderr(bash string, ps *ProcessStatusObject, envExtra []string) (*
 			cbp.status.CompletionStatus = Success
 		}
 		logContent(cbp.stdout_fn, "stdout")
-		logContent(cbp.stderr_fn, "stderr")
+		//logContent(cbp.stderr_fn, "stderr")
 		defer cbp.cleanup()
 		chanComplete <- true
 	}()
 	go func() {
 		pid := int(cmd.Process.Pid)
 		log.Printf("PID: %d Started scanner go-func\n", pid)
-		breader := bufio.NewReader(rpipe)
-		defer rpipe.Close()
 		var err error = nil
+		rpipe, err := cmd.StderrPipe()
+		breader := bufio.NewReader(rpipe)
 		//time.Sleep(1.0 * time.Second)
 		for err == nil {
 			text := ""
@@ -414,7 +402,7 @@ func WatchBashStderr(bash string, ps *ProcessStatusObject, envExtra []string) (*
 				}
 				text = text + string(line)
 			}
-			log.Printf("PID: %d Got:%s\n", pid, text)
+			log.Printf("PID: %d Got:%s\n err:%s\n", pid, text, err)
 			if err == io.EOF {
 				break
 			}
