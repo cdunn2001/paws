@@ -406,56 +406,54 @@ func HandleMetadata(content string, outputPrefix string) string {
 func GetPostprimaryHost(obj *PostprimaryObject) string {
 	return "localhost"
 }
-func GetPostprimaryRunDir(obj *PostprimaryObject) string {
-	return "."
-}
 func DumpBasecallerScript(tc config.TopStruct, obj *SocketBasecallerObject, id string) ProcessSetupObject {
 	setup := ProcessSetupObject{}
-	setup.Host = "localhost"
-	setup.RunDir = "."
-	setup.ScriptFn = filepath.Join(setup.RunDir, "myrun.sh")
+	setup.Host = tc.Hostname
+	rundir := filepath.Dir(TranslateUrl(obj.BazUrl))
+	setup.RunDir = rundir
+	setup.ScriptFn = filepath.Join(setup.RunDir, "run.basecaller.sh")
 	wr := new(bytes.Buffer)
 	if err := WriteBasecallerBash(wr, config.Top(), obj, id); err != nil {
 		err = errors.Wrapf(err, "Error in WriteBasecallerBash(%v, %v, %v, %v)", wr, config.Top(), obj, id)
 		check(err)
-		//c.String(http.StatusInternalServerError, "Error generating bash.\n%v\n", err)
-		//return
 	}
+	WriteStringToFile(wr.String(), setup.ScriptFn)
 	return setup
 }
 func DumpDarkcalScript(tc config.TopStruct, obj *SocketDarkcalObject, id string) ProcessSetupObject {
 	setup := ProcessSetupObject{}
-	setup.Host = "localhost"
-	setup.RunDir = "."
-	setup.ScriptFn = filepath.Join(setup.RunDir, "myrun.sh")
+	setup.Host = tc.Hostname
+	rundir := filepath.Dir(TranslateUrl(obj.CalibFileUrl))
+	setup.RunDir = rundir
+	setup.ScriptFn = filepath.Join(setup.RunDir, "run.darkcal.sh")
 	wr := new(bytes.Buffer)
 	if err := WriteDarkcalBash(wr, config.Top(), obj, id); err != nil {
 		err = errors.Wrapf(err, "Error in WriteDarkcalBash(%v, %v, %v, %v)", wr, config.Top(), obj, id)
 		check(err)
-		//c.String(http.StatusInternalServerError, "Error generating bash.\n%v\n", err)
-		//return
 	}
+	WriteStringToFile(wr.String(), setup.ScriptFn)
 	return setup
 }
 func DumpLoadingcalScript(tc config.TopStruct, obj *SocketLoadingcalObject, id string) ProcessSetupObject {
 	setup := ProcessSetupObject{}
-	setup.Host = "localhost"
-	setup.RunDir = "."
-	setup.ScriptFn = filepath.Join(setup.RunDir, "myrun.sh")
+	setup.Host = tc.Hostname
+	rundir := filepath.Dir(TranslateUrl(obj.CalibFileUrl))
+	setup.RunDir = rundir
+	setup.ScriptFn = filepath.Join(setup.RunDir, "run.loadingcal.sh")
 	wr := new(bytes.Buffer)
 	if err := WriteLoadingcalBash(wr, config.Top(), obj, id); err != nil {
 		err = errors.Wrapf(err, "Error in WriteLoadingcalBash(%v, %v, %v, %v)", wr, config.Top(), obj, id)
 		check(err)
-		//c.String(http.StatusInternalServerError, "Error generating bash.\n%v\n", err)
-		//return
 	}
+	WriteStringToFile(wr.String(), setup.ScriptFn)
 	return setup
 }
 func DumpPostprimaryScript(tc config.TopStruct, obj *PostprimaryObject) ProcessSetupObject {
 	setup := ProcessSetupObject{}
 	setup.Host = GetPostprimaryHost(obj)
-	setup.RunDir = GetPostprimaryRunDir(obj)
-	setup.ScriptFn = filepath.Join(setup.RunDir, "myrun.sh")
+	rundir := filepath.Dir(TranslateUrl(obj.OutputPrefixUrl))
+	setup.RunDir = rundir
+	setup.ScriptFn = filepath.Join(setup.RunDir, "run.ppa.sh")
 	wr := new(bytes.Buffer)
 	if err := WriteBaz2bamBash(wr, config.Top(), obj); err != nil {
 		err = errors.Wrapf(err, "Error in WriteBaz2BamBash(%v, %v, %v)", wr, config.Top(), obj)
