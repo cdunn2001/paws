@@ -19,3 +19,5 @@ default.output
 foo.*
 /tmp/
 pa-wsgo.log
+
+myrun.sh

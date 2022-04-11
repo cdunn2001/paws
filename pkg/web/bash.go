@@ -1,6 +1,7 @@
 package web
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"github.com/pkg/errors"
@@ -401,6 +402,29 @@ func HandleMetadata(content string, outputPrefix string) string {
 	log.Printf("Metadatafile:'%s'", metadata_xml)
 	WriteMetadata(metadata_xml, content)
 	return arg
+}
+func GetPostprimaryHost(obj *PostprimaryObject) string {
+	return "localhost"
+}
+func GetPostprimaryRunDir(obj *PostprimaryObject) string {
+	return "."
+}
+func DumpPostprimaryScript(tc config.TopStruct, obj *PostprimaryObject) ProcessSetupObject {
+	setup := ProcessSetupObject{}
+	setup.Host = GetPostprimaryHost(obj)
+	setup.RunDir = GetPostprimaryRunDir(obj)
+	setup.ScriptFn = filepath.Join(setup.RunDir, "myrun.sh")
+	wr := new(bytes.Buffer)
+	if err := WriteBaz2bamBash(wr, config.Top(), obj); err != nil {
+		err = errors.Wrapf(err, "Error in WriteBaz2BamBash(%v, %v, %v)", wr, config.Top(), obj)
+		check(err)
+	}
+	if err := WriteReduceStatsBash(wr, config.Top(), obj); err != nil {
+		err = errors.Wrapf(err, "Error in WriteReduceStatsBash(%v, %v, %v)", wr, config.Top(), obj)
+		check(err)
+	}
+	WriteStringToFile(wr.String(), setup.ScriptFn)
+	return setup
 }
 func WriteBaz2bamBash(wr io.Writer, tc config.TopStruct, obj *PostprimaryObject) error {
 	t := CreateTemplate(Template_baz2bam, "")

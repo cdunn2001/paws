@@ -162,6 +162,7 @@ func WriteStringToFile(content string, fn string) {
 	check(err)
 	defer f.Close()
 	_, err = f.WriteString(content)
+	log.Printf("Wrote to %q:\n%s\n", fn, content)
 	check(err)
 }
 

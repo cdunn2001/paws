@@ -517,18 +517,10 @@ func startPostprimary(c *gin.Context, state *State) {
 	obj.ProcessStatus.Armed = false // always false for Postprimary
 	obj.ProcessStatus.Timestamp = TimestampNow()
 	state.Postprimaries[mid] = obj // TODO: Error if already running?
-	wr := new(bytes.Buffer)
-	if err = WriteBaz2bamBash(wr, config.Top(), obj); err != nil {
-		err = errors.Wrapf(err, "Error in WriteBaz2BamBash(%v, %v, %v)", wr, config.Top(), obj)
-		check(err)
-	}
-	if err = WriteReduceStatsBash(wr, config.Top(), obj); err != nil {
-		err = errors.Wrapf(err, "Error in WriteReduceStatsBash(%v, %v, %v)", wr, config.Top(), obj)
-		check(err)
-	}
-	log.Printf("Wrote:'%s'\n", wr.String())
+	setup := DumpPostprimaryScript(config.Top(), obj)
+	call := fmt.Sprintf("bash -vex %s", setup.ScriptFn)
 	stall := c.DefaultQuery("stall", "0")
-	cp := StartControlledShellProcess(wr.String(), &obj.ProcessStatus, stall)
+	cp := StartControlledShellProcess(call, &obj.ProcessStatus, stall)
 	pid := cp.cmd.Process.Pid
 	state.AllProcesses[pid] = cp
 	log.Printf("Started it\n")
