@@ -184,15 +184,45 @@ func CopyDefaultBasecallerConfig(dest_fn string) {
 	log.Printf("Copy basecaller config to file '%s'", dest_fn)
 	WriteStringToFile(defaultBasecallerConfig, dest_fn)
 }
+
+// Supports:
+//  file:/path   <- strips off file: and returns /path
+//  /path        <- returns /path
+//  localfile    <- I would like to drop support for this, but I don't want to break anything (MTL) I want all paths to be absolute.
+//  discard:     <- returns ""
+// eventually will support
+//  file://host/path  <- returns /path assuming the path is NFS mounted, otherwise panics
+//  http://host:port/storages/mid  <- will convert to a Linux path after being processed by the storages framework
+func TranslateUrl(url string) string {
+	if strings.HasPrefix(url, "/") {
+		return url
+	} else if strings.HasPrefix(url, "file://") {
+		// TODO skip the hostname field (i.e. file://hostname/path0/path1/path2 to /path0/path1/path2 )
+		panic("file:// not supported")
+	} else if strings.HasPrefix(url, "file:/") {
+		return url[5:]
+	} else if url == "discard:" {
+		return "" // or "/dev/null" ? not sure
+	} else if !strings.Contains(url, ":") {
+		return url
+	} else {
+		// TODO support http:/storages
+		msg := fmt.Sprintf("Unable to translate URL (%s) into linux path", url)
+		log.Printf(msg)
+		panic(msg)
+	}
+}
+
+// Translates the arguments into a command line option, or empty string if the URL is discardable.
+//  ex. Translate("--outputtrcfile", "discard:", ) returns ""
+//  ex. Translate("--foo","file:/bar") returns "--foo /bar"
+// Otherwise return the flag with the translated path.
 func TranslateDiscardableUrl(option string, url string) string {
-	// ex. Translate("discard:", "--outputtrcfile")
-	// If "discard:", then return "".
-	// Otherwise return the flag with the translated path.
-	if url == "discard:" {
+	path := TranslateUrl(url)
+	if path == "" {
 		return ""
 	} else {
-		// TODO: Convert from URL!
-		return fmt.Sprintf("%s %s", option, url)
+		return fmt.Sprintf("%s %s", option, path)
 	}
 }
 
@@ -207,6 +237,8 @@ var Template_basecaller = `
   {{.Local.optOutputBazFile}} \
   --config {{.Local.config_json_fn}} \
   --config source.WXIPCDataSourceConfig.sraIndex={{.Local.sra}} \
+  --config source.dataSource.darkCalFileName={{.Local.darkCalFileName}} \
+  --config source.dataSource.imagePsfKernel={{.Local.imagePsfKernel}} \
   --config system.analyzerHardware=A100 \
   --maxFrames {{.Local.maxFrames}} \
 `
@@ -239,6 +271,11 @@ func WriteBasecallerBash(wr io.Writer, tc config.TopStruct, obj *SocketBasecalle
 	kv["sra"] = strconv.Itoa(sra)
 	kv["config_json_fn"] = config_json_fn
 	kv["maxFrames"] = strconv.Itoa(int(obj.MovieMaxFrames))
+	kv["darkCalFileName"] = TranslateUrl(obj.DarkCalFileUrl)
+
+	raw, err := json.Marshal(obj.PixelSpreadFunction)
+	check(err)
+	kv["imagePsfKernel"] = string(raw)
 
 	// TODO: Fill these from tc.Values first?
 	if len(obj.TraceFileRoi) == 0 {
