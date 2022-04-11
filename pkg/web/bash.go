@@ -33,7 +33,7 @@ type TemplateSub struct {
 
 var Template_darkcal = `
 {{.Global.Binaries.Binary_pa_cal}} \
-  --statusfd 3 \
+  --statusfd 2 \
   --logoutput {{.Local.logoutput}} \
   --sra {{.Local.sra}} \
   --movieNum {{.Local.movieNum}} \
@@ -80,7 +80,7 @@ func WriteDarkcalBash(wr io.Writer, tc config.TopStruct, obj *SocketDarkcalObjec
 
 var Template_loadingcal = `
 {{.Global.Binaries.Binary_pa_cal}} \
-  --statusfd 3 \
+  --statusfd 2 \
   --logoutput {{.Local.logoutput}} \
   --sra {{.Local.sra}} \
   --movieNum {{.Local.movieNum}} \
@@ -232,7 +232,7 @@ func TranslateDiscardableUrl(option string, url string) string {
 var Template_basecaller = `
 {{.Global.Binaries.Binary_smrt_basecaller}} \
   {{.Local.optMultiple}} \
-  --statusfd 3 \
+  --statusfd 2 \
   {{.Local.optLogOutput}} \
   --logfilter INFO \
   {{.Local.optTraceFile}} \
@@ -347,7 +347,7 @@ var Template_baz2bam = `
   {{.Local.logoutput}} \
   {{.Local.logfilter}} \
   -o {{.Local.outputPrefix}} \
-  --statusfd 3 \
+  --statusfd 2 \
   {{.Local.metadata}} \
   --uuid {{.Local.acqId}} \
   -j 32 \
