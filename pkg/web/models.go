@@ -62,6 +62,12 @@ const (
 	Aborted                         = "ABORTED"
 )
 
+// Not intended for users, but possibly reported anyway, for debugging.
+type ProcessSetupObject struct {
+	RunDir   string
+	Host     string
+	ScriptFn string
+}
 type ProcessStatusObject struct {
 
 	// Status of the execution of the process
@@ -85,6 +91,7 @@ type ProcessStatusObject struct {
 	PID int `json:"PID"`
 
 	Progress ProgressMetricsObject
+	Setup    ProcessSetupObject
 }
 type ProgressMetricsObject struct {
 	Counter       uint64  `json:"counter"`
