@@ -345,7 +345,7 @@ func HasFullDataModel(content string) bool {
 func HandleMetadata(content string, outputPrefix string) string {
 	var metadata_xml, arg string
 	gotFullDataModel := HasFullDataModel(content)
-	if gotFullDataModel {
+	if !gotFullDataModel {
 		metadata_xml = outputPrefix + ".metadata.subreadset.xml"
 		arg = "--subreadset " + metadata_xml
 	} else {
