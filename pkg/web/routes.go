@@ -1,12 +1,10 @@
 package web
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"github.com/coreos/go-systemd/v22/daemon"
 	"github.com/gin-gonic/gin"
-	"github.com/pkg/errors"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -253,16 +251,9 @@ func startBasecallerBySocketId(c *gin.Context, state *State) {
 	obj.ProcessStatus.Armed = false
 	obj.ProcessStatus.Timestamp = TimestampNow()
 	state.Basecallers[id] = obj // TODO: Error if already running?
-	wr := new(bytes.Buffer)
-	if err = WriteBasecallerBash(wr, config.Top(), obj, id); err != nil {
-		err = errors.Wrapf(err, "Error in WriteBasecallerBash(%v, %v, %v, %v)", wr, config.Top(), obj, id)
-		check(err)
-		//c.String(http.StatusInternalServerError, "Error generating bash.\n%v\n", err)
-		//return
-	}
-	log.Printf("Wrote:'%s'\n", wr.String())
-	stall := c.DefaultQuery("stall", "0")
-	cp := StartControlledShellProcess(wr.String(), &obj.ProcessStatus, stall)
+	setup := DumpBasecallerScript(config.Top(), obj, id)
+	setup.Stall = c.DefaultQuery("stall", "0")
+	cp := StartControlledShellProcess(setup, &obj.ProcessStatus)
 	pid := cp.cmd.Process.Pid
 	state.AllProcesses[pid] = cp
 	log.Printf("Started it\n")
@@ -338,16 +329,9 @@ func startDarkcalBySocketId(c *gin.Context, state *State) {
 	obj.ProcessStatus.Armed = false
 	obj.ProcessStatus.Timestamp = TimestampNow()
 	state.Darkcals[id] = obj // TODO: Error if already running?
-	wr := new(bytes.Buffer)
-	if err := WriteDarkcalBash(wr, config.Top(), obj, id); err != nil {
-		err = errors.Wrapf(err, "Error in WriteDarkcalBash(%v, %v, %v, %v)", wr, config.Top(), obj, id)
-		check(err)
-		//c.String(http.StatusInternalServerError, "Error generating bash.\n%v\n", err)
-		//return
-	}
-	log.Printf("Wrote:'%s'\n", wr.String())
-	stall := c.DefaultQuery("stall", "0")
-	cp := StartControlledShellProcess(wr.String(), &obj.ProcessStatus, stall)
+	setup := DumpDarkcalScript(config.Top(), obj, id)
+	setup.Stall = c.DefaultQuery("stall", "0")
+	cp := StartControlledShellProcess(setup, &obj.ProcessStatus)
 	pid := cp.cmd.Process.Pid
 	state.AllProcesses[pid] = cp
 	log.Printf("Started it\n")
@@ -425,16 +409,9 @@ func startLoadingcalBySocketId(c *gin.Context, state *State) {
 	obj.ProcessStatus.Armed = false
 	obj.ProcessStatus.Timestamp = TimestampNow()
 	state.Loadingcals[id] = obj // TODO: Error if already running?
-	wr := new(bytes.Buffer)
-	if err := WriteLoadingcalBash(wr, config.Top(), obj, id); err != nil {
-		err = errors.Wrapf(err, "Error in WriteLoadingcalBash(%v, %v, %v, %v)", wr, config.Top(), obj, id)
-		check(err)
-		//c.String(http.StatusInternalServerError, "Error generating bash.\n%v\n", err)
-		//return
-	}
-	log.Printf("Wrote:'%s'\n", wr.String())
-	stall := c.DefaultQuery("stall", "0")
-	cp := StartControlledShellProcess(wr.String(), &obj.ProcessStatus, stall)
+	setup := DumpLoadingcalScript(config.Top(), obj, id)
+	setup.Stall = c.DefaultQuery("stall", "0")
+	cp := StartControlledShellProcess(setup, &obj.ProcessStatus)
 	pid := cp.cmd.Process.Pid
 	state.AllProcesses[pid] = cp
 	log.Printf("Started it\n")
@@ -518,9 +495,8 @@ func startPostprimary(c *gin.Context, state *State) {
 	obj.ProcessStatus.Timestamp = TimestampNow()
 	state.Postprimaries[mid] = obj // TODO: Error if already running?
 	setup := DumpPostprimaryScript(config.Top(), obj)
-	call := fmt.Sprintf("bash -vex %s", setup.ScriptFn)
-	stall := c.DefaultQuery("stall", "0")
-	cp := StartControlledShellProcess(call, &obj.ProcessStatus, stall)
+	setup.Stall = c.DefaultQuery("stall", "0")
+	cp := StartControlledShellProcess(setup, &obj.ProcessStatus)
 	pid := cp.cmd.Process.Pid
 	state.AllProcesses[pid] = cp
 	log.Printf("Started it\n")

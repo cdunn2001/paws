@@ -100,6 +100,9 @@ func ProgressMetricsObjectFromStatusReport(sr StatusReport) ProgressMetricsObjec
 // them to waste "stall" seconds (float).
 // The result is suitable for 'env' arg of WatchBash().
 func DummyEnv(stall string) (result []string) {
+	if stall == "" {
+		stall = "0"
+	}
 	secs, err := strconv.ParseFloat(stall, 32)
 	if err != nil {
 		return result
@@ -127,8 +130,9 @@ type ControlledProcess struct {
 	chanComplete chan bool
 }
 
-func StartControlledShellProcess(bash string, ps *ProcessStatusObject, stall string) (result *ControlledProcess) {
-	env := DummyEnv(stall)
+func StartControlledShellProcess(setup ProcessSetupObject, ps *ProcessStatusObject) (result *ControlledProcess) {
+	bash := fmt.Sprintf("bash -vex %s", setup.ScriptFn)
+	env := DummyEnv(setup.Stall)
 	result, err := WatchBash(bash, ps, env)
 	if err != nil {
 		panic(err)

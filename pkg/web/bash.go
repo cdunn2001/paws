@@ -409,6 +409,48 @@ func GetPostprimaryHost(obj *PostprimaryObject) string {
 func GetPostprimaryRunDir(obj *PostprimaryObject) string {
 	return "."
 }
+func DumpBasecallerScript(tc config.TopStruct, obj *SocketBasecallerObject, id string) ProcessSetupObject {
+	setup := ProcessSetupObject{}
+	setup.Host = "localhost"
+	setup.RunDir = "."
+	setup.ScriptFn = filepath.Join(setup.RunDir, "myrun.sh")
+	wr := new(bytes.Buffer)
+	if err := WriteBasecallerBash(wr, config.Top(), obj, id); err != nil {
+		err = errors.Wrapf(err, "Error in WriteBasecallerBash(%v, %v, %v, %v)", wr, config.Top(), obj, id)
+		check(err)
+		//c.String(http.StatusInternalServerError, "Error generating bash.\n%v\n", err)
+		//return
+	}
+	return setup
+}
+func DumpDarkcalScript(tc config.TopStruct, obj *SocketDarkcalObject, id string) ProcessSetupObject {
+	setup := ProcessSetupObject{}
+	setup.Host = "localhost"
+	setup.RunDir = "."
+	setup.ScriptFn = filepath.Join(setup.RunDir, "myrun.sh")
+	wr := new(bytes.Buffer)
+	if err := WriteDarkcalBash(wr, config.Top(), obj, id); err != nil {
+		err = errors.Wrapf(err, "Error in WriteDarkcalBash(%v, %v, %v, %v)", wr, config.Top(), obj, id)
+		check(err)
+		//c.String(http.StatusInternalServerError, "Error generating bash.\n%v\n", err)
+		//return
+	}
+	return setup
+}
+func DumpLoadingcalScript(tc config.TopStruct, obj *SocketLoadingcalObject, id string) ProcessSetupObject {
+	setup := ProcessSetupObject{}
+	setup.Host = "localhost"
+	setup.RunDir = "."
+	setup.ScriptFn = filepath.Join(setup.RunDir, "myrun.sh")
+	wr := new(bytes.Buffer)
+	if err := WriteLoadingcalBash(wr, config.Top(), obj, id); err != nil {
+		err = errors.Wrapf(err, "Error in WriteLoadingcalBash(%v, %v, %v, %v)", wr, config.Top(), obj, id)
+		check(err)
+		//c.String(http.StatusInternalServerError, "Error generating bash.\n%v\n", err)
+		//return
+	}
+	return setup
+}
 func DumpPostprimaryScript(tc config.TopStruct, obj *PostprimaryObject) ProcessSetupObject {
 	setup := ProcessSetupObject{}
 	setup.Host = GetPostprimaryHost(obj)
