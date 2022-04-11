@@ -122,3 +122,19 @@ smrt-basecaller-launch.sh \
 		}
 	}
 }
+func TestGetPostprimaryHostname(t *testing.T) {
+	{
+		got := GetPostprimaryHostname("snafu", "/data/nrta/5")
+		expected := ""
+		if got != expected {
+			t.Errorf("Got %q\nNot %q", got, expected)
+		}
+	}
+	{
+		got := GetPostprimaryHostname("rt-84006.fubar.com", "/data/nrta/5")
+		expected := "nrta-84006.fubar.com"
+		if got != expected {
+			t.Errorf("Got %q\nNot %q", got, expected)
+		}
+	}
+}

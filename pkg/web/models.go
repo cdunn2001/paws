@@ -65,7 +65,7 @@ const (
 // Not intended for users, but possibly reported anyway, for debugging.
 type ProcessSetupObject struct {
 	RunDir   string
-	Host     string
+	Hostname string
 	ScriptFn string
 	Stall    string
 }

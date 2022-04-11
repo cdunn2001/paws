@@ -44,8 +44,12 @@ func TestCont(t *testing.T) {
 	bash := testdataDir + "/dummy-basic.sh --status-fd 3"
 	//bash := testdataDir + "/dummy-pa-cal.sh --statusfd 3"
 	ps := &ProcessStatusObject{}
-	stall := "0" //"0.3"
-	_ = StartControlledShellProcess(bash, ps, stall)
+	setup := ProcessSetupObject{
+		Stall:    "0",        //"0.3"
+		ScriptFn: "where.sh", // TODO: Clean up this file!
+	}
+	WriteStringToFile(bash, setup.ScriptFn)
+	_ = StartControlledShellProcess(setup, ps)
 	/*
 		result, _ := WatchBash(bash, ps, nil)
 		select {
