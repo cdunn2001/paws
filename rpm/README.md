@@ -9,3 +9,8 @@ We need the following inside the RPM:
 For more info, see
 
 * https://confluence.pacificbiosciences.com/display/PA/Paws+Deployment
+
+Release Notes
+
+
+1.0.14 - Fixed the arguments passed to smrt-basecaller involving dark cal and image PSF. Requires smrt-basecaller 0.1.11 at a minimum.
