@@ -221,6 +221,8 @@ func TranslateDiscardableUrl(option string, url string) string {
 	path := TranslateUrl(url)
 	if path == "" {
 		return ""
+	} else if strings.Contains(option,"=") {
+		return fmt.Sprintf("%s%s", option, path)
 	} else {
 		return fmt.Sprintf("%s %s", option, path)
 	}
@@ -237,8 +239,8 @@ var Template_basecaller = `
   {{.Local.optOutputBazFile}} \
   --config {{.Local.config_json_fn}} \
   --config source.WXIPCDataSourceConfig.sraIndex={{.Local.sra}} \
-  --config source.dataSource.darkCalFileName={{.Local.darkCalFileName}} \
-  --config source.dataSource.imagePsfKernel={{.Local.imagePsfKernel}} \
+  {{.Local.optDarkCalFileName}} \
+  {{.Local.optImagePsfKernel}} \
   --config system.analyzerHardware=A100 \
   --maxFrames {{.Local.maxFrames}} \
 `
@@ -271,11 +273,15 @@ func WriteBasecallerBash(wr io.Writer, tc config.TopStruct, obj *SocketBasecalle
 	kv["sra"] = strconv.Itoa(sra)
 	kv["config_json_fn"] = config_json_fn
 	kv["maxFrames"] = strconv.Itoa(int(obj.MovieMaxFrames))
-	kv["darkCalFileName"] = TranslateUrl(obj.DarkCalFileUrl)
+	kv["optDarkCalFileName"] = TranslateDiscardableUrl("--config dataSource.darkCalFileName=",obj.DarkCalFileUrl)
 
 	raw, err := json.Marshal(obj.PixelSpreadFunction)
 	check(err)
-	kv["imagePsfKernel"] = string(raw)
+	if len(raw) == 0 {
+		kv["optIimagePsfKernel"] = ""
+	} else {
+		kv["optImagePsfKernel"] = "--config dataSource.imagePsfKernel="+string(raw)
+	}
 
 	// TODO: Fill these from tc.Values first?
 	if len(obj.TraceFileRoi) == 0 {

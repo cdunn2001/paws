@@ -17,5 +17,5 @@ For most up-to-date docs, see "pawsgo for dummies":
 
 ## Update semantic version
 
-Simply modify the VERSION line of the `makefile`. (The git sha1 will be
+Simply modify the VERSION line of the `rpm/makefile`. (The git sha1 will be
 appended automaically.)
