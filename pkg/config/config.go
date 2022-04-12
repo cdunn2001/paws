@@ -1,5 +1,9 @@
 package config
 
+import (
+	"os"
+)
+
 var Version string = "0.0.0-local-non-release"
 
 type BinaryPaths struct {
@@ -19,6 +23,7 @@ type ValuesConfig struct {
 type TopStruct struct {
 	Values   ValuesConfig
 	Binaries BinaryPaths
+	Hostname string
 	flat     map[string]string // someday maybe put all here?
 }
 
@@ -35,12 +40,15 @@ func FindBinaries() BinaryPaths {
 }
 
 func init() {
+	hostname, err := os.Hostname()
+	check(err)
 	top = TopStruct{
 		Binaries: FindBinaries(),
 		Values: ValuesConfig{
 			DefaultFrameRate: 100.0, // fps
 			JustOneBazFile:   true,
 		},
+		Hostname: hostname,
 	}
 	top.flat = make(map[string]string)
 	top.flat["Binary_baz2bam"] = top.Binaries.Binary_baz2bam

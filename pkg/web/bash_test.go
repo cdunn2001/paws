@@ -71,7 +71,7 @@ func TestWriteBasecallerBash(t *testing.T) {
 		expected := `
 smrt-basecaller-launch.sh \
   --config multipleBazFiles=false \
-  --statusfd 3 \
+  --statusfd 2 \
   --logoutput /data/nrta/0/m84003_220325_032134_s1.basecaller.log \
   --logfilter INFO \
   --outputtrcfile /data/nrta/0/m84003_220325_032134_s1.trc.h5 \
@@ -99,7 +99,7 @@ smrt-basecaller-launch.sh \
 		expected := `
 smrt-basecaller-launch.sh \
   --config multipleBazFiles=false \
-  --statusfd 3 \
+  --statusfd 2 \
   --logoutput /data/nrta/0/m84003_220325_032134_s1.basecaller.log \
   --logfilter INFO \
    \
@@ -119,6 +119,22 @@ smrt-basecaller-launch.sh \
 		got := b.String()
 		if got != expected {
 			t.Errorf("Got %s", got)
+		}
+	}
+}
+func TestGetPostprimaryHostname(t *testing.T) {
+	{
+		got := GetPostprimaryHostname("snafu", "/data/nrta/5")
+		expected := ""
+		if got != expected {
+			t.Errorf("Got %q\nNot %q", got, expected)
+		}
+	}
+	{
+		got := GetPostprimaryHostname("rt-84006.fubar.com", "/data/nrta/5")
+		expected := "nrta"
+		if got != expected {
+			t.Errorf("Got %q\nNot %q", got, expected)
 		}
 	}
 }

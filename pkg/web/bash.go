@@ -1,6 +1,7 @@
 package web
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"github.com/pkg/errors"
@@ -32,7 +33,7 @@ type TemplateSub struct {
 
 var Template_darkcal = `
 {{.Global.Binaries.Binary_pa_cal}} \
-  --statusfd 3 \
+  --statusfd 2 \
   --logoutput {{.Local.logoutput}} \
   --sra {{.Local.sra}} \
   --movieNum {{.Local.movieNum}} \
@@ -79,7 +80,7 @@ func WriteDarkcalBash(wr io.Writer, tc config.TopStruct, obj *SocketDarkcalObjec
 
 var Template_loadingcal = `
 {{.Global.Binaries.Binary_pa_cal}} \
-  --statusfd 3 \
+  --statusfd 2 \
   --logoutput {{.Local.logoutput}} \
   --sra {{.Local.sra}} \
   --movieNum {{.Local.movieNum}} \
@@ -231,7 +232,7 @@ func TranslateDiscardableUrl(option string, url string) string {
 var Template_basecaller = `
 {{.Global.Binaries.Binary_smrt_basecaller}} \
   {{.Local.optMultiple}} \
-  --statusfd 3 \
+  --statusfd 2 \
   {{.Local.optLogOutput}} \
   --logfilter INFO \
   {{.Local.optTraceFile}} \
@@ -346,7 +347,7 @@ var Template_baz2bam = `
   {{.Local.logoutput}} \
   {{.Local.logfilter}} \
   -o {{.Local.outputPrefix}} \
-  --statusfd 3 \
+  --statusfd 2 \
   {{.Local.metadata}} \
   --uuid {{.Local.acqId}} \
   -j 32 \
@@ -401,6 +402,94 @@ func HandleMetadata(content string, outputPrefix string) string {
 	log.Printf("Metadatafile:'%s'", metadata_xml)
 	WriteMetadata(metadata_xml, content)
 	return arg
+}
+func GetPostprimaryHostname(hostname string, rundir string) string {
+	if strings.HasPrefix(hostname, "rt") {
+		// Substitute "nrt(a|b)" for "rt".
+		ab := ""
+		if strings.Contains(rundir, "nrta") {
+			ab = "a"
+		} else if strings.Contains(rundir, "nrtb") {
+			ab = "b"
+		} else {
+            panic("rundir cant be deciphered" + rundir)
+        }
+		nrt := "nrt" + ab
+		return nrt
+	} else {
+		return ""
+	}
+}
+func DumpBash(setup ProcessSetupObject, bash string) {
+	// For now, ignore RunDir. (Needs work.) Use cwd.
+	//absRunDir, err := filepath.Abs(setup.RunDir)
+	absRunDir, err := os.Getwd()
+	check(err)
+	content := "set -vex\n"
+	content += "cd " + absRunDir + "\n"
+	content += "export PATH=" + os.Getenv("PATH") + ":$PATH"
+	content += bash
+	WriteStringToFile(content, setup.ScriptFn)
+}
+func DumpBasecallerScript(tc config.TopStruct, obj *SocketBasecallerObject, id string) ProcessSetupObject {
+	setup := ProcessSetupObject{}
+	rundir := filepath.Dir(TranslateUrl(obj.BazUrl))
+	setup.RunDir = rundir
+	setup.ScriptFn = filepath.Join(setup.RunDir, "run.basecaller.sh")
+	setup.Hostname = ""
+	wr := new(bytes.Buffer)
+	if err := WriteBasecallerBash(wr, config.Top(), obj, id); err != nil {
+		err = errors.Wrapf(err, "Error in WriteBasecallerBash(%v, %v, %v, %v)", wr, config.Top(), obj, id)
+		check(err)
+	}
+	DumpBash(setup, wr.String())
+	return setup
+}
+func DumpDarkcalScript(tc config.TopStruct, obj *SocketDarkcalObject, id string) ProcessSetupObject {
+	setup := ProcessSetupObject{}
+	rundir := filepath.Dir(TranslateUrl(obj.CalibFileUrl))
+	setup.RunDir = rundir
+	setup.ScriptFn = filepath.Join(setup.RunDir, "run.darkcal.sh")
+	setup.Hostname = ""
+	wr := new(bytes.Buffer)
+	if err := WriteDarkcalBash(wr, config.Top(), obj, id); err != nil {
+		err = errors.Wrapf(err, "Error in WriteDarkcalBash(%v, %v, %v, %v)", wr, config.Top(), obj, id)
+		check(err)
+	}
+	DumpBash(setup, wr.String())
+	return setup
+}
+func DumpLoadingcalScript(tc config.TopStruct, obj *SocketLoadingcalObject, id string) ProcessSetupObject {
+	setup := ProcessSetupObject{}
+	rundir := filepath.Dir(TranslateUrl(obj.CalibFileUrl))
+	setup.RunDir = rundir
+	setup.ScriptFn = filepath.Join(setup.RunDir, "run.loadingcal.sh")
+	setup.Hostname = ""
+	wr := new(bytes.Buffer)
+	if err := WriteLoadingcalBash(wr, config.Top(), obj, id); err != nil {
+		err = errors.Wrapf(err, "Error in WriteLoadingcalBash(%v, %v, %v, %v)", wr, config.Top(), obj, id)
+		check(err)
+	}
+	DumpBash(setup, wr.String())
+	return setup
+}
+func DumpPostprimaryScript(tc config.TopStruct, obj *PostprimaryObject) ProcessSetupObject {
+	setup := ProcessSetupObject{}
+	rundir := filepath.Dir(TranslateUrl(obj.OutputPrefixUrl))
+	setup.RunDir = rundir
+	setup.ScriptFn = filepath.Join(setup.RunDir, "run.ppa.sh")
+	setup.Hostname = GetPostprimaryHostname(tc.Hostname, obj.BazFileUrl )
+	wr := new(bytes.Buffer)
+	if err := WriteBaz2bamBash(wr, config.Top(), obj); err != nil {
+		err = errors.Wrapf(err, "Error in WriteBaz2BamBash(%v, %v, %v)", wr, config.Top(), obj)
+		check(err)
+	}
+	if err := WriteReduceStatsBash(wr, config.Top(), obj); err != nil {
+		err = errors.Wrapf(err, "Error in WriteReduceStatsBash(%v, %v, %v)", wr, config.Top(), obj)
+		check(err)
+	}
+	DumpBash(setup, wr.String())
+	return setup
 }
 func WriteBaz2bamBash(wr io.Writer, tc config.TopStruct, obj *PostprimaryObject) error {
 	t := CreateTemplate(Template_baz2bam, "")
@@ -501,4 +590,14 @@ func WriteReduceStatsBash(wr io.Writer, tc config.TopStruct, obj *PostprimaryObj
 		Global: tc,
 	}
 	return t.Execute(wr, &ts)
+}
+func CheckBaz2bam(tc config.TopStruct) {
+	call := fmt.Sprintf("which %s; %s --version",
+		tc.Binaries.Binary_baz2bam,
+		tc.Binaries.Binary_baz2bam)
+	//hostname = GetPostprimaryHostname(tc.Hostname, "/data/nrta")
+	//captured := CaptureRemoteBash(hostname, call)
+	captured := CaptureBash(call)
+	log.Printf("Captured:%s\n", captured)
+	os.Exit(0)
 }
