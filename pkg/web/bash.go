@@ -221,7 +221,7 @@ func TranslateDiscardableUrl(option string, url string) string {
 	path := TranslateUrl(url)
 	if path == "" {
 		return ""
-	} else if strings.Contains(option,"=") {
+	} else if strings.Contains(option, "=") {
 		return fmt.Sprintf("%s%s", option, path)
 	} else {
 		return fmt.Sprintf("%s %s", option, path)
@@ -273,15 +273,18 @@ func WriteBasecallerBash(wr io.Writer, tc config.TopStruct, obj *SocketBasecalle
 	kv["sra"] = strconv.Itoa(sra)
 	kv["config_json_fn"] = config_json_fn
 	kv["maxFrames"] = strconv.Itoa(int(obj.MovieMaxFrames))
-	kv["optDarkCalFileName"] = TranslateDiscardableUrl("--config dataSource.darkCalFileName=",obj.DarkCalFileUrl)
+	kv["optDarkCalFileName"] = TranslateDiscardableUrl("--config dataSource.darkCalFileName=", obj.DarkCalFileUrl)
 
 	raw, err := json.Marshal(obj.PixelSpreadFunction)
 	check(err)
 	if len(raw) == 0 {
-		kv["optIimagePsfKernel"] = ""
+		kv["optImagePsfKernel"] = ""
 	} else {
-		kv["optImagePsfKernel"] = "--config dataSource.imagePsfKernel="+string(raw)
+		kv["optImagePsfKernel"] = "--config dataSource.imagePsfKernel=" + string(raw)
 	}
+	log.Printf("WARNING: imagePsfKernel and darkCallFileName are currently suppressed for basecaller.")
+	kv["optImagePsfKernel"] = ""
+	kv["optDarkCalFileName"] = ""
 
 	// TODO: Fill these from tc.Values first?
 	if len(obj.TraceFileRoi) == 0 {

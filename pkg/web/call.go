@@ -127,7 +127,7 @@ type ControlledProcess struct {
 	chanComplete chan bool
 }
 
-func StartControlledBashProcess(bash string, ps *ProcessStatusObject, stall string) (result *ControlledProcess) {
+func StartControlledShellProcess(bash string, ps *ProcessStatusObject, stall string) (result *ControlledProcess) {
 	env := DummyEnv(stall)
 	result, err := WatchBash(bash, ps, env)
 	if err != nil {
@@ -230,6 +230,196 @@ func FirstWord(sentence string) string {
 	} else {
 		return words[0]
 	}
+}
+func WatchBashStderr(bash string, ps *ProcessStatusObject, envExtra []string) (*ControlledProcess, error) {
+	rpipe, wpipe, err := os.Pipe()
+	if err != nil {
+		return nil, err
+	}
+	extraFiles := []*os.File{wpipe} // becomes fd 3 in child
+
+	{
+		prog := FirstWord(bash)
+		log.Printf("which %s: ", prog)
+		out, err := exec.Command("which", prog).Output()
+		if err != nil {
+			log.Printf("%s\n", err)
+			log.Println("PATH:", os.Getenv("PATH"))
+		} else {
+			log.Println(string(out))
+		}
+	}
+
+	temp_dn, err := ioutil.TempDir("", "WatchBash.*.tmpdir")
+	if err != nil {
+		temp_dn = "very.tempdir"
+		log.Printf("ERROR Weirdly unable to create TempDir(): %#v\nTrying '%s' instead.\n",
+			err, temp_dn)
+		err = os.MkdirAll(temp_dn, 0777)
+		check(err)
+	}
+	stdout_fn := filepath.Join(temp_dn, "stdout.txt")
+	stderr_fn := filepath.Join(temp_dn, "stderr.txt")
+	bash = bash + " >" + stdout_fn + " 2> " + stderr_fn
+	log.Println("bash:", bash)
+	//fn := "/home/UNIXHOME/cdunn/repo/bb/paws/tmp/run.sh"
+	//WriteStringToFile(bash, fn)
+	//cmd := exec.Command("/bin/bash", fn)
+	env := os.Environ()
+	env = append(env, envExtra...)
+
+	cmd := exec.Command("/bin/bash", "-c", bash)
+	cmd.Env = env
+	cmd.ExtraFiles = extraFiles
+	cmd.Start()
+	mustClose := func(f *os.File) {
+		err = f.Close()
+		check(err)
+	}
+	// immediately close our dup'ed fds (write end of our signal pipe)
+	for _, f := range extraFiles {
+		mustClose(f)
+	}
+	chanStatusReportText := make(chan string)
+	chanDone := make(chan bool)
+	chanComplete := make(chan bool)
+	chanKill := make(chan bool)
+
+	cbp := &ControlledProcess{
+		cmd:          cmd,
+		status:       ps,
+		temp_dn:      temp_dn,
+		stdout_fn:    stdout_fn,
+		stderr_fn:    stderr_fn,
+		chanKill:     chanKill,
+		chanComplete: chanComplete,
+	}
+	cbp.status.ExecutionStatus = Running // TODO: Make this thread-safe!!!
+	cbp.status.Armed = false             //     : ditto
+
+	go func() {
+		pid := int(cmd.Process.Pid)
+		var timeout float64 = 10.0 // seconds
+		log.Printf("PID: %d Started timeout go-func with timeout=%f\n", pid, timeout)
+		timedout := false
+		done := false
+		for !done && !timedout {
+			select {
+			case <-time.After(time.Duration((timeout + 0.01) * float64(time.Second))):
+				timedout = true
+				log.Printf("PID: %d Timed out! Killing.\n", pid)
+				cmd.Process.Kill() // TODO: What happens if not running? Also, check sub-children, or maybe ssid.
+			case <-chanKill:
+				log.Printf("PID: %d Got chanKill. Killing.\n", pid)
+				cmd.Process.Kill() // TODO: What happens if not running? Also, check sub-children, or maybe ssid.
+				done = true
+			case <-chanDone:
+				done = true
+				log.Printf("PID: %d Got chanDone!\n", pid)
+			case srText := <-chanStatusReportText:
+				sr, err := String2StatusReport(srText)
+				if err != nil {
+					// Count as a heartbeat, but do not update timeout.
+					log.Printf("PID: %d Unparseable status:\n%s\n", pid, srText)
+				} else if sr.State == "exception" {
+					// Count as a heartbeat, but do not update timeout.
+					log.Printf("PID: %d Status exception:%s\n", pid, srText)
+
+					// TODO: Make this thread-safe!!!
+					//cbp.status.Timestamp = sr.Timestamp
+					cbp.status.Timestamp = TimestampNow() // Much better if paws sets this.
+					// Do not update ProgressMetricsObject on exceptions?
+				} else {
+					// Count as a heartbeat and update timeout.
+					if sr.TimeoutForNextStatus > 0.0 {
+						timeout = sr.TimeoutForNextStatus
+						log.Printf("PID: %d timeout is now %f\n", pid, timeout)
+					} else {
+						log.Printf("PID: %d Ignoring TimeoutForNextStatus %f\n", pid, sr.TimeoutForNextStatus)
+					}
+
+					// TODO: Make this thread-safe!!!
+					cbp.status.Timestamp = TimestampNow() // Much better if paws sets this.
+
+					cbp.status.Armed = sr.Ready // Yes, "Ready" means something different here.
+					cbp.status.Progress = ProgressMetricsObjectFromStatusReport(sr)
+				}
+			}
+		}
+		if timedout {
+			log.Printf("PID: %d Timedout?\n", pid)
+		} else if done {
+			log.Printf("PID: %d Done?\n", pid)
+		} else {
+			log.Printf("PID: %d Not sure why we stopped watching it.\n", pid)
+		}
+		log.Printf("PID: %d Waiting...\n", pid)
+		err := cmd.Wait()
+		log.Printf("PID: %d Done waiting. Exit:%v\n", pid, err)
+
+		// TODO: Make these thread-safe!!!
+		cbp.status.ExecutionStatus = Complete
+		cbp.status.Armed = false // TODO: Does it matter here?
+		cbp.status.Timestamp = TimestampNow()
+		cbp.status.ExitCode = int32(cmd.ProcessState.ExitCode())
+
+		if !cmd.ProcessState.Exited() {
+			// Must have been signaled.
+			cbp.status.CompletionStatus = Aborted
+		} else if !cmd.ProcessState.Success() {
+			cbp.status.CompletionStatus = Failed
+		} else {
+			cbp.status.CompletionStatus = Success
+		}
+		logContent(cbp.stdout_fn, "stdout")
+		logContent(cbp.stderr_fn, "stderr")
+		defer cbp.cleanup()
+		chanComplete <- true
+	}()
+	go func() {
+		pid := int(cmd.Process.Pid)
+		log.Printf("PID: %d Started scanner go-func\n", pid)
+		breader := bufio.NewReader(rpipe)
+		defer rpipe.Close()
+		var err error = nil
+		//time.Sleep(1.0 * time.Second)
+		for err == nil {
+			text := ""
+			line := []byte{}
+			isPrefix := true
+			for isPrefix {
+				line, isPrefix, err = breader.ReadLine()
+				if err != nil {
+					if err != io.EOF {
+						// Unexpected error. // TODO: What else is ok here?
+						log.Printf("PID: %d Unexpected error from Readline():'%+v'\n", pid, err)
+						//check(err)
+					}
+					log.Printf("PID: %d End of file. Done reading status-reports. isPrefix:%t, line:'%s'\n", pid, isPrefix, line)
+					break
+				}
+				text = text + string(line)
+			}
+			log.Printf("PID: %d Got:%s\n", pid, text)
+			if err == io.EOF {
+				break
+			}
+			chanStatusReportText <- text
+		}
+
+		process, err := os.FindProcess(pid)
+		if err != nil {
+			log.Printf("PID: %d Failed FindProcess: %s\n", pid, err)
+		} else {
+			err := process.Signal(syscall.Signal(0))
+			log.Printf("PID: %d process.Signal returned: %v\n", pid, err)
+		}
+
+		chanDone <- true
+		//close(chanStatusReportText) // TODO? Somehow?
+	}()
+
+	return cbp, nil
 }
 func WatchBash(bash string, ps *ProcessStatusObject, envExtra []string) (*ControlledProcess, error) {
 	rpipe, wpipe, err := os.Pipe()
