@@ -523,6 +523,7 @@ func WatchBash(bash string, ps *ProcessStatusObject, envExtra []string) (*Contro
 					// Count as a heartbeat and update timeout.
 					if sr.TimeoutForNextStatus > 0.0 {
 						timeout = sr.TimeoutForNextStatus
+						timeout = timeout * 100
 						log.Printf("PID: %d timeout is now %f\n", pid, timeout)
 					} else {
 						log.Printf("PID: %d Ignoring TimeoutForNextStatus %f\n", pid, sr.TimeoutForNextStatus)

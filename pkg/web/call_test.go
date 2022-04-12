@@ -83,7 +83,7 @@ func TestWatchBashKill(t *testing.T) {
 	env := []string{
 		"STATUS_COUNT=3",
 		"STATUS_DELAY_SECONDS=0.05", // Note: ".05" would not be valid.
-		"STATUS_TIMEOUT=0.001",
+		"STATUS_TIMEOUT=0.00001",
 	}
 	ps := &ProcessStatusObject{}
 	cp, err := WatchBash(bash, ps, env)
