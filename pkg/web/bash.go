@@ -407,11 +407,13 @@ func GetPostprimaryHostname(hostname string, rundir string) string {
 	if strings.HasPrefix(hostname, "rt") {
 		// Substitute "nrt(a|b)" for "rt".
 		ab := ""
-		if strings.Contains(rundir, "/nrta") {
+		if strings.Contains(rundir, "nrta") {
 			ab = "a"
-		} else if strings.Contains(rundir, "/nrtb") {
+		} else if strings.Contains(rundir, "nrtb") {
 			ab = "b"
-		}
+		} else {
+            panic("rundir cant be deciphered" + rundir)
+        }
 		nrt := "nrt" + ab
 		return nrt
 	} else {
@@ -476,7 +478,7 @@ func DumpPostprimaryScript(tc config.TopStruct, obj *PostprimaryObject) ProcessS
 	rundir := filepath.Dir(TranslateUrl(obj.OutputPrefixUrl))
 	setup.RunDir = rundir
 	setup.ScriptFn = filepath.Join(setup.RunDir, "run.ppa.sh")
-	setup.Hostname = GetPostprimaryHostname(tc.Hostname, setup.RunDir)
+	setup.Hostname = GetPostprimaryHostname(tc.Hostname, obj.BazFileUrl )
 	wr := new(bytes.Buffer)
 	if err := WriteBaz2bamBash(wr, config.Top(), obj); err != nil {
 		err = errors.Wrapf(err, "Error in WriteBaz2BamBash(%v, %v, %v)", wr, config.Top(), obj)
