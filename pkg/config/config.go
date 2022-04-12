@@ -21,6 +21,7 @@ type ValuesConfig struct {
 	JustOneBazFile           bool
 	ApplyDarkCal             bool
 	ApplyCrosstalkCorrection bool
+	PawsTimeoutMultiplier    float64
 }
 
 //type StringMap map[string]string // would hide map as 'reference' type
@@ -59,6 +60,7 @@ func init() {
 			JustOneBazFile:           true,
 			ApplyDarkCal:             true,
 			ApplyCrosstalkCorrection: true,
+			PawsTimeoutMultiplier:    1.0,
 		},
 		Hostname: hostname,
 	}

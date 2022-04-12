@@ -11,6 +11,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"pacb.com/seq/paws/pkg/config"
 	"path/filepath"
 	"regexp"
 	"strconv"
@@ -252,6 +253,7 @@ func FirstWord(sentence string) string {
 	}
 }
 func WatchBashStderr(bash string, ps *ProcessStatusObject, envExtra []string) (*ControlledProcess, error) {
+	TIMEOUT_MULTIPLIER := config.Top().Values.PawsTimeoutMultiplier
 	{
 		prog := FirstWord(bash)
 		log.Printf("which %s: ", prog)
@@ -347,6 +349,7 @@ func WatchBashStderr(bash string, ps *ProcessStatusObject, envExtra []string) (*
 					// Count as a heartbeat and update timeout.
 					if sr.TimeoutForNextStatus > 0.0 {
 						timeout = sr.TimeoutForNextStatus
+						timeout = timeout * TIMEOUT_MULTIPLIER
 						log.Printf("PID: %d timeout is now %f\n", pid, timeout)
 					} else {
 						log.Printf("PID: %d Ignoring TimeoutForNextStatus %f\n", pid, sr.TimeoutForNextStatus)
@@ -438,6 +441,7 @@ func WatchBashStderr(bash string, ps *ProcessStatusObject, envExtra []string) (*
 	return cbp, nil
 }
 func WatchBash(bash string, ps *ProcessStatusObject, envExtra []string) (*ControlledProcess, error) {
+	TIMEOUT_MULTIPLIER := config.Top().Values.PawsTimeoutMultiplier
 	rpipe, wpipe, err := os.Pipe()
 	if err != nil {
 		return nil, err
@@ -539,7 +543,7 @@ func WatchBash(bash string, ps *ProcessStatusObject, envExtra []string) (*Contro
 					// Count as a heartbeat and update timeout.
 					if sr.TimeoutForNextStatus > 0.0 {
 						timeout = sr.TimeoutForNextStatus
-						timeout = timeout * 100
+						timeout = timeout * TIMEOUT_MULTIPLIER
 						log.Printf("PID: %d timeout is now %f\n", pid, timeout)
 					} else {
 						log.Printf("PID: %d Ignoring TimeoutForNextStatus %f\n", pid, sr.TimeoutForNextStatus)

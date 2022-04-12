@@ -48,7 +48,8 @@ func TestUpdate(t *testing.T) {
     "DefaultFrameRate": 99,
     "JustOneBazFile": false,
     "ApplyDarkCal": true,
-    "ApplyCrosstalkCorrection": false
+    "ApplyCrosstalkCorrection": false,
+    "PawsTimeoutMultiplier": 0
   },
   "Binaries": {
     "Binary_baz2bam": "NEWPATH",
