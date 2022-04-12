@@ -278,7 +278,7 @@ func WriteBasecallerBash(wr io.Writer, tc config.TopStruct, obj *SocketBasecalle
 	raw, err := json.Marshal(obj.PixelSpreadFunction)
 	check(err)
 	if len(raw) == 0 {
-		kv["optIimagePsfKernel"] = ""
+		kv["optImagePsfKernel"] = ""
 	} else {
 		kv["optImagePsfKernel"] = "--config dataSource.imagePsfKernel="+string(raw)
 	}
