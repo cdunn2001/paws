@@ -132,7 +132,7 @@ func TestGetPostprimaryHostname(t *testing.T) {
 	}
 	{
 		got := GetPostprimaryHostname("rt-84006.fubar.com", "/data/nrta/5")
-		expected := "nrta-84006.fubar.com"
+		expected := "nrta"
 		if got != expected {
 			t.Errorf("Got %q\nNot %q", got, expected)
 		}

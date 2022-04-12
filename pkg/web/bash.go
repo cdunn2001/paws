@@ -404,7 +404,7 @@ func HandleMetadata(content string, outputPrefix string) string {
 	return arg
 }
 func GetPostprimaryHostname(hostname string, rundir string) string {
-	if strings.HasPrefix(hostname, "rt-") {
+	if strings.HasPrefix(hostname, "rt") {
 		// Substitute "nrt(a|b)" for "rt".
 		ab := ""
 		if strings.Contains(rundir, "/nrta") {
@@ -412,8 +412,8 @@ func GetPostprimaryHostname(hostname string, rundir string) string {
 		} else if strings.Contains(rundir, "/nrtb") {
 			ab = "b"
 		}
-		nrt := "nrt" + ab + "-"
-		return strings.Replace(hostname, "rt-", nrt, 1)
+		nrt := "nrt" + ab
+		return nrt
 	} else {
 		return ""
 	}

@@ -139,7 +139,7 @@ func StartControlledShellProcess(setup ProcessSetupObject, ps *ProcessStatusObje
 	if setup.Hostname == "" {
 		bash = fmt.Sprintf("bash -vex %s", setup.ScriptFn)
 	} else {
-		user := "cdunn@"
+		user := "" //"cdunn@"
 		absScriptFn, err := filepath.Abs(setup.ScriptFn)
 		check(err) // never happens in prod
 		bash = fmt.Sprintf("%s %s%s /usr/bin/bash %s", sshGood, user, setup.Hostname, absScriptFn)
