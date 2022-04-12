@@ -589,3 +589,13 @@ func WriteReduceStatsBash(wr io.Writer, tc config.TopStruct, obj *PostprimaryObj
 	}
 	return t.Execute(wr, &ts)
 }
+func CheckBaz2bam(tc config.TopStruct) {
+	call := fmt.Sprintf("which %s; %s --version",
+		tc.Binaries.Binary_baz2bam,
+		tc.Binaries.Binary_baz2bam)
+	//hostname = GetPostprimaryHostname(tc.Hostname, "/data/nrta")
+	//captured := CaptureRemoteBash(hostname, call)
+	captured := CaptureBash(call)
+	log.Printf("Captured:%s\n", captured)
+	os.Exit(0)
+}

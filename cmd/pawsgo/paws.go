@@ -230,6 +230,7 @@ func main() {
 	//WriteConfig(config.Top(), "foo.paws.json")
 
 	config.VerifyBinaries(config.Top().Binaries)
+	//web.CheckBaz2bam(config.Top())
 
 	listen(*portPtr, lw)
 }

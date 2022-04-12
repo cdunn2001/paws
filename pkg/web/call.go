@@ -130,12 +130,15 @@ type ControlledProcess struct {
 	chanComplete chan bool
 }
 
+var (
+	sshGood string = "ssh -q -oBatchMode=yes -oStrictHostKeyChecking=no -oUserKnownHostsFile=/dev/null"
+)
+
 func StartControlledShellProcess(setup ProcessSetupObject, ps *ProcessStatusObject) (result *ControlledProcess) {
 	bash := ""
 	if setup.Hostname == "" {
 		bash = fmt.Sprintf("bash -vex %s", setup.ScriptFn)
 	} else {
-		sshGood := "ssh -q -oBatchMode=yes -oStrictHostKeyChecking=no -oUserKnownHostsFile=/dev/null"
 		user := "cdunn@"
 		absScriptFn, err := filepath.Abs(setup.ScriptFn)
 		check(err) // never happens in prod
@@ -624,4 +627,17 @@ func RunBash(bash string, env []string) error {
 	}
 	log.Printf("Result of exec:\n%s\n", out)
 	return nil
+}
+func CaptureWrappedBash(bash string) string {
+	return ""
+}
+func CaptureBash(bash string) string {
+	cmd := exec.Command("bash", "-c", bash)
+	out, err := cmd.Output()
+	if err != nil {
+		log.Fatal(err)
+		return fmt.Sprintf("%+v", err) // unreachable
+	}
+	log.Printf("Result of %q:\n%s\n", bash, out)
+	return string(out)
 }
