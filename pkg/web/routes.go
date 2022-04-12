@@ -262,7 +262,7 @@ func startBasecallerBySocketId(c *gin.Context, state *State) {
 	}
 	log.Printf("Wrote:'%s'\n", wr.String())
 	stall := c.DefaultQuery("stall", "0")
-	cp := StartControlledBashProcess(wr.String(), &obj.ProcessStatus, stall)
+	cp := StartControlledShellProcess(wr.String(), &obj.ProcessStatus, stall)
 	pid := cp.cmd.Process.Pid
 	state.AllProcesses[pid] = cp
 	log.Printf("Started it\n")
@@ -347,7 +347,7 @@ func startDarkcalBySocketId(c *gin.Context, state *State) {
 	}
 	log.Printf("Wrote:'%s'\n", wr.String())
 	stall := c.DefaultQuery("stall", "0")
-	cp := StartControlledBashProcess(wr.String(), &obj.ProcessStatus, stall)
+	cp := StartControlledShellProcess(wr.String(), &obj.ProcessStatus, stall)
 	pid := cp.cmd.Process.Pid
 	state.AllProcesses[pid] = cp
 	log.Printf("Started it\n")
@@ -434,7 +434,7 @@ func startLoadingcalBySocketId(c *gin.Context, state *State) {
 	}
 	log.Printf("Wrote:'%s'\n", wr.String())
 	stall := c.DefaultQuery("stall", "0")
-	cp := StartControlledBashProcess(wr.String(), &obj.ProcessStatus, stall)
+	cp := StartControlledShellProcess(wr.String(), &obj.ProcessStatus, stall)
 	pid := cp.cmd.Process.Pid
 	state.AllProcesses[pid] = cp
 	log.Printf("Started it\n")
@@ -528,7 +528,7 @@ func startPostprimary(c *gin.Context, state *State) {
 	}
 	log.Printf("Wrote:'%s'\n", wr.String())
 	stall := c.DefaultQuery("stall", "0")
-	cp := StartControlledBashProcess(wr.String(), &obj.ProcessStatus, stall)
+	cp := StartControlledShellProcess(wr.String(), &obj.ProcessStatus, stall)
 	pid := cp.cmd.Process.Pid
 	state.AllProcesses[pid] = cp
 	log.Printf("Started it\n")

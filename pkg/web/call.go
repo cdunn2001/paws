@@ -127,7 +127,7 @@ type ControlledProcess struct {
 	chanComplete chan bool
 }
 
-func StartControlledBashProcess(bash string, ps *ProcessStatusObject, stall string) (result *ControlledProcess) {
+func StartControlledShellProcess(bash string, ps *ProcessStatusObject, stall string) (result *ControlledProcess) {
 	env := DummyEnv(stall)
 	result, err := WatchBash(bash, ps, env)
 	if err != nil {
