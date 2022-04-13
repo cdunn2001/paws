@@ -283,9 +283,14 @@ func WriteBasecallerBash(wr io.Writer, tc config.TopStruct, obj *SocketBasecalle
 	} else {
 		kv["optImagePsfKernel"] = "--config dataSource.imagePsfKernel=" + string(raw)
 	}
-	log.Printf("WARNING: imagePsfKernel and darkCallFileName are currently suppressed for basecaller.")
-	kv["optImagePsfKernel"] = ""
-	kv["optDarkCalFileName"] = ""
+	if !tc.Values.ApplyCrosstalkCorrection {
+		log.Printf("WARNING: imagePsfKernel is suppressed for basecaller.")
+		kv["optImagePsfKernel"] = ""
+	}
+	if !tc.Values.ApplyDarkCal {
+		log.Printf("WARNING: darkCallFileName is suppressed for basecaller.")
+		kv["optDarkCalFileName"] = ""
+	}
 
 	// TODO: Fill these from tc.Values first?
 	if len(obj.TraceFileRoi) == 0 {
