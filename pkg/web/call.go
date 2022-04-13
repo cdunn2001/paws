@@ -2,6 +2,7 @@ package web
 
 import (
 	"bufio"
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"github.com/pkg/errors"
@@ -125,6 +126,7 @@ type ControlledProcess struct {
 	status       *ProcessStatusObject
 	temp_dn      string // someone must delete
 	stdout_fn    string // someone must delete (unless under temp_dn)
+	stdoutBuf    *bytes.Buffer
 	stderr_fn    string // someone must delete (unless under temp_dn)
 	chanKill     chan bool
 	chanComplete chan bool
@@ -137,7 +139,7 @@ var (
 func StartControlledShellProcess(setup ProcessSetupObject, ps *ProcessStatusObject) (result *ControlledProcess) {
 	bash := ""
 	if setup.Hostname == "" {
-		bash = fmt.Sprintf("bash -vex %s", setup.ScriptFn)
+		bash = fmt.Sprintf("/usr/bin/bash -vex %s", setup.ScriptFn)
 	} else {
 		user := "" //"cdunn@"
 		absScriptFn, err := filepath.Abs(setup.ScriptFn)
@@ -270,20 +272,26 @@ func WatchBashStderr(bash string, ps *ProcessStatusObject, envExtra []string) (*
 		err = os.MkdirAll(temp_dn, 0777)
 		check(err)
 	}
-	stdout_fn := filepath.Join(temp_dn, "stdout.txt")
+	//stdout_fn := filepath.Join(temp_dn, "stdout.txt")
 	//stderr_fn := filepath.Join(temp_dn, "stderr.txt")
 	//bash = bash + " >" + stdout_fn + " 2> " + stderr_fn
-	bash = bash + " >" + stdout_fn
-	log.Println("bash:", bash)
+	//bash = bash + " >" + stdout_fn
+	bashWords := strings.Split(bash, " ") // TODO: Check for space in filepaths. Maybe split on all whitespace.
+	log.Println("bash words:", bashWords)
 	//fn := "/home/UNIXHOME/cdunn/repo/bb/paws/tmp/run.sh"
 	//WriteStringToFile(bash, fn)
 	//cmd := exec.Command("/bin/bash", fn)
 	env := os.Environ()
 	env = append(env, envExtra...)
 
-	cmd := exec.Command("/bin/bash", "-c", bash)
+	var stdoutBuf bytes.Buffer
+
+	cmd := exec.Command(bashWords[0], bashWords[1:]...)
 	cmd.Env = env
 	//cmd.ExtraFiles = extraFiles
+	cmd.Stdout = &stdoutBuf
+	rpipe, err := cmd.StderrPipe()
+	check(err)
 	cmd.Start()
 	chanStatusReportText := make(chan string)
 	chanDone := make(chan bool)
@@ -294,7 +302,8 @@ func WatchBashStderr(bash string, ps *ProcessStatusObject, envExtra []string) (*
 		cmd:       cmd,
 		status:    ps,
 		temp_dn:   temp_dn,
-		stdout_fn: stdout_fn,
+		stdoutBuf: &stdoutBuf,
+		//stdout_fn: stdout_fn,
 		//stderr_fn:    stderr_fn,
 		chanKill:     chanKill,
 		chanComplete: chanComplete,
@@ -376,7 +385,8 @@ func WatchBashStderr(bash string, ps *ProcessStatusObject, envExtra []string) (*
 		} else {
 			cbp.status.CompletionStatus = Success
 		}
-		logContent(cbp.stdout_fn, "stdout")
+		log.Printf("stdout:\n%s\n", cbp.stdoutBuf.String())
+		//logContent(cbp.stdoutfn, "stdout")
 		//logContent(cbp.stderr_fn, "stderr")
 		defer cbp.cleanup()
 		chanComplete <- true
@@ -385,7 +395,6 @@ func WatchBashStderr(bash string, ps *ProcessStatusObject, envExtra []string) (*
 		pid := int(cmd.Process.Pid)
 		log.Printf("PID: %d Started scanner go-func\n", pid)
 		var err error = nil
-		rpipe, err := cmd.StderrPipe()
 		breader := bufio.NewReader(rpipe)
 		//time.Sleep(1.0 * time.Second)
 		for err == nil {

@@ -41,7 +41,7 @@ func TestRunBash(t *testing.T) {
 	}
 }
 func TestCont(t *testing.T) {
-	bash := testdataDir + "/dummy-basic.sh --status-fd 3"
+	bash := testdataDir + "/dummy-basic.sh --status-fd 2"
 	//bash := testdataDir + "/dummy-pa-cal.sh --statusfd 3"
 	ps := &ProcessStatusObject{}
 	setup := ProcessSetupObject{
@@ -57,6 +57,31 @@ func TestCont(t *testing.T) {
 		case <-result.chanComplete:
 		}
 	*/
+}
+func TestWatchBashStderrSucceed(t *testing.T) {
+	bash := testdataDir + "/dummy-basic.sh --status-fd 2"
+	//bash := testdataDir + "/dummy-pa-cal.sh --statusfd 2"
+	env := []string{
+		"STATUS_COUNT=3",
+		"STATUS_DELAY_SECONDS=0.05", // Note: ".05" would not be valid.
+	}
+	ps := &ProcessStatusObject{}
+	cp, err := WatchBashStderr(bash, ps, env)
+	if err != nil {
+		t.Errorf("Got %d", err)
+	}
+	log.Printf("Waiting for chanComplete '%s'?", cp.cmd)
+	select {
+	case <-cp.chanComplete:
+	}
+	log.Printf("Done '%s'!\n", cp.cmd)
+	code := ps.ExitCode
+	if code != 0 {
+		t.Errorf("Expected 0, got exit-code %d", code)
+	}
+	if ps.Armed {
+		t.Errorf("ProcessStatus.Armed should be false when the process completes.")
+	}
 }
 func TestWatchBashSucceed(t *testing.T) {
 	bash := testdataDir + "/dummy-basic.sh --status-fd 3"
@@ -78,6 +103,31 @@ func TestWatchBashSucceed(t *testing.T) {
 	code := ps.ExitCode
 	if code != 0 {
 		t.Errorf("Expected 0, got exit-code %d", code)
+	}
+	if ps.Armed {
+		t.Errorf("ProcessStatus.Armed should be false when the process completes.")
+	}
+}
+func TestWatchBashStderrKill(t *testing.T) {
+	bash := testdataDir + "/dummy-basic.sh --status-fd 2"
+	env := []string{
+		"STATUS_COUNT=3",
+		"STATUS_DELAY_SECONDS=0.05", // Note: ".05" would not be valid.
+		"STATUS_TIMEOUT=0.00001",
+	}
+	ps := &ProcessStatusObject{}
+	cp, err := WatchBashStderr(bash, ps, env)
+	if err != nil {
+		t.Errorf("Got %d", err)
+	}
+	log.Printf("Waiting for chanComplete '%s'?", cp.cmd)
+	select {
+	case <-cp.chanComplete:
+	}
+	log.Printf("Done '%s'!\n", cp.cmd)
+	code := ps.ExitCode
+	if code != -1 {
+		t.Errorf("Expected -1 (from timeout), got exit-code %d", code)
 	}
 	if ps.Armed {
 		t.Errorf("ProcessStatus.Armed should be false when the process completes.")
