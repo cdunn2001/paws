@@ -290,6 +290,8 @@ func WatchBashStderr(bash string, ps *ProcessStatusObject, envExtra []string) (*
 	cmd.Env = env
 	//cmd.ExtraFiles = extraFiles
 	cmd.Stdout = &stdoutBuf
+	rpipe, err := cmd.StderrPipe()
+	check(err)
 	cmd.Start()
 	chanStatusReportText := make(chan string)
 	chanDone := make(chan bool)
@@ -393,7 +395,6 @@ func WatchBashStderr(bash string, ps *ProcessStatusObject, envExtra []string) (*
 		pid := int(cmd.Process.Pid)
 		log.Printf("PID: %d Started scanner go-func\n", pid)
 		var err error = nil
-		rpipe, err := cmd.StderrPipe()
 		breader := bufio.NewReader(rpipe)
 		//time.Sleep(1.0 * time.Second)
 		for err == nil {
