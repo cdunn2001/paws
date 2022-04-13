@@ -14,3 +14,5 @@ Release Notes
 
 
 1.0.14 - Fixed the arguments passed to smrt-basecaller involving dark cal and image PSF. Requires smrt-basecaller 0.1.11 at a minimum.
+1.0.16 - Implemented working ssh baz2bam
+1.0.17 - changed baz2bam threading parameters to -j 128 -b 32
