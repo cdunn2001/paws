@@ -191,7 +191,7 @@ type SocketBasecallerObject struct {
 
 	// The expected (not measured) canonical frame rate
 	// Example: 100
-	ExpectedFrameRate int32 `json:"expectedFrameRate"`
+	ExpectedFrameRate float64 `json:"expectedFrameRate"`
 
 	// The inversion of photoelectron gain of the sensor pixels.
 	// Example: 1.4
