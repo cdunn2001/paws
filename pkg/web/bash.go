@@ -350,8 +350,8 @@ var Template_baz2bam = `
   --statusfd 2 \
   {{.Local.metadata}} \
   --uuid {{.Local.acqId}} \
-  -j 32 \
-  -b 8 \
+  -j 128 \
+  -b 32 \
   --inlinePbi \
   --maxInputQueueMB 7000 \
   --zmwBatchMB 50000 \
@@ -412,8 +412,8 @@ func GetPostprimaryHostname(hostname string, rundir string) string {
 		} else if strings.Contains(rundir, "nrtb") {
 			ab = "b"
 		} else {
-            panic("rundir cant be deciphered" + rundir)
-        }
+			panic("rundir cant be deciphered" + rundir)
+		}
 		nrt := "nrt" + ab
 		return nrt
 	} else {
@@ -478,7 +478,7 @@ func DumpPostprimaryScript(tc config.TopStruct, obj *PostprimaryObject) ProcessS
 	rundir := filepath.Dir(TranslateUrl(obj.OutputPrefixUrl))
 	setup.RunDir = rundir
 	setup.ScriptFn = filepath.Join(setup.RunDir, "run.ppa.sh")
-	setup.Hostname = GetPostprimaryHostname(tc.Hostname, obj.BazFileUrl )
+	setup.Hostname = GetPostprimaryHostname(tc.Hostname, obj.BazFileUrl)
 	wr := new(bytes.Buffer)
 	if err := WriteBaz2bamBash(wr, config.Top(), obj); err != nil {
 		err = errors.Wrapf(err, "Error in WriteBaz2BamBash(%v, %v, %v)", wr, config.Top(), obj)
