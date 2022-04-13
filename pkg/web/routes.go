@@ -128,9 +128,14 @@ func feedWatchdog(c *gin.Context) {
 	c.String(http.StatusOK, msg)
 }
 
-// Returns top level status of the pa-ws process.
-func getStatus(c *gin.Context, state *State) {
-	var status PawsStatusObject // TODO
+func GetPawsStatusObject() PawsStatusObject {
+	state, l := top.Get()
+	defer l.Unlock()
+	return getPawsStatusObject(state)
+}
+func getPawsStatusObject(state *State) PawsStatusObject {
+	var status PawsStatusObject
+
 	// Real time seconds that pa-ws has been running
 	status.Uptime = time.Now().Sub(bootTime).Seconds()
 
@@ -151,6 +156,12 @@ func getStatus(c *gin.Context, state *State) {
 	bds := config.DescribeBinaries(config.Top().Binaries)
 	status.Binaries = bds
 
+	return status
+}
+
+// Returns top level status of the pa-ws process.
+func getStatus(c *gin.Context, state *State) {
+	status := getPawsStatusObject(state)
 	c.IndentedJSON(http.StatusOK, status)
 }
 

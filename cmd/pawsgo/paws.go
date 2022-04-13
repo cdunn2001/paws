@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
@@ -133,6 +134,15 @@ func listen(port int, lw io.Writer) {
 			msg = "Send done <- true\n"
 			log.Print(msg)
 		*/
+	}
+
+	{
+		hostname := config.Top().Hostname
+		status := web.GetPawsStatusObject()
+		marsh, err := json.MarshalIndent(status, "", "  ")
+		check(err)
+		log.Printf("Status (w/ paths on %s, not necessarily on NRT):\n%s\n",
+			hostname, marsh)
 	}
 
 	portStr := fmt.Sprintf(":%d", port)
