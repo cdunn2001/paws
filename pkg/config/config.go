@@ -14,8 +14,10 @@ type BinaryPaths struct {
 }
 
 type ValuesConfig struct {
-	DefaultFrameRate float64 // fps
-	JustOneBazFile   bool
+	DefaultFrameRate         float64 // fps
+	JustOneBazFile           bool
+	ApplyDarkCal             bool
+	ApplyCrosstalkCorrection bool
 }
 
 //type StringMap map[string]string // would hide map as 'reference' type
@@ -45,8 +47,10 @@ func init() {
 	top = TopStruct{
 		Binaries: FindBinaries(),
 		Values: ValuesConfig{
-			DefaultFrameRate: 100.0, // fps
-			JustOneBazFile:   true,
+			DefaultFrameRate:         100.0, // fps
+			JustOneBazFile:           true,
+			ApplyDarkCal:             true,
+			ApplyCrosstalkCorrection: true,
 		},
 		Hostname: hostname,
 	}
