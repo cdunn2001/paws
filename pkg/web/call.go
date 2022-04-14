@@ -51,7 +51,7 @@ func Json2StatusReport(raw []byte) (result StatusReport) {
 	err := json.Unmarshal(raw, &result)
 	if err != nil {
 		log.Printf("ERROR: Could not unmarshal StatusReport '%v'", string(raw))
-		check(err)
+		//check(err) // TODO: Uncomment this when confident. Return empty for now.
 	}
 	return result
 }
@@ -313,7 +313,7 @@ func WatchBashStderr(bash string, ps *ProcessStatusObject, envExtra []string) (*
 
 	go func() {
 		pid := int(cmd.Process.Pid)
-		var timeout float64 = 10.0 // seconds
+		var timeout float64 = 100000.0 // seconds
 		log.Printf("PID: %d Started timeout go-func with timeout=%f\n", pid, timeout)
 		timedout := false
 		done := false
@@ -505,7 +505,7 @@ func WatchBash(bash string, ps *ProcessStatusObject, envExtra []string) (*Contro
 
 	go func() {
 		pid := int(cmd.Process.Pid)
-		var timeout float64 = 10.0 // seconds
+		var timeout float64 = 100000.0 // seconds
 		log.Printf("PID: %d Started timeout go-func with timeout=%f\n", pid, timeout)
 		timedout := false
 		done := false
