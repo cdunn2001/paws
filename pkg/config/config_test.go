@@ -21,7 +21,7 @@ var sample_json string = `
   },
   "webservices": {
 	"Values": {
-      "DefaultFrameRate": 100.0,
+      "DefaultFrameRate": 99.0,
       "JustOneBazFile": false,
       "ApplyDarkCal": true,
       "ApplyCrosstalkCorrection": false
@@ -38,13 +38,14 @@ var sample_json string = `
 
 func TestUpdate(t *testing.T) {
 	cfg := &PpaConfig{}
+	cfg.Webservices.Values.DefaultFrameRate = 100.0
 	//buf := bytes.NewBufferString(sample_json)
 	//buf := strings.NewReader(sample_json)
 	Update(cfg, []byte(sample_json))
 	got := Config2Json(&cfg.Webservices)
 	expected := `{
   "Values": {
-    "DefaultFrameRate": 100,
+    "DefaultFrameRate": 99,
     "JustOneBazFile": false,
     "ApplyDarkCal": true,
     "ApplyCrosstalkCorrection": false
