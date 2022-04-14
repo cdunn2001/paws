@@ -20,7 +20,7 @@ import (
 )
 
 var (
-	json_regex = regexp.MustCompile(`_STATUS\s*(.*)$`)
+	json_regex = regexp.MustCompile(`^[^+].*_STATUS\s*(.*)$`)
 )
 
 func plus1(x int) (result int) {
@@ -51,7 +51,7 @@ func Json2StatusReport(raw []byte) (result StatusReport) {
 	err := json.Unmarshal(raw, &result)
 	if err != nil {
 		log.Printf("ERROR: Could not unmarshal StatusReport '%v'", string(raw))
-		check(err)
+		//check(err) // TODO: Uncomment this when confident. Return empty for now.
 	}
 	return result
 }
@@ -139,7 +139,7 @@ var (
 func StartControlledShellProcess(setup ProcessSetupObject, ps *ProcessStatusObject) (result *ControlledProcess) {
 	bash := ""
 	if setup.Hostname == "" {
-		bash = fmt.Sprintf("/usr/bin/bash -vex %s", setup.ScriptFn)
+		bash = fmt.Sprintf("/usr/bin/bash %s", setup.ScriptFn)
 	} else {
 		user := "" //"cdunn@"
 		absScriptFn, err := filepath.Abs(setup.ScriptFn)
@@ -313,7 +313,7 @@ func WatchBashStderr(bash string, ps *ProcessStatusObject, envExtra []string) (*
 
 	go func() {
 		pid := int(cmd.Process.Pid)
-		var timeout float64 = 10.0 // seconds
+		var timeout float64 = 100000.0 // seconds
 		log.Printf("PID: %d Started timeout go-func with timeout=%f\n", pid, timeout)
 		timedout := false
 		done := false
@@ -334,7 +334,7 @@ func WatchBashStderr(bash string, ps *ProcessStatusObject, envExtra []string) (*
 				sr, err := String2StatusReport(srText)
 				if err != nil {
 					// Count as a heartbeat, but do not update timeout.
-					log.Printf("PID: %d Unparseable status:\n%s\n", pid, srText)
+					//log.Printf("PID: %d Unparseable status:\n%s\n", pid, srText)
 				} else if sr.State == "exception" {
 					// Count as a heartbeat, but do not update timeout.
 					log.Printf("PID: %d Status exception:%s\n", pid, srText)
@@ -414,7 +414,9 @@ func WatchBashStderr(bash string, ps *ProcessStatusObject, envExtra []string) (*
 				}
 				text = text + string(line)
 			}
-			log.Printf("PID: %d Got:%s\n err:%s\n", pid, text, err)
+			if err == nil {
+				log.Printf("PID: %d Got:%s\n err:%s\n", pid, text, err)
+			}
 			if err == io.EOF {
 				break
 			}
@@ -503,7 +505,7 @@ func WatchBash(bash string, ps *ProcessStatusObject, envExtra []string) (*Contro
 
 	go func() {
 		pid := int(cmd.Process.Pid)
-		var timeout float64 = 10.0 // seconds
+		var timeout float64 = 100000.0 // seconds
 		log.Printf("PID: %d Started timeout go-func with timeout=%f\n", pid, timeout)
 		timedout := false
 		done := false
@@ -524,7 +526,7 @@ func WatchBash(bash string, ps *ProcessStatusObject, envExtra []string) (*Contro
 				sr, err := String2StatusReport(srText)
 				if err != nil {
 					// Count as a heartbeat, but do not update timeout.
-					log.Printf("PID: %d Unparseable status:\n%s\n", pid, srText)
+					//log.Printf("PID: %d Unparseable status:\n%s\n", pid, srText)
 				} else if sr.State == "exception" {
 					// Count as a heartbeat, but do not update timeout.
 					log.Printf("PID: %d Status exception:%s\n", pid, srText)
@@ -605,7 +607,9 @@ func WatchBash(bash string, ps *ProcessStatusObject, envExtra []string) (*Contro
 				}
 				text = text + string(line)
 			}
-			log.Printf("PID: %d Got:%s\n", pid, text)
+			if err == nil {
+				log.Printf("PID: %d Got:%s\n err:%s\n", pid, text, err)
+			}
 			if err == io.EOF {
 				break
 			}

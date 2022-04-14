@@ -160,7 +160,19 @@ func TestWatchBashKill(t *testing.T) {
 }
 func TestString2StatusReport(t *testing.T) {
 	{
-		sr, err := String2StatusReport(`_STATUS {"counter": 123}`)
+		sr, err := String2StatusReport(`BLAH BLAH BLAH`)
+		if err == nil {
+			t.Errorf("Expected err; Got %v", sr)
+		}
+	}
+	{
+		sr, err := String2StatusReport(`+ X_STATUS {"counter": 123}`)
+		if err == nil {
+			t.Errorf("Expected err; Got %v", sr)
+		}
+	}
+	{
+		sr, err := String2StatusReport(`X_STATUS {"counter": 123}`)
 		check(err)
 		if sr.State == "exception" {
 			t.Errorf("Got %v", sr)
@@ -169,7 +181,7 @@ func TestString2StatusReport(t *testing.T) {
 		}
 	}
 	{
-		sr, err := String2StatusReport(`_STATUS {"state": "exception", "message": "HELLO"}`)
+		sr, err := String2StatusReport(`X_STATUS {"state": "exception", "message": "HELLO"}`)
 		check(err)
 		if sr.State != "exception" {
 			t.Errorf("Got %v", sr)
