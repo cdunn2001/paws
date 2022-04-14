@@ -20,7 +20,7 @@ import (
 )
 
 var (
-	json_regex = regexp.MustCompile(`_STATUS\s*(.*)$`)
+	json_regex = regexp.MustCompile(`^[^+].*_STATUS\s*(.*)$`)
 )
 
 func plus1(x int) (result int) {
@@ -139,7 +139,7 @@ var (
 func StartControlledShellProcess(setup ProcessSetupObject, ps *ProcessStatusObject) (result *ControlledProcess) {
 	bash := ""
 	if setup.Hostname == "" {
-		bash = fmt.Sprintf("/usr/bin/bash -vex %s", setup.ScriptFn)
+		bash = fmt.Sprintf("/usr/bin/bash %s", setup.ScriptFn)
 	} else {
 		user := "" //"cdunn@"
 		absScriptFn, err := filepath.Abs(setup.ScriptFn)
