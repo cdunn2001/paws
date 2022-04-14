@@ -223,8 +223,11 @@ func main() {
 	web.InitFixtures()
 
 	if *cfgPtr != "" {
-		log.Printf("config='%v'\n", *cfgPtr)
-		//config.UpdateConfigFromFile(*cfgPtr, &ppaConfig)
+		log.Printf("config(file)='%v'\n", *cfgPtr)
+		file, err := os.Open(*cfgPtr)
+		check(err)
+		defer file.Close()
+		config.UpdateTop(file)
 	}
 
 	if *dataDirPtr == "" {

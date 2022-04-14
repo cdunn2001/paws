@@ -1,6 +1,9 @@
 package config
 
 import (
+	"encoding/json"
+	"io"
+	"log"
 	"os"
 )
 
@@ -26,10 +29,15 @@ type TopStruct struct {
 	Values   ValuesConfig
 	Binaries BinaryPaths
 	Hostname string
-	flat     map[string]string // someday maybe put all here?
+	//flat     map[string]string // someday maybe put all here?
 }
 
-var top TopStruct // Should be considered "const", as changes would not be thread-safe.
+type PpaConfig struct {
+	Webservices TopStruct `json:"webservices"`
+}
+
+var top *TopStruct   // Should be considered "const", as changes would not be thread-safe.
+var ppatop PpaConfig // Should be considered "const", as changes would not be thread-safe.
 
 // TODO: Allow config override.
 func FindBinaries() BinaryPaths {
@@ -44,7 +52,7 @@ func FindBinaries() BinaryPaths {
 func init() {
 	hostname, err := os.Hostname()
 	check(err)
-	top = TopStruct{
+	ppatop.Webservices = TopStruct{
 		Binaries: FindBinaries(),
 		Values: ValuesConfig{
 			DefaultFrameRate:         100.0, // fps
@@ -54,14 +62,39 @@ func init() {
 		},
 		Hostname: hostname,
 	}
-	top.flat = make(map[string]string)
-	top.flat["Binary_baz2bam"] = top.Binaries.Binary_baz2bam
-	top.flat["Binary_pa_cal"] = top.Binaries.Binary_pa_cal
-	top.flat["Binary_reducestats"] = top.Binaries.Binary_reducestats
-	top.flat["Binary_smrt_basecaller"] = top.Binaries.Binary_smrt_basecaller
+	top = &ppatop.Webservices
+	/*
+		top.flat = make(map[string]string)
+		top.flat["Binary_baz2bam"] = top.Binaries.Binary_baz2bam
+		top.flat["Binary_pa_cal"] = top.Binaries.Binary_pa_cal
+		top.flat["Binary_reducestats"] = top.Binaries.Binary_reducestats
+		top.flat["Binary_smrt_basecaller"] = top.Binaries.Binary_smrt_basecaller
+	*/
 }
 
 // Make Top config const by returning only a copy.
 func Top() TopStruct {
-	return top
+	return *top
+}
+
+func UpdateTop(r io.Reader) {
+	s, err := io.ReadAll(r)
+	check(err)
+	Update(&ppatop, []byte(s))
+}
+func Update(p *PpaConfig, raw []byte) {
+	ts := &p.Webservices
+	log.Printf("Top Config was:\n%s", Config2Json(ts))
+	err := json.Unmarshal(raw, p)
+	if err != nil {
+		log.Printf("raw JSON has some error:\n%s", raw)
+		check(err)
+	}
+	ts = &p.Webservices
+	log.Printf("Top Config now:\n%s", Config2Json(ts))
+}
+func Config2Json(ts *TopStruct) string {
+	result, err := json.MarshalIndent(ts, "", "  ")
+	check(err)
+	return string(result)
 }

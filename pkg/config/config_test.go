@@ -1,23 +1,61 @@
 package config
 
 import (
+	//"bytes"
+	//"strings"
 	"testing"
 )
 
 func Expect(t *testing.T, expected string, got string) {
 	if got != expected {
-		t.Errorf("Expected:\n%v\nGot:\n%#v", got, expected)
+		t.Errorf("Expected:\n%#v\nGot:\n%#v", expected, got)
 	}
 }
+
+var sample_json string = `
+{
+  "basecaller": {
+    "init": {
+      "numWorkerThreads_avx512": 88
+    }
+  },
+  "webservices": {
+	"Values": {
+      "DefaultFrameRate": 100.0,
+      "JustOneBazFile": false,
+      "ApplyDarkCal": true,
+      "ApplyCrosstalkCorrection": false
+    },
+    "Binaries": {
+      "Binary_baz2bam": "NEWPATH"
+    },
+    "IgnoreMe": null
+  },
+  "ppa": {
+  }
+}
+`
+
 func TestUpdate(t *testing.T) {
-	/*
-		cfg := &TopStruct{}
-			cfg.SetDefaults()
-			raw := []byte(`{"Binary_baz2bam": "SNAFU"}`)
-			err := UpdatePpaConfig(raw, cfg)
-			check(err)
-			got := Config2Json(*cfg)
-			expected := `{"Binary_baz2bam":"SNAFU","Binary_pa_cal":"pa-cal","Binary_reducestats":"ppa-reducestats","Binary_smrt_basecaller":"smrt-basecaller"}`
-			Expect(t, expected, got)
-	*/
+	cfg := &PpaConfig{}
+	//buf := bytes.NewBufferString(sample_json)
+	//buf := strings.NewReader(sample_json)
+	Update(cfg, []byte(sample_json))
+	got := Config2Json(&cfg.Webservices)
+	expected := `{
+  "Values": {
+    "DefaultFrameRate": 100,
+    "JustOneBazFile": false,
+    "ApplyDarkCal": true,
+    "ApplyCrosstalkCorrection": false
+  },
+  "Binaries": {
+    "Binary_baz2bam": "NEWPATH",
+    "Binary_pa_cal": "",
+    "Binary_reducestats": "",
+    "Binary_smrt_basecaller": ""
+  },
+  "Hostname": ""
+}`
+	Expect(t, expected, got)
 }
