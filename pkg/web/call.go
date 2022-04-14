@@ -334,7 +334,7 @@ func WatchBashStderr(bash string, ps *ProcessStatusObject, envExtra []string) (*
 				sr, err := String2StatusReport(srText)
 				if err != nil {
 					// Count as a heartbeat, but do not update timeout.
-					log.Printf("PID: %d Unparseable status:\n%s\n", pid, srText)
+					//log.Printf("PID: %d Unparseable status:\n%s\n", pid, srText)
 				} else if sr.State == "exception" {
 					// Count as a heartbeat, but do not update timeout.
 					log.Printf("PID: %d Status exception:%s\n", pid, srText)
@@ -414,7 +414,9 @@ func WatchBashStderr(bash string, ps *ProcessStatusObject, envExtra []string) (*
 				}
 				text = text + string(line)
 			}
-			log.Printf("PID: %d Got:%s\n err:%s\n", pid, text, err)
+			if err == nil {
+				log.Printf("PID: %d Got:%s\n err:%s\n", pid, text, err)
+			}
 			if err == io.EOF {
 				break
 			}
@@ -524,7 +526,7 @@ func WatchBash(bash string, ps *ProcessStatusObject, envExtra []string) (*Contro
 				sr, err := String2StatusReport(srText)
 				if err != nil {
 					// Count as a heartbeat, but do not update timeout.
-					log.Printf("PID: %d Unparseable status:\n%s\n", pid, srText)
+					//log.Printf("PID: %d Unparseable status:\n%s\n", pid, srText)
 				} else if sr.State == "exception" {
 					// Count as a heartbeat, but do not update timeout.
 					log.Printf("PID: %d Status exception:%s\n", pid, srText)
@@ -605,7 +607,9 @@ func WatchBash(bash string, ps *ProcessStatusObject, envExtra []string) (*Contro
 				}
 				text = text + string(line)
 			}
-			log.Printf("PID: %d Got:%s\n", pid, text)
+			if err == nil {
+				log.Printf("PID: %d Got:%s\n err:%s\n", pid, text, err)
+			}
 			if err == io.EOF {
 				break
 			}
