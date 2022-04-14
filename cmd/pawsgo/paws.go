@@ -181,13 +181,28 @@ func MoveExistingLogfile(specified string) {
 		check(err)
 	}
 }
+func ShowVersionAndExit() {
+	fmt.Println(config.Version)
+}
+
+var opts struct {
+	CallVersion func() `long:"version" description:"Show version"`
+	Port        uint   `long:"port" default:"23632" description:"Port for REST calls"`
+	DataDir     string `long:"data-dir" default:"" description:"(DEPRECATED) Directory for some outputs (usually under SRA subdir)"`
+	Cfg         string `long:"config-file" default:"" description:"(UNSUPPORTED) Read paws config (JSON) from this file, to update default config."`
+	LogOutput   string `long:"logoutput" default:"/var/log/pacbio/pa-wsgo/pa-wsgo.log" description:"Logfile output. We actually choose a unique name (maybe based on timestamp and pid), and symlink the named path to it. We avoid over-writing the pre-existing named path."`
+	Console     bool   `long:"console" description:"Log to stdout instead of log-file"`
+}
+
+//opts.CallVersion = ShowVersionAndExit
 func try() {
-	var opts struct {
-		Offset uint `long:"offset" description:"Offset"`
-	}
+	fmt.Println("PARSE!")
 	flags.Parse(&opts)
+	fmt.Println(opts)
+	os.Exit(0)
 }
 func main() {
+	try()
 	versionPtr := flag.Bool("version", false, "Print version")
 	consolePtr := flag.Bool("console", false, "Log to console. (Ignore --logoutput if any.)")
 	portPtr := flag.Int("port", 23632, "Listen on this port.")
@@ -198,8 +213,7 @@ func main() {
 	//flag.PrintDefaults()
 
 	if *versionPtr {
-		fmt.Println(config.Version)
-		os.Exit(0)
+		ShowVersionAndExit()
 	}
 
 	var lw io.Writer
