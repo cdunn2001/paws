@@ -5,6 +5,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"github.com/jessevdk/go-flags"
 	"io"
 	"io/fs"
 	"io/ioutil"
@@ -179,6 +180,12 @@ func MoveExistingLogfile(specified string) {
 			specified, err)
 		check(err)
 	}
+}
+func try() {
+	var opts struct {
+		Offset uint `long:"offset" description:"Offset"`
+	}
+	flags.Parse(&opts)
 }
 func main() {
 	versionPtr := flag.Bool("version", false, "Print version")
