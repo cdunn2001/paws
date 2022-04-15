@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"errors"
-	"flag"
 	"fmt"
 	"github.com/jessevdk/go-flags"
 	"io"
@@ -183,48 +182,43 @@ func MoveExistingLogfile(specified string) {
 }
 func ShowVersionAndExit() {
 	fmt.Println(config.Version)
+	os.Exit(0)
 }
 
-var opts struct {
+type Opts struct {
 	CallVersion func() `long:"version" description:"Show version"`
-	Port        uint   `long:"port" default:"23632" description:"Port for REST calls"`
+	Port        int    `long:"port" default:"23632" description:"Port for REST calls"`
 	DataDir     string `long:"data-dir" default:"" description:"(DEPRECATED) Directory for some outputs (usually under SRA subdir)"`
-	Cfg         string `long:"config-file" default:"" description:"(UNSUPPORTED) Read paws config (JSON) from this file, to update default config."`
+	Config      string `long:"config" default:"" description:"Read paws config (JSON) from this file, to update default config."`
 	LogOutput   string `long:"logoutput" default:"/var/log/pacbio/pa-wsgo/pa-wsgo.log" description:"Logfile output. We actually choose a unique name (maybe based on timestamp and pid), and symlink the named path to it. We avoid over-writing the pre-existing named path."`
 	Console     bool   `long:"console" description:"Log to stdout instead of log-file"`
 }
 
-//opts.CallVersion = ShowVersionAndExit
-func try() {
-	fmt.Println("PARSE!")
-	flags.Parse(&opts)
-	fmt.Println(opts)
-	os.Exit(0)
+func Parse() ([]string, Opts) {
+	opts := Opts{
+		CallVersion: ShowVersionAndExit,
+	}
+	args, err := flags.Parse(&opts)
+	if err != nil {
+		if flags.WroteHelp(err) {
+			os.Exit(0)
+		}
+		log.Fatalf("Failed to parse command-line:\n%#v", err)
+	}
+	return args, opts
 }
 func main() {
-	try()
-	versionPtr := flag.Bool("version", false, "Print version")
-	consolePtr := flag.Bool("console", false, "Log to console. (Ignore --logoutput if any.)")
-	portPtr := flag.Int("port", 23632, "Listen on this port.")
-	cfgPtr := flag.String("config", "", "Read paws config (JSON) from this file, to update default config.")
-	lfnPtr := flag.String("logoutput", "/var/log/pacbio/pa-wsgo/pa-wsgo.log", "Logfile output. We actually choose a unique name (maybe based on timestamp and pid), and (sym?)link the named path to it. We avoid over-writing the pre-existing named path.")
-	dataDirPtr := flag.String("data-dir", "", "Directory for some outputs (usually under SRA subdir")
-	flag.Parse()
-	//flag.PrintDefaults()
-
-	if *versionPtr {
-		ShowVersionAndExit()
-	}
+	args, opts := Parse()
 
 	var lw io.Writer
-	if !*consolePtr {
-		MoveExistingLogfile(*lfnPtr)
-		fn := web.ChooseLoggerFilename(*lfnPtr)
+	if !opts.Console {
+		MoveExistingLogfile(opts.LogOutput)
+		fn := web.ChooseLoggerFilename(opts.LogOutput)
 		{
-			err := os.Symlink(filepath.Base(fn), *lfnPtr)
+			err := os.Symlink(filepath.Base(fn), opts.LogOutput)
 			if err != nil {
 				fmt.Printf("ERROR: Failed to create convenient symlink from %q to %q: %+v\nContinuing.",
-					fn, *lfnPtr, err)
+					fn, opts.LogOutput, err)
 			}
 		}
 		fmt.Printf("Logging to '%s'\n", fn)
@@ -239,25 +233,25 @@ func main() {
 	log.SetOutput(lw)
 	log.Println(strings.Join(os.Args[:], " "))
 	log.Printf("version=%s\n", config.Version)
-	log.Printf("port='%v'\n", *portPtr)
+	log.Printf("port='%v'\n", opts.Port)
 
 	web.InitFixtures()
 
-	if *cfgPtr != "" {
-		log.Printf("config(file)='%v'\n", *cfgPtr)
-		file, err := os.Open(*cfgPtr)
+	if opts.Config != "" {
+		log.Printf("config(file)='%v'\n", opts.Config)
+		file, err := os.Open(opts.Config)
 		check(err)
 		defer file.Close()
 		config.UpdateTop(file)
 	}
 
-	if *dataDirPtr == "" {
+	if opts.DataDir == "" {
 		var err error
-		*dataDirPtr, err = ioutil.TempDir("", "pawsgo.*.datadir")
+		opts.DataDir, err = ioutil.TempDir("", "pawsgo.*.datadir")
 		check(err)
-		//defer os.RemoveAll(*dataDirPtr)
+		//defer os.RemoveAll(opts.DataDir)
 	}
-	web.DataDir = *dataDirPtr
+	web.DataDir = opts.DataDir
 	log.Printf("DataDir='%s'\n", web.DataDir)
 
 	log.Printf("tc: %+v", config.Top())
@@ -266,5 +260,8 @@ func main() {
 	config.VerifyBinaries(config.Top().Binaries)
 	//web.CheckBaz2bam(config.Top())
 
-	listen(*portPtr, lw)
+	if len(args) > 0 {
+		log.Fatalf("Unused args: %v", args)
+	}
+	listen(opts.Port, lw)
 }
