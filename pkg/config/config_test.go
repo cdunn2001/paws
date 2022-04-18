@@ -61,3 +61,24 @@ func TestUpdate(t *testing.T) {
 }`
 	Expect(t, expected, got)
 }
+func TestString2Bool(t *testing.T) {
+	cases := map[string]bool{
+		"0": false,
+		"F": false,
+		"f": false,
+		"n": false,
+		"1": true,
+		"T": true,
+		"t": true,
+		"y": true,
+	}
+	CheckString2Bool := func(k string, expected bool, t *testing.T) {
+		got := String2Bool(k)
+		if got != expected {
+			t.Errorf("For key:%s\n Expected:\n%#v\n Got:\n%#v", k, expected, got)
+		}
+	}
+	for k, v := range cases {
+		CheckString2Bool(k, v, t)
+	}
+}
