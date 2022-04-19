@@ -186,12 +186,13 @@ func ShowVersionAndExit() {
 }
 
 type Opts struct {
-	CallVersion func() `long:"version" description:"Show version"`
-	Port        int    `long:"port" default:"23632" description:"Port for REST calls"`
-	DataDir     string `long:"data-dir" default:"" description:"(DEPRECATED) Directory for some outputs (usually under SRA subdir)"`
-	Config      string `long:"config" default:"" description:"Read paws config (JSON) from this file, to update default config."`
-	LogOutput   string `long:"logoutput" default:"/var/log/pacbio/pa-wsgo/pa-wsgo.log" description:"Logfile output. We actually choose a unique name (maybe based on timestamp and pid), and symlink the named path to it. We avoid over-writing the pre-existing named path."`
-	Console     bool   `long:"console" description:"Log to stdout instead of log-file"`
+	CallVersion func()            `long:"version" description:"Show version"`
+	Port        int               `long:"port" default:"23632" description:"Port for REST calls"`
+	DataDir     string            `long:"data-dir" default:"" description:"(DEPRECATED) Directory for some outputs (usually under SRA subdir)"`
+	Config      string            `long:"config" default:"" description:"Read paws config (JSON) from this file, to update default config."`
+	Set         map[string]string `long:"set" description:"Each '--set key:value' specifies a key/value override, applied after any '--config file'. (Note the colon ':'.) E.g. '--set PawsTimeoutMultiplier:100'"`
+	LogOutput   string            `long:"logoutput" default:"/var/log/pacbio/pa-wsgo/pa-wsgo.log" description:"Logfile output. We actually choose a unique name (maybe based on timestamp and pid), and symlink the named path to it. We avoid over-writing the pre-existing named path."`
+	Console     bool              `long:"console" description:"Log to stdout instead of log-file"`
 }
 
 func Parse() ([]string, Opts) {
@@ -201,6 +202,7 @@ func Parse() ([]string, Opts) {
 	args, err := flags.Parse(&opts)
 	if err != nil {
 		if flags.WroteHelp(err) {
+			fmt.Printf("Note: This CLI-parser supports both space ' ' or '=' after switch, e.g. --config foo.json or --config=foo.json\n  See https://pkg.go.dev/github.com/jessevdk/go-flags\n")
 			os.Exit(0)
 		}
 		log.Fatalf("Failed to parse command-line:\n%#v", err)
@@ -238,12 +240,16 @@ func main() {
 	web.InitFixtures()
 
 	if opts.Config != "" {
+		// Override default config.
 		log.Printf("config(file)='%v'\n", opts.Config)
 		file, err := os.Open(opts.Config)
 		check(err)
 		defer file.Close()
 		config.UpdateTop(file)
 	}
+
+	// Final config overrides.
+	config.UpdateTopFromMap(opts.Set)
 
 	if opts.DataDir == "" {
 		var err error
@@ -254,7 +260,7 @@ func main() {
 	web.DataDir = opts.DataDir
 	log.Printf("DataDir='%s'\n", web.DataDir)
 
-	log.Printf("tc: %+v", config.Top())
+	log.Printf("Top Config now:\n%s", config.TopAsJson())
 	//WriteConfig(config.Top(), "foo.paws.json")
 
 	config.VerifyBinaries(config.Top().Binaries)

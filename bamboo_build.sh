@@ -12,7 +12,7 @@ echo "BASH_VERSION=$BASH_VERSION"
 which go
 
 go clean -testcache ./pkg/web/...
-make test
+go test ./pkg/... -v -timeout 30s #-failfast
 make vet
 make release
 bin/pawsgo --version
