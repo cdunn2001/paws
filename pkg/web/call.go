@@ -124,6 +124,7 @@ func DummyEnv(stall string) (result []string) {
 
 type ControlledProcess struct {
 	cmd          *exec.Cmd
+	tool         string
 	status       *ProcessStatusObject
 	temp_dn      string // someone must delete
 	stdout_fn    string // someone must delete (unless under temp_dn)
@@ -149,7 +150,7 @@ func StartControlledShellProcess(setup ProcessSetupObject, ps *ProcessStatusObje
 		//bash = fmt.Sprintf("%s %s%s /usr/bin/bash -vex ls", sshGood, user, setup.Hostname)
 	}
 	env := DummyEnv(setup.Stall)
-	result, err := WatchBashStderr(bash, ps, env)
+	result, err := WatchBashStderr(bash, ps, env, setup.Tool)
 	if err != nil {
 		panic(err)
 	}
@@ -252,7 +253,7 @@ func FirstWord(sentence string) string {
 		return words[0]
 	}
 }
-func WatchBashStderr(bash string, ps *ProcessStatusObject, envExtra []string) (*ControlledProcess, error) {
+func WatchBashStderr(bash string, ps *ProcessStatusObject, envExtra []string, tool string) (*ControlledProcess, error) {
 	TIMEOUT_MULTIPLIER := config.Top().Values.PawsTimeoutMultiplier
 	{
 		prog := FirstWord(bash)
@@ -302,6 +303,7 @@ func WatchBashStderr(bash string, ps *ProcessStatusObject, envExtra []string) (*
 
 	cbp := &ControlledProcess{
 		cmd:       cmd,
+		tool:      tool,
 		status:    ps,
 		temp_dn:   temp_dn,
 		stdoutBuf: &stdoutBuf,
@@ -315,31 +317,32 @@ func WatchBashStderr(bash string, ps *ProcessStatusObject, envExtra []string) (*
 
 	go func() {
 		pid := int(cmd.Process.Pid)
+		prefix := fmt.Sprintf("(%d %s)", pid, tool)
 		var timeout float64 = 100000.0 // seconds
-		log.Printf("PID: %d Started timeout go-func with timeout=%f\n", pid, timeout)
+		log.Printf("%sStarted timeout go-func with timeout=%f\n", prefix, timeout)
 		timedout := false
 		done := false
 		for !done && !timedout {
 			select {
 			case <-time.After(time.Duration((timeout + 0.01) * float64(time.Second))):
 				timedout = true
-				log.Printf("PID: %d Timed out! Killing.\n", pid)
+				log.Printf("%sTimed out! Killing.\n", prefix)
 				cmd.Process.Kill() // TODO: What happens if not running? Also, check sub-children, or maybe ssid.
 			case <-chanKill:
-				log.Printf("PID: %d Got chanKill. Killing.\n", pid)
+				log.Printf("%sGot chanKill. Killing.\n", prefix)
 				cmd.Process.Kill() // TODO: What happens if not running? Also, check sub-children, or maybe ssid.
 				done = true
 			case <-chanDone:
 				done = true
-				log.Printf("PID: %d Got chanDone!\n", pid)
+				log.Printf("%sGot chanDone!\n", prefix)
 			case srText := <-chanStatusReportText:
 				sr, err := String2StatusReport(srText)
 				if err != nil {
 					// Count as a heartbeat, but do not update timeout.
-					//log.Printf("PID: %d Unparseable status:\n%s\n", pid, srText)
+					//log.Printf("%sUnparseable status:\n%s\n", prefix, srText)
 				} else if sr.State == "exception" {
 					// Count as a heartbeat, but do not update timeout.
-					log.Printf("PID: %d Status exception:%s\n", pid, srText)
+					log.Printf("%sStatus exception:%s\n", prefix, srText)
 
 					// TODO: Make this thread-safe!!!
 					//cbp.status.Timestamp = sr.Timestamp
@@ -350,9 +353,9 @@ func WatchBashStderr(bash string, ps *ProcessStatusObject, envExtra []string) (*
 					if sr.TimeoutForNextStatus > 0.0 {
 						timeout = sr.TimeoutForNextStatus
 						timeout = timeout * TIMEOUT_MULTIPLIER
-						log.Printf("PID: %d timeout is now %f\n", pid, timeout)
+						log.Printf("%stimeout is now %f\n", prefix, timeout)
 					} else {
-						log.Printf("PID: %d Ignoring TimeoutForNextStatus %f\n", pid, sr.TimeoutForNextStatus)
+						log.Printf("%sIgnoring TimeoutForNextStatus %f\n", prefix, sr.TimeoutForNextStatus)
 					}
 
 					// TODO: Make this thread-safe!!!
@@ -364,15 +367,15 @@ func WatchBashStderr(bash string, ps *ProcessStatusObject, envExtra []string) (*
 			}
 		}
 		if timedout {
-			log.Printf("PID: %d Timedout?\n", pid)
+			log.Printf("%sTimedout?\n", prefix)
 		} else if done {
-			log.Printf("PID: %d Done?\n", pid)
+			log.Printf("%sDone?\n", prefix)
 		} else {
-			log.Printf("PID: %d Not sure why we stopped watching it.\n", pid)
+			log.Printf("%sNot sure why we stopped watching it.\n", prefix)
 		}
-		log.Printf("PID: %d Waiting...\n", pid)
+		log.Printf("%sWaiting...\n", prefix)
 		err := cmd.Wait()
-		log.Printf("PID: %d Done waiting. Exit:%v\n", pid, err)
+		log.Printf("%sDone waiting. Exit:%v\n", prefix, err)
 
 		// TODO: Make these thread-safe!!!
 		cbp.status.ExecutionStatus = Complete
@@ -388,7 +391,7 @@ func WatchBashStderr(bash string, ps *ProcessStatusObject, envExtra []string) (*
 		} else {
 			cbp.status.CompletionStatus = Success
 		}
-		log.Printf("stdout:\n%s\n", cbp.stdoutBuf.String())
+		log.Printf("%sstdout:\n%s\n", prefix, cbp.stdoutBuf.String())
 		//logContent(cbp.stdoutfn, "stdout")
 		//logContent(cbp.stderr_fn, "stderr")
 		defer cbp.cleanup()
@@ -396,7 +399,8 @@ func WatchBashStderr(bash string, ps *ProcessStatusObject, envExtra []string) (*
 	}()
 	go func() {
 		pid := int(cmd.Process.Pid)
-		log.Printf("PID: %d Started scanner go-func\n", pid)
+		prefix := fmt.Sprintf("(%d %s)", pid, tool)
+		log.Printf("%sStarted scanner go-func\n", prefix)
 		var err error = nil
 		breader := bufio.NewReader(rpipe)
 		//time.Sleep(1.0 * time.Second)
@@ -409,16 +413,16 @@ func WatchBashStderr(bash string, ps *ProcessStatusObject, envExtra []string) (*
 				if err != nil {
 					if err != io.EOF {
 						// Unexpected error. // TODO: What else is ok here?
-						log.Printf("PID: %d Unexpected error from Readline():'%+v'\n", pid, err)
+						log.Printf("%sUnexpected error from Readline():'%+v'\n", prefix, err)
 						//check(err)
 					}
-					log.Printf("PID: %d End of file. Done reading status-reports. isPrefix:%t, line:'%s'\n", pid, isPrefix, line)
+					log.Printf("%sEnd of file. Done reading status-reports. isPrefix:%t, line:'%s'\n", prefix, isPrefix, line)
 					break
 				}
 				text = text + string(line)
 			}
 			if err == nil {
-				log.Printf("PID: %d Got:%s\n err:%s\n", pid, text, err)
+				log.Printf("%sGot:%s\n err:%s\n", prefix, text, err)
 			}
 			if err == io.EOF {
 				break
@@ -428,10 +432,10 @@ func WatchBashStderr(bash string, ps *ProcessStatusObject, envExtra []string) (*
 
 		process, err := os.FindProcess(pid)
 		if err != nil {
-			log.Printf("PID: %d Failed FindProcess: %s\n", pid, err)
+			log.Printf("%sFailed FindProcess: %s\n", prefix, err)
 		} else {
 			err := process.Signal(syscall.Signal(0))
-			log.Printf("PID: %d process.Signal returned: %v\n", pid, err)
+			log.Printf("%sprocess.Signal returned: %v\n", prefix, err)
 		}
 
 		chanDone <- true
@@ -440,7 +444,7 @@ func WatchBashStderr(bash string, ps *ProcessStatusObject, envExtra []string) (*
 
 	return cbp, nil
 }
-func WatchBash(bash string, ps *ProcessStatusObject, envExtra []string) (*ControlledProcess, error) {
+func WatchBash(bash string, ps *ProcessStatusObject, envExtra []string, tool string) (*ControlledProcess, error) {
 	TIMEOUT_MULTIPLIER := config.Top().Values.PawsTimeoutMultiplier
 	rpipe, wpipe, err := os.Pipe()
 	if err != nil {
@@ -497,6 +501,7 @@ func WatchBash(bash string, ps *ProcessStatusObject, envExtra []string) (*Contro
 
 	cbp := &ControlledProcess{
 		cmd:          cmd,
+		tool:         tool,
 		status:       ps,
 		temp_dn:      temp_dn,
 		stdout_fn:    stdout_fn,
@@ -509,31 +514,32 @@ func WatchBash(bash string, ps *ProcessStatusObject, envExtra []string) (*Contro
 
 	go func() {
 		pid := int(cmd.Process.Pid)
+		prefix := fmt.Sprintf("(%d %s)", pid, tool)
 		var timeout float64 = 100000.0 // seconds
-		log.Printf("PID: %d Started timeout go-func with timeout=%f\n", pid, timeout)
+		log.Printf("%sStarted timeout go-func with timeout=%f\n", prefix, timeout)
 		timedout := false
 		done := false
 		for !done && !timedout {
 			select {
 			case <-time.After(time.Duration((timeout + 0.01) * float64(time.Second))):
 				timedout = true
-				log.Printf("PID: %d Timed out! Killing.\n", pid)
+				log.Printf("%sTimed out! Killing.\n", prefix)
 				cmd.Process.Kill() // TODO: What happens if not running? Also, check sub-children, or maybe ssid.
 			case <-chanKill:
-				log.Printf("PID: %d Got chanKill. Killing.\n", pid)
+				log.Printf("%sGot chanKill. Killing.\n", prefix)
 				cmd.Process.Kill() // TODO: What happens if not running? Also, check sub-children, or maybe ssid.
 				done = true
 			case <-chanDone:
 				done = true
-				log.Printf("PID: %d Got chanDone!\n", pid)
+				log.Printf("%sGot chanDone!\n", prefix)
 			case srText := <-chanStatusReportText:
 				sr, err := String2StatusReport(srText)
 				if err != nil {
 					// Count as a heartbeat, but do not update timeout.
-					//log.Printf("PID: %d Unparseable status:\n%s\n", pid, srText)
+					//log.Printf("%sUnparseable status:\n%s\n", prefix, srText)
 				} else if sr.State == "exception" {
 					// Count as a heartbeat, but do not update timeout.
-					log.Printf("PID: %d Status exception:%s\n", pid, srText)
+					log.Printf("%sStatus exception:%s\n", prefix, srText)
 
 					// TODO: Make this thread-safe!!!
 					//cbp.status.Timestamp = sr.Timestamp
@@ -544,9 +550,9 @@ func WatchBash(bash string, ps *ProcessStatusObject, envExtra []string) (*Contro
 					if sr.TimeoutForNextStatus > 0.0 {
 						timeout = sr.TimeoutForNextStatus
 						timeout = timeout * TIMEOUT_MULTIPLIER
-						log.Printf("PID: %d timeout is now %f\n", pid, timeout)
+						log.Printf("%stimeout is now %f\n", prefix, timeout)
 					} else {
-						log.Printf("PID: %d Ignoring TimeoutForNextStatus %f\n", pid, sr.TimeoutForNextStatus)
+						log.Printf("%sIgnoring TimeoutForNextStatus %f\n", prefix, sr.TimeoutForNextStatus)
 					}
 
 					// TODO: Make this thread-safe!!!
@@ -558,15 +564,15 @@ func WatchBash(bash string, ps *ProcessStatusObject, envExtra []string) (*Contro
 			}
 		}
 		if timedout {
-			log.Printf("PID: %d Timedout?\n", pid)
+			log.Printf("%sTimedout?\n", prefix)
 		} else if done {
-			log.Printf("PID: %d Done?\n", pid)
+			log.Printf("%sDone?\n", prefix)
 		} else {
-			log.Printf("PID: %d Not sure why we stopped watching it.\n", pid)
+			log.Printf("%sNot sure why we stopped watching it.\n", prefix)
 		}
-		log.Printf("PID: %d Waiting...\n", pid)
+		log.Printf("%sWaiting...\n", prefix)
 		err := cmd.Wait()
-		log.Printf("PID: %d Done waiting. Exit:%v\n", pid, err)
+		log.Printf("%sDone waiting. Exit:%v\n", prefix, err)
 
 		// TODO: Make these thread-safe!!!
 		cbp.status.ExecutionStatus = Complete
@@ -589,7 +595,8 @@ func WatchBash(bash string, ps *ProcessStatusObject, envExtra []string) (*Contro
 	}()
 	go func() {
 		pid := int(cmd.Process.Pid)
-		log.Printf("PID: %d Started scanner go-func\n", pid)
+		prefix := fmt.Sprintf("(%d %s)", pid, tool)
+		log.Printf("%sStarted scanner go-func\n", prefix)
 		breader := bufio.NewReader(rpipe)
 		defer rpipe.Close()
 		var err error = nil
@@ -603,16 +610,16 @@ func WatchBash(bash string, ps *ProcessStatusObject, envExtra []string) (*Contro
 				if err != nil {
 					if err != io.EOF {
 						// Unexpected error. // TODO: What else is ok here?
-						log.Printf("PID: %d Unexpected error from Readline():'%+v'\n", pid, err)
+						log.Printf("%sUnexpected error from Readline():'%+v'\n", prefix, err)
 						//check(err)
 					}
-					log.Printf("PID: %d End of file. Done reading status-reports. isPrefix:%t, line:'%s'\n", pid, isPrefix, line)
+					log.Printf("%sEnd of file. Done reading status-reports. isPrefix:%t, line:'%s'\n", prefix, isPrefix, line)
 					break
 				}
 				text = text + string(line)
 			}
 			if err == nil {
-				log.Printf("PID: %d Got:%s\n err:%s\n", pid, text, err)
+				log.Printf("%sGot:%s\n err:%s\n", prefix, text, err)
 			}
 			if err == io.EOF {
 				break
@@ -622,10 +629,10 @@ func WatchBash(bash string, ps *ProcessStatusObject, envExtra []string) (*Contro
 
 		process, err := os.FindProcess(pid)
 		if err != nil {
-			log.Printf("PID: %d Failed FindProcess: %s\n", pid, err)
+			log.Printf("%sFailed FindProcess: %s\n", prefix, err)
 		} else {
 			err := process.Signal(syscall.Signal(0))
-			log.Printf("PID: %d process.Signal returned: %v\n", pid, err)
+			log.Printf("%sprocess.Signal returned: %v\n", prefix, err)
 		}
 
 		chanDone <- true

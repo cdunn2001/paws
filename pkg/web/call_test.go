@@ -52,7 +52,7 @@ func TestCont(t *testing.T) {
 	WriteStringToFile(bash, setup.ScriptFn)
 	_ = StartControlledShellProcess(setup, ps)
 	/*
-		result, _ := WatchBash(bash, ps, nil)
+		result, _ := WatchBash(bash, ps, nil, "dummy-pa-cal")
 		select {
 		case <-result.chanComplete:
 		}
@@ -66,7 +66,7 @@ func TestWatchBashStderrSucceed(t *testing.T) {
 		"STATUS_DELAY_SECONDS=0.05", // Note: ".05" would not be valid.
 	}
 	ps := &ProcessStatusObject{}
-	cp, err := WatchBashStderr(bash, ps, env)
+	cp, err := WatchBashStderr(bash, ps, env, "dummy-basic")
 	if err != nil {
 		t.Errorf("Got %d", err)
 	}
@@ -91,7 +91,7 @@ func TestWatchBashSucceed(t *testing.T) {
 		"STATUS_DELAY_SECONDS=0.05", // Note: ".05" would not be valid.
 	}
 	ps := &ProcessStatusObject{}
-	cp, err := WatchBash(bash, ps, env)
+	cp, err := WatchBash(bash, ps, env, "dummy-basic")
 	if err != nil {
 		t.Errorf("Got %d", err)
 	}
@@ -116,7 +116,7 @@ func TestWatchBashStderrKill(t *testing.T) {
 		"STATUS_TIMEOUT=0.00001",
 	}
 	ps := &ProcessStatusObject{}
-	cp, err := WatchBashStderr(bash, ps, env)
+	cp, err := WatchBashStderr(bash, ps, env, "dummy-basic")
 	if err != nil {
 		t.Errorf("Got %d", err)
 	}
@@ -141,7 +141,7 @@ func TestWatchBashKill(t *testing.T) {
 		"STATUS_TIMEOUT=0.00001",
 	}
 	ps := &ProcessStatusObject{}
-	cp, err := WatchBash(bash, ps, env)
+	cp, err := WatchBash(bash, ps, env, "dummy-basic")
 	if err != nil {
 		t.Errorf("Got %d", err)
 	}

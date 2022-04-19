@@ -443,7 +443,9 @@ func DumpBash(setup ProcessSetupObject, bash string) {
 	WriteStringToFile(content, setup.ScriptFn)
 }
 func DumpBasecallerScript(tc config.TopStruct, obj *SocketBasecallerObject, id string) ProcessSetupObject {
-	setup := ProcessSetupObject{}
+	setup := ProcessSetupObject{
+		Tool: "smrt-basecaller",
+	}
 	rundir := filepath.Dir(TranslateUrl(obj.BazUrl))
 	setup.RunDir = rundir
 	setup.ScriptFn = filepath.Join(setup.RunDir, "run.basecaller.sh")
@@ -457,7 +459,9 @@ func DumpBasecallerScript(tc config.TopStruct, obj *SocketBasecallerObject, id s
 	return setup
 }
 func DumpDarkcalScript(tc config.TopStruct, obj *SocketDarkcalObject, id string) ProcessSetupObject {
-	setup := ProcessSetupObject{}
+	setup := ProcessSetupObject{
+		Tool: "darkcal",
+	}
 	rundir := filepath.Dir(TranslateUrl(obj.CalibFileUrl))
 	setup.RunDir = rundir
 	setup.ScriptFn = filepath.Join(setup.RunDir, "run.darkcal.sh")
@@ -471,7 +475,9 @@ func DumpDarkcalScript(tc config.TopStruct, obj *SocketDarkcalObject, id string)
 	return setup
 }
 func DumpLoadingcalScript(tc config.TopStruct, obj *SocketLoadingcalObject, id string) ProcessSetupObject {
-	setup := ProcessSetupObject{}
+	setup := ProcessSetupObject{
+		Tool: "loadingcal",
+	}
 	rundir := filepath.Dir(TranslateUrl(obj.CalibFileUrl))
 	setup.RunDir = rundir
 	setup.ScriptFn = filepath.Join(setup.RunDir, "run.loadingcal.sh")
@@ -485,7 +491,9 @@ func DumpLoadingcalScript(tc config.TopStruct, obj *SocketLoadingcalObject, id s
 	return setup
 }
 func DumpPostprimaryScript(tc config.TopStruct, obj *PostprimaryObject) ProcessSetupObject {
-	setup := ProcessSetupObject{}
+	setup := ProcessSetupObject{
+		Tool: "ppa(baz2bam)",
+	}
 	rundir := filepath.Dir(TranslateUrl(obj.OutputPrefixUrl))
 	setup.RunDir = rundir
 	setup.ScriptFn = filepath.Join(setup.RunDir, "run.ppa.sh")
