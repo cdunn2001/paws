@@ -321,7 +321,7 @@ func WriteBasecallerBash(wr io.Writer, tc config.TopStruct, obj *SocketBasecalle
 		kv["optLogOutput"] = TranslateDiscardableUrl("--logoutput", obj.LogUrl)
 	}
 	if !strings.HasSuffix(kv["optLogOutput"], ".log") {
-		msg := fmt.Sprintf("ERROR! For baz2bam, log output is %q but must end w/ '.log' (for now).",
+		msg := fmt.Sprintf("ERROR! For smrt-basecaller, log output is %q but must end w/ '.log' (for now).",
 			kv["optLogOutput"])
 		log.Printf(msg)
 		//panic(msg)
@@ -371,8 +371,6 @@ var Template_baz2bam = `
 
   {{.Local.moveOutputStatsXml}}
   {{.Local.moveOutputStatsH5}}
-
-  touch {{.Local.DesiredLogOutput}}
 `
 
 // alternatively, replace bazFile(s) w/
@@ -513,8 +511,7 @@ func DumpPostprimaryScript(tc config.TopStruct, obj *PostprimaryObject) ProcessS
 func WriteBaz2bamBash(wr io.Writer, tc config.TopStruct, obj *PostprimaryObject) error {
 	t := CreateTemplate(Template_baz2bam, "")
 	kv := make(map[string]string)
-	outputPrefix := obj.OutputPrefixUrl                             // TODO: Translate URL
-	kv["DesiredLogOutput"] = obj.OutputPrefixUrl + ".baz2bam_1.log" // temp fix
+	outputPrefix := obj.OutputPrefixUrl // TODO: Translate URL
 	kv["outputPrefix"] = outputPrefix
 	outdir := filepath.Dir(outputPrefix)
 	if outdir == "" {
@@ -532,8 +529,7 @@ func WriteBaz2bamBash(wr io.Writer, tc config.TopStruct, obj *PostprimaryObject)
 		logoutput = "/dev/null"
 		loglevel = Error
 	} else {
-		logoutput = obj.LogUrl              // TODO
-		kv["DesiredLogOutput"] = obj.LogUrl // temp fix
+		logoutput = obj.LogUrl // TODO
 	}
 	if loglevel == "" {
 		kv["logfilter"] = ""
@@ -541,10 +537,8 @@ func WriteBaz2bamBash(wr io.Writer, tc config.TopStruct, obj *PostprimaryObject)
 		kv["logfilter"] = "--logfilter " + string(loglevel)
 	}
 	kv["logoutput"] = "--logoutput " + logoutput
-
-	// baz2bam does not have these options right now.
-	kv["logoutput"] = "" // temp fix
-	kv["logfilter"] = "" // temp fix
+	// Note: baz2bam will actually append to this, not over-write,
+	// as of e78d019b (9c896e1e), 11Apr2022.
 
 	kv["moveOutputStatsXml"] = MoveIfDifferent(obj.OutputPrefixUrl+".sts.xml",
 		obj.OutputStatsXmlUrl)
