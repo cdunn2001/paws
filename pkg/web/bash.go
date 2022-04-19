@@ -54,8 +54,11 @@ func WriteDarkcalBash(wr io.Writer, tc config.TopStruct, obj *SocketDarkcalObjec
 	sra := socketIdInt - 1 // for now
 	kv["sra"] = strconv.Itoa(sra)
 
-	kv["movieNum"] = "0" // for now
-	// assert if obj.movieNum not nil, then it is 0.
+	if tc.Values.MovieNumberAlwaysZero || obj.MovieNumber < 0 {
+		kv["movieNum"] = "0"
+	} else {
+		kv["movieNum"] = strconv.Itoa(int(obj.MovieNumber))
+	}
 
 	numFrames := int(obj.MovieMaxFrames)
 	kv["numFrames"] = strconv.Itoa(numFrames)
@@ -102,8 +105,11 @@ func WriteLoadingcalBash(wr io.Writer, tc config.TopStruct, obj *SocketLoadingca
 	sra := socketIdInt - 1 // for now
 	kv["sra"] = strconv.Itoa(sra)
 
-	kv["movieNum"] = "0" // for now
-	// assert if obj.movieNum not nil, then it is 0.
+	if tc.Values.MovieNumberAlwaysZero || obj.MovieNumber < 0 {
+		kv["movieNum"] = "0"
+	} else {
+		kv["movieNum"] = strconv.Itoa(int(obj.MovieNumber))
+	}
 
 	numFrames := int(obj.MovieMaxFrames)
 	kv["numFrames"] = strconv.Itoa(numFrames)

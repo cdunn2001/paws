@@ -23,6 +23,7 @@ type ValuesConfig struct {
 	JustOneBazFile           bool
 	ApplyDarkCal             bool
 	ApplyCrosstalkCorrection bool
+	MovieNumberAlwaysZero    bool
 	PawsTimeoutMultiplier    float64
 }
 
@@ -62,6 +63,7 @@ func init() {
 			JustOneBazFile:           true,
 			ApplyDarkCal:             true,
 			ApplyCrosstalkCorrection: true,
+			MovieNumberAlwaysZero:    true,
 			PawsTimeoutMultiplier:    1.0,
 		},
 		Hostname: hostname,
@@ -176,6 +178,9 @@ func UpdateTopFromMap(opts map[string]string) {
 		} else if k == "ApplyDarkCal" {
 			fv := String2Bool(v)
 			top.Values.ApplyDarkCal = fv
+		} else if k == "MovieNumberAlwaysZero" {
+			fv := String2Bool(v)
+			top.Values.MovieNumberAlwaysZero = fv
 		} else if k == "ApplyCrosstalkCorrection" {
 			fv := String2Bool(v)
 			top.Values.ApplyCrosstalkCorrection = fv
