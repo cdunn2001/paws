@@ -19,7 +19,7 @@ quick:
 all: test vet fmt lint build
 
 test:
-	go test ./pkg/... -v -timeout 30s -failfast
+	go test ./pkg/... -v -timeout 30s -short -failfast
 clean: # Use this if you alter bash scripts or data.
 	go clean -testcache ./pkg/web/...
 vet:

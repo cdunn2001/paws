@@ -40,23 +40,34 @@ func TestRunBash(t *testing.T) {
 		t.Errorf("Got %d", got)
 	}
 }
-func TestCont(t *testing.T) {
+func TestStartControlledShellProcessSsh(t *testing.T) {
 	bash := testdataDir + "/dummy-basic.sh --status-fd 2"
 	//bash := testdataDir + "/dummy-pa-cal.sh --statusfd 3"
 	ps := &ProcessStatusObject{}
 	setup := ProcessSetupObject{
 		Hostname: "localhost",
-		Stall:    "0",        //"0.3"
-		ScriptFn: "where.sh", // TODO: Clean up this file!
+		Stall:    "0",
+		ScriptFn: "where.sh",
 	}
+	if testing.Short() {
+		setup.Hostname = ""
+		//t.Skip("skipping this test")
+	}
+	defer func() {
+		_ = os.Remove("where.sh")
+	}()
 	WriteStringToFile(bash, setup.ScriptFn)
-	_ = StartControlledShellProcess(setup, ps)
-	/*
-		result, _ := WatchBash(bash, ps, nil, "dummy-pa-cal")
-		select {
-		case <-result.chanComplete:
-		}
-	*/
+	cp := StartControlledShellProcess(setup, ps)
+	//result, _ := WatchBash(bash, ps, nil, "dummy-pa-cal")
+	log.Printf("Waiting for chanComplete '%s'?", cp.cmd)
+	select {
+	case <-cp.chanComplete:
+	}
+	log.Printf("Done '%s'!\n", cp.cmd)
+	code := ps.ExitCode
+	if code != 0 {
+		t.Errorf("Expected 0, got exit-code %d", code)
+	}
 }
 func TestWatchBashStderrSucceed(t *testing.T) {
 	bash := testdataDir + "/dummy-basic.sh --status-fd 2"
