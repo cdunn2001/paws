@@ -24,6 +24,7 @@ var sample_json string = `
       "DefaultFrameRate": 99.0,
       "JustOneBazFile": false,
       "ApplyDarkCal": true,
+      "MovieNumberAlwaysZero": true,
       "ApplyCrosstalkCorrection": false
     },
     "Binaries": {
@@ -49,6 +50,7 @@ func TestUpdate(t *testing.T) {
     "JustOneBazFile": false,
     "ApplyDarkCal": true,
     "ApplyCrosstalkCorrection": false,
+    "MovieNumberAlwaysZero": true,
     "PawsTimeoutMultiplier": 0
   },
   "Binaries": {
