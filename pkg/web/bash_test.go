@@ -82,7 +82,7 @@ smrt-basecaller-launch.sh \
   --outputtrcfile /data/nrta/0/m84003_220325_032134_s1.trc.h5 \
   --config traceSaver.roi='[[135,288,1,32],[135,768,1,32],[135,1248,1,32],[135,1728,1,32],[405,288,1,32],[405,768,1,32],[405,1248,1,32],[405,1728,1,32],[675,288,1,32],[675,768,1,32],[675,1248,1,32],[675,1728,1,32],[945,288,1,32],[945,768,1,32],[945,1248,1,32],[945,1728,1,32]]' \
   --outputbazfile /data/nrta/0/m84003_220325_032134_s1.baz \
-  --config tmp/3/m84003_220325_032134_s1.basecaller.config.json \
+  --config /tmp/3/m84003_220325_032134_s1.basecaller.config.json \
   --config source.WXIPCDataSourceConfig.sraIndex=3 \
   --config dataSource.darkCalFileName=/data/nrta/0/m84003_220325_032134_s1.darkcal_220325_032954.h5 \
   --config dataSource.imagePsfKernel=[[0.0009999999,0.00390000013,0.00735,0.0044,0.00195000006],[0.00199999986,0.0201000012,0.05845,0.02015,0.0049],[0.0055,0.0528,0.634799957,0.04755,0.0088],[0.00445,0.021949999,0.0569000021,0.02155,0.0035],[0.00195000006,0.0044,0.0059,0.00390000013,0.00195000006]] \
@@ -91,7 +91,7 @@ smrt-basecaller-launch.sh \
 `
 		var b bytes.Buffer
 		tc := config.Top()
-		DataDir = "./tmp" // Note: global side-effect
+		DataDir = "/tmp" // Note: global side-effect
 		err = WriteBasecallerBash(&b, tc, obj, "4")
 		check(err)
 		got := b.String()
@@ -111,7 +111,7 @@ smrt-basecaller-launch.sh \
    \
    \
   --outputbazfile /data/nrta/0/m84003_220325_032134_s1.baz \
-  --config tmp/3/m84003_220325_032134_s1.basecaller.config.json \
+  --config /tmp/3/m84003_220325_032134_s1.basecaller.config.json \
   --config source.WXIPCDataSourceConfig.sraIndex=3 \
   --config dataSource.darkCalFileName=/data/nrta/0/m84003_220325_032134_s1.darkcal_220325_032954.h5 \
   --config dataSource.imagePsfKernel=[[0.0009999999,0.00390000013,0.00735,0.0044,0.00195000006],[0.00199999986,0.0201000012,0.05845,0.02015,0.0049],[0.0055,0.0528,0.634799957,0.04755,0.0088],[0.00445,0.021949999,0.0569000021,0.02155,0.0035],[0.00195000006,0.0044,0.0059,0.00390000013,0.00195000006]] \
