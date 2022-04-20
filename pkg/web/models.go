@@ -68,6 +68,7 @@ type ProcessSetupObject struct {
 	Hostname string
 	ScriptFn string
 	Stall    string
+	Tool     string
 }
 type ProcessStatusObject struct {
 
