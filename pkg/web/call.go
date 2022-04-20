@@ -141,13 +141,12 @@ var (
 func StartControlledShellProcess(setup ProcessSetupObject, ps *ProcessStatusObject) (result *ControlledProcess) {
 	bash := ""
 	if setup.Hostname == "" {
-		bash = fmt.Sprintf("/usr/bin/bash %s", setup.ScriptFn)
+		bash = fmt.Sprintf("bash %s", setup.ScriptFn)
 	} else {
 		user := "" //"cdunn@"
 		absScriptFn, err := filepath.Abs(setup.ScriptFn)
 		check(err) // never happens in prod
-		bash = fmt.Sprintf("%s %s%s /usr/bin/bash %s", sshGood, user, setup.Hostname, absScriptFn)
-		//bash = fmt.Sprintf("%s %s%s /usr/bin/bash -vex ls", sshGood, user, setup.Hostname)
+		bash = fmt.Sprintf("%s %s%s bash %s", sshGood, user, setup.Hostname, absScriptFn)
 	}
 	env := DummyEnv(setup.Stall)
 	result, err := WatchBashStderr(bash, ps, env, setup.Tool)
