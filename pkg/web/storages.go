@@ -35,10 +35,10 @@ func (self *Store) AcquireStorageObjectFromMid(mid string, state *State) *Storag
 	os.MkdirAll(dir, 0777)
 	return obj
 }
-func (self *Store) Free(obj *StorageObject, state *State) {
+func (self *Store) Free(obj *StorageObject) {
 	for _, sio := range obj.Files {
 		url := sio.Url
-		fn, err := StorageUrlToLinuxPath(url, state)
+		fn, err := StorageObjectUrlToLinuxPath(obj, url)
 		if err != nil {
 			log.Printf("WARNING: Failed to convert URL %q to LinuxPath: %v.\n  Cannot remove from disk.", url, err)
 			continue
@@ -102,7 +102,7 @@ func freeStorageByMid(c *gin.Context, state *State) {
 		return
 	}
 	// TODO: Do this in the background. PTSD-1282
-	state.store.Free(obj, state)
+	state.store.Free(obj)
 	c.Status(http.StatusOK)
 }
 
