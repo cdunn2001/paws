@@ -62,7 +62,17 @@ func getStorageByMid(c *gin.Context, state *State) {
 // Deletes the storages resource for the provided movie context name (MID).
 func deleteStorageByMid(c *gin.Context, state *State) {
 	mid := c.Param("mid")
-	c.String(http.StatusConflict, "For mid '%s', if all files have not been freed, the DELETE will fail.\n", mid)
+	obj, found := state.Storages[mid]
+	if !found {
+		c.String(http.StatusOK, "The storage for mid '%s' was not found. Must have been deleted already, which is fine.\n", mid)
+		return
+	}
+	if len(obj.Files) != 0 {
+		c.String(http.StatusConflict, "For mid '%s', %d files have not been freed.\n", mid, len(obj.Files))
+		return
+	}
+	delete(state.Storages, mid)
+	c.Status(http.StatusOK)
 }
 
 // Frees all directories and files associated with the storages resources and reclaims disk space.
