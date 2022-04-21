@@ -12,7 +12,8 @@ func TestStorageObjectUrlToLinuxPath(t *testing.T) {
 	}
 	{
 		url := "http://localhost:23632/storages/m1234/files/somefile.txt"
-		actual, _ := StorageObjectUrlToLinuxPath(m1234, url)
+		actual, err := StorageObjectUrlToLinuxPath(m1234, url)
+		check(err)
 		expected := "/data/nrta/0/m1234/somefile.txt"
 		if actual != expected {
 			t.Errorf("Expected the linux path of %s to be %s but got %s!", url, expected, actual)
@@ -50,6 +51,13 @@ func TestStorageUrlToLinuxPath(t *testing.T) {
 		LinuxPath: "/data/nrta/0/m1234",
 	}
 	state.Storages["m1234"] = m1234
+	{
+		url := "http://localhost:23632/storages/m5678/files/otherfile.txt"
+		_, err := StorageUrlToLinuxPath(url, &state)
+		if err == nil {
+			t.Errorf("Expected err for url %q, as we did not register that StorageObject yet!", url)
+		}
+	}
 	m5678 := &StorageObject{
 		Mid:       "m5678",
 		RootUrl:   "http://localhost:23632/storages/m5678/files",
@@ -58,7 +66,8 @@ func TestStorageUrlToLinuxPath(t *testing.T) {
 	state.Storages["m5678"] = m5678
 	{
 		url := "http://localhost:23632/storages/m1234/files/somefile.txt"
-		actual, _ := StorageUrlToLinuxPath(url, &state)
+		actual, err := StorageUrlToLinuxPath(url, &state)
+		check(err)
 		expected := "/data/nrta/0/m1234/somefile.txt"
 		if actual != expected {
 			t.Errorf("Expected the linux path of %s to be %s but got %s!", url, expected, actual)
@@ -66,7 +75,8 @@ func TestStorageUrlToLinuxPath(t *testing.T) {
 	}
 	{
 		url := "http://localhost:23632/storages/m5678/files/otherfile.txt"
-		actual, _ := StorageUrlToLinuxPath(url, &state)
+		actual, err := StorageUrlToLinuxPath(url, &state)
+		check(err)
 		expected := "/data/nrta/1/m5678/otherfile.txt"
 		if actual != expected {
 			t.Errorf("Expected the linux path of %s to be %s but got %s!", url, expected, actual)
@@ -74,7 +84,8 @@ func TestStorageUrlToLinuxPath(t *testing.T) {
 	}
 	{
 		url := "file:/data/nrta/0/justafile.txt"
-		actual, _ := StorageUrlToLinuxPath(url, &state)
+		actual, err := StorageUrlToLinuxPath(url, &state)
+		check(err)
 		expected := "/data/nrta/0/justafile.txt"
 		if actual != expected {
 			t.Errorf("Expected the linux path of %s to be %s but got %s!", url, expected, actual)
@@ -82,7 +93,8 @@ func TestStorageUrlToLinuxPath(t *testing.T) {
 	}
 	{
 		url := "/data/nrta/0/justafile.txt"
-		actual, _ := StorageUrlToLinuxPath(url, &state)
+		actual, err := StorageUrlToLinuxPath(url, &state)
+		check(err)
 		expected := "/data/nrta/0/justafile.txt"
 		if actual != expected {
 			t.Errorf("Expected the linux path of %s to be %s but got %s!", url, expected, actual)
