@@ -248,6 +248,7 @@ var Template_basecaller = `
   --config source.WXIPCDataSourceConfig.sraIndex={{.Local.sra}} \
   {{.Local.optDarkCalFileName}} \
   {{.Local.optImagePsfKernel}} \
+  {{.Local.optCrosstalkFilterKernel}} \
   --config system.analyzerHardware=A100 \
   --maxFrames {{.Local.maxFrames}} \
 `
@@ -284,14 +285,24 @@ func WriteBasecallerBash(wr io.Writer, tc config.TopStruct, obj *SocketBasecalle
 
 	raw, err := json.Marshal(obj.PixelSpreadFunction)
 	check(err)
-	if len(raw) == 0 {
+	if len(raw) == 0 || string(raw) == "null" {
 		kv["optImagePsfKernel"] = ""
 	} else {
 		kv["optImagePsfKernel"] = "--config dataSource.imagePsfKernel=" + string(raw)
 	}
+
+	raw, err = json.Marshal(obj.CrosstalkFilter)
+	check(err)
+	if len(raw) == 0 || string(raw) == "null" {
+		kv["optCrosstalkFilterKernel"] = ""
+	} else {
+		kv["optCrosstalkFilterKernel"] = "--config dataSource.crosstalkFilterKernel=" + string(raw)
+	}
+
 	if !tc.Values.ApplyCrosstalkCorrection {
 		log.Printf("WARNING: imagePsfKernel is suppressed for basecaller.")
 		kv["optImagePsfKernel"] = ""
+		kv["optCrosstalkFilterKernel"] = ""
 	}
 	if !tc.Values.ApplyDarkCal {
 		log.Printf("WARNING: darkCallFileName is suppressed for basecaller.")
