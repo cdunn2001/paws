@@ -254,7 +254,7 @@ func startBasecallerBySocketId(c *gin.Context, state *State) {
 	check(err)
 	log.Println("dump request", string(payload)) // TODO: Delete this line. Log only on JSON error.
 
-	id := c.Param("id")
+	sid := c.Param("id")
 	obj := &SocketBasecallerObject{}
 	if err := json.Unmarshal(payload, &obj); err != nil {
 		c.String(http.StatusBadRequest, "Could not parse body into struct.\n%v\nBody was:\n%s", err, payload)
@@ -263,8 +263,9 @@ func startBasecallerBySocketId(c *gin.Context, state *State) {
 	obj.ProcessStatus.ExecutionStatus = Running
 	obj.ProcessStatus.Armed = false
 	obj.ProcessStatus.Timestamp = TimestampNow()
-	state.Basecallers[id] = obj // TODO: Error if already running?
-	setup := DumpBasecallerScript(config.Top(), obj, id)
+	state.Basecallers[sid] = obj // TODO: Error if already running?
+	so := GetStorageObjectForMid(obj.Mid, state)
+	setup := DumpBasecallerScript(config.Top(), obj, sid, so)
 	setup.Stall = c.DefaultQuery("stall", "0")
 	cp := StartControlledShellProcess(setup, &obj.ProcessStatus)
 	pid := cp.cmd.Process.Pid
@@ -332,7 +333,7 @@ func startDarkcalBySocketId(c *gin.Context, state *State) {
 	check(err)
 	log.Println("dump request", string(payload)) // TODO: Delete this line. Log only on JSON error.
 
-	id := c.Param("id")
+	sid := c.Param("id")
 	obj := &SocketDarkcalObject{}
 	if err := json.Unmarshal(payload, &obj); err != nil {
 		c.String(http.StatusBadRequest, "Could not parse body into struct.\n%v\nBody was:\n%s", err, payload)
@@ -341,8 +342,9 @@ func startDarkcalBySocketId(c *gin.Context, state *State) {
 	obj.ProcessStatus.ExecutionStatus = Running
 	obj.ProcessStatus.Armed = false
 	obj.ProcessStatus.Timestamp = TimestampNow()
-	state.Darkcals[id] = obj // TODO: Error if already running?
-	setup := DumpDarkcalScript(config.Top(), obj, id)
+	state.Darkcals[sid] = obj // TODO: Error if already running?
+	so := GetStorageObjectForMid(obj.Mid, state)
+	setup := DumpDarkcalScript(config.Top(), obj, sid, so)
 	setup.Stall = c.DefaultQuery("stall", "0")
 	cp := StartControlledShellProcess(setup, &obj.ProcessStatus)
 	pid := cp.cmd.Process.Pid
@@ -411,7 +413,7 @@ func startLoadingcalBySocketId(c *gin.Context, state *State) {
 	check(err)
 	log.Println("dump request", string(payload)) // TODO: Delete this line. Log only on JSON error.
 
-	id := c.Param("id")
+	sid := c.Param("id")
 	obj := &SocketLoadingcalObject{}
 	err = json.Unmarshal(payload, &obj)
 	if err != nil {
@@ -421,8 +423,9 @@ func startLoadingcalBySocketId(c *gin.Context, state *State) {
 	obj.ProcessStatus.ExecutionStatus = Running
 	obj.ProcessStatus.Armed = false
 	obj.ProcessStatus.Timestamp = TimestampNow()
-	state.Loadingcals[id] = obj // TODO: Error if already running?
-	setup := DumpLoadingcalScript(config.Top(), obj, id)
+	state.Loadingcals[sid] = obj // TODO: Error if already running?
+	so := GetStorageObjectForMid(obj.Mid, state)
+	setup := DumpLoadingcalScript(config.Top(), obj, sid, so)
 	setup.Stall = c.DefaultQuery("stall", "0")
 	cp := StartControlledShellProcess(setup, &obj.ProcessStatus)
 	pid := cp.cmd.Process.Pid
@@ -507,7 +510,8 @@ func startPostprimary(c *gin.Context, state *State) {
 	obj.ProcessStatus.Armed = false // always false for Postprimary
 	obj.ProcessStatus.Timestamp = TimestampNow()
 	state.Postprimaries[mid] = obj // TODO: Error if already running?
-	setup := DumpPostprimaryScript(config.Top(), obj)
+	so := GetStorageObjectForMid(mid, state)
+	setup := DumpPostprimaryScript(config.Top(), obj, so)
 	setup.Stall = c.DefaultQuery("stall", "0")
 	cp := StartControlledShellProcess(setup, &obj.ProcessStatus)
 	pid := cp.cmd.Process.Pid

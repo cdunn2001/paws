@@ -43,7 +43,7 @@ var Template_darkcal = `
   --timeoutSeconds {{.Local.timeoutSeconds}} \
 `
 
-func WriteDarkcalBash(wr io.Writer, tc config.TopStruct, obj *SocketDarkcalObject, SocketId string) error {
+func WriteDarkcalBash(wr io.Writer, tc config.TopStruct, obj *SocketDarkcalObject, SocketId string, so *StorageObject) error {
 	t := CreateTemplate(Template_darkcal, "")
 	kv := make(map[string]string)
 
@@ -94,7 +94,7 @@ var Template_loadingcal = `
   --timeoutSeconds {{.Local.timeoutSeconds}} \
 `
 
-func WriteLoadingcalBash(wr io.Writer, tc config.TopStruct, obj *SocketLoadingcalObject, SocketId string) error {
+func WriteLoadingcalBash(wr io.Writer, tc config.TopStruct, obj *SocketLoadingcalObject, SocketId string, so *StorageObject) error {
 	t := CreateTemplate(Template_loadingcal, "")
 	kv := make(map[string]string)
 
@@ -131,8 +131,6 @@ func WriteLoadingcalBash(wr io.Writer, tc config.TopStruct, obj *SocketLoadingca
 	}
 	return t.Execute(wr, &ts)
 }
-
-
 
 // Supports:
 //  file:/path   <- strips off file: and returns /path
@@ -199,7 +197,7 @@ var Template_basecaller = `
 //   system.analyzerHardware
 //   algorithm
 
-func WriteBasecallerBash(wr io.Writer, tc config.TopStruct, obj *SocketBasecallerObject, SocketId string) error {
+func WriteBasecallerBash(wr io.Writer, tc config.TopStruct, obj *SocketBasecallerObject, SocketId string, so *StorageObject) error {
 	t := CreateTemplate(Template_basecaller, "")
 	kv := make(map[string]string)
 
@@ -433,7 +431,7 @@ func DumpBash(setup ProcessSetupObject, bash string) {
 	content += bash
 	WriteStringToFile(content, setup.ScriptFn)
 }
-func DumpBasecallerScript(tc config.TopStruct, obj *SocketBasecallerObject, id string) ProcessSetupObject {
+func DumpBasecallerScript(tc config.TopStruct, obj *SocketBasecallerObject, sid string, so *StorageObject) ProcessSetupObject {
 	setup := ProcessSetupObject{
 		Tool: "smrt-basecaller",
 	}
@@ -442,14 +440,14 @@ func DumpBasecallerScript(tc config.TopStruct, obj *SocketBasecallerObject, id s
 	setup.ScriptFn = filepath.Join(setup.RunDir, "run.basecaller.sh")
 	setup.Hostname = ""
 	wr := new(bytes.Buffer)
-	if err := WriteBasecallerBash(wr, config.Top(), obj, id); err != nil {
-		err = errors.Wrapf(err, "Error in WriteBasecallerBash(%v, %v, %v, %v)", wr, config.Top(), obj, id)
+	if err := WriteBasecallerBash(wr, config.Top(), obj, sid, so); err != nil {
+		err = errors.Wrapf(err, "Error in WriteBasecallerBash(%v, %v, %v, %v)", wr, config.Top(), obj, sid)
 		check(err)
 	}
 	DumpBash(setup, wr.String())
 	return setup
 }
-func DumpDarkcalScript(tc config.TopStruct, obj *SocketDarkcalObject, id string) ProcessSetupObject {
+func DumpDarkcalScript(tc config.TopStruct, obj *SocketDarkcalObject, sid string, so *StorageObject) ProcessSetupObject {
 	setup := ProcessSetupObject{
 		Tool: "darkcal",
 	}
@@ -458,14 +456,14 @@ func DumpDarkcalScript(tc config.TopStruct, obj *SocketDarkcalObject, id string)
 	setup.ScriptFn = filepath.Join(setup.RunDir, "run.darkcal.sh")
 	setup.Hostname = ""
 	wr := new(bytes.Buffer)
-	if err := WriteDarkcalBash(wr, config.Top(), obj, id); err != nil {
-		err = errors.Wrapf(err, "Error in WriteDarkcalBash(%v, %v, %v, %v)", wr, config.Top(), obj, id)
+	if err := WriteDarkcalBash(wr, config.Top(), obj, sid, so); err != nil {
+		err = errors.Wrapf(err, "Error in WriteDarkcalBash(%v, %v, %v, %v)", wr, config.Top(), obj, sid)
 		check(err)
 	}
 	DumpBash(setup, wr.String())
 	return setup
 }
-func DumpLoadingcalScript(tc config.TopStruct, obj *SocketLoadingcalObject, id string) ProcessSetupObject {
+func DumpLoadingcalScript(tc config.TopStruct, obj *SocketLoadingcalObject, sid string, so *StorageObject) ProcessSetupObject {
 	setup := ProcessSetupObject{
 		Tool: "loadingcal",
 	}
@@ -474,14 +472,14 @@ func DumpLoadingcalScript(tc config.TopStruct, obj *SocketLoadingcalObject, id s
 	setup.ScriptFn = filepath.Join(setup.RunDir, "run.loadingcal.sh")
 	setup.Hostname = ""
 	wr := new(bytes.Buffer)
-	if err := WriteLoadingcalBash(wr, config.Top(), obj, id); err != nil {
-		err = errors.Wrapf(err, "Error in WriteLoadingcalBash(%v, %v, %v, %v)", wr, config.Top(), obj, id)
+	if err := WriteLoadingcalBash(wr, config.Top(), obj, sid, so); err != nil {
+		err = errors.Wrapf(err, "Error in WriteLoadingcalBash(%v, %v, %v, %v)", wr, config.Top(), obj, sid)
 		check(err)
 	}
 	DumpBash(setup, wr.String())
 	return setup
 }
-func DumpPostprimaryScript(tc config.TopStruct, obj *PostprimaryObject) ProcessSetupObject {
+func DumpPostprimaryScript(tc config.TopStruct, obj *PostprimaryObject, so *StorageObject) ProcessSetupObject {
 	setup := ProcessSetupObject{
 		Tool: "ppa(baz2bam)",
 	}
@@ -490,18 +488,18 @@ func DumpPostprimaryScript(tc config.TopStruct, obj *PostprimaryObject) ProcessS
 	setup.ScriptFn = filepath.Join(setup.RunDir, "run.ppa.sh")
 	setup.Hostname = GetPostprimaryHostname(tc.Hostname, obj.BazFileUrl)
 	wr := new(bytes.Buffer)
-	if err := WriteBaz2bamBash(wr, config.Top(), obj); err != nil {
+	if err := WriteBaz2bamBash(wr, config.Top(), obj, so); err != nil {
 		err = errors.Wrapf(err, "Error in WriteBaz2BamBash(%v, %v, %v)", wr, config.Top(), obj)
 		check(err)
 	}
-	if err := WriteReduceStatsBash(wr, config.Top(), obj); err != nil {
+	if err := WriteReduceStatsBash(wr, config.Top(), obj, so); err != nil {
 		err = errors.Wrapf(err, "Error in WriteReduceStatsBash(%v, %v, %v)", wr, config.Top(), obj)
 		check(err)
 	}
 	DumpBash(setup, wr.String())
 	return setup
 }
-func WriteBaz2bamBash(wr io.Writer, tc config.TopStruct, obj *PostprimaryObject) error {
+func WriteBaz2bamBash(wr io.Writer, tc config.TopStruct, obj *PostprimaryObject, so *StorageObject) error {
 	t := CreateTemplate(Template_baz2bam, "")
 	kv := make(map[string]string)
 	outputPrefix := obj.OutputPrefixUrl // TODO: Translate URL
@@ -566,7 +564,7 @@ var Template_reducestats = `
 
 // Skip --logoutput for now.
 
-func WriteReduceStatsBash(wr io.Writer, tc config.TopStruct, obj *PostprimaryObject) error {
+func WriteReduceStatsBash(wr io.Writer, tc config.TopStruct, obj *PostprimaryObject, so *StorageObject) error {
 	t := CreateTemplate(Template_reducestats, "")
 	kv := make(map[string]string)
 	// TODO: Urls
