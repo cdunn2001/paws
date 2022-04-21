@@ -25,11 +25,25 @@ func listStorageMids(c *gin.Context, state *State) {
 type Store struct {
 }
 
-func (self *Store) AcquireStorageObjectFromMid(mid string, state *State) *StorageObject {
+func GetLocalStorageObject(mid string) *StorageObject {
 	obj := &StorageObject{
 		Mid:     mid,
 		RootUrl: filepath.Join("./tmp/storage", mid),
 	}
+	return obj
+}
+
+// If not found, generate a local file.
+func GetStorageObjectForMid(mid string, state *State) *StorageObject {
+	obj, found := state.Storages[mid]
+	if !found {
+		obj = GetLocalStorageObject(mid)
+	}
+	return obj
+}
+
+func (self *Store) AcquireStorageObjectFromMid(mid string, state *State) *StorageObject {
+	obj := GetLocalStorageObject(mid)
 	dir, err := StorageUrlToLinuxPath(obj.RootUrl, state)
 	check(err)
 	os.MkdirAll(dir, 0777)
