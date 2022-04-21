@@ -33,6 +33,22 @@ func (self *Store) AcquireStorageObjectFromMid(mid string, state *State) *Storag
 	os.MkdirAll(dir, 0777)
 	return obj
 }
+func (self *Store) Free(obj *StorageObject, state *State) {
+	for _, sio := range obj.Files {
+		url := sio.Url
+		fn, err := StorageUrlToLinuxPath(url, state)
+		if err != nil {
+			log.Printf("WARNING: Failed to convert URL %q to LinuxPath: %v.\n  Cannot remove from disk.", url, err)
+			continue
+		}
+		log.Printf("Removing %q (%s)", fn, url)
+		err = os.Remove(fn)
+		if err != nil {
+			log.Printf("WARNING: Failed to remove %q: %v", fn, err)
+		}
+	}
+	obj.Files = obj.Files[:0]
+}
 
 // Creates a storages resource for a movie.
 func createStorage(c *gin.Context, state *State) {
@@ -77,7 +93,14 @@ func deleteStorageByMid(c *gin.Context, state *State) {
 
 // Frees all directories and files associated with the storages resources and reclaims disk space.
 func freeStorageByMid(c *gin.Context, state *State) {
-	//mid := c.Param("mid")
+	mid := c.Param("mid")
+	obj, found := state.Storages[mid]
+	if !found {
+		c.String(http.StatusConflict, "The storage for mid '%s' was not found. Must have been deleted already.\n", mid)
+		return
+	}
+	// TODO: Do this in the background. PTSD-1282
+	state.store.Free(obj, state)
 	c.Status(http.StatusOK)
 }
 
