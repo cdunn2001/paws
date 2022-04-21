@@ -195,14 +195,10 @@ var Template_basecaller = `
   --maxFrames {{.Local.maxFrames}} \
 `
 
-// Maybe better:
-// --config source.WXIPCDataSourceConfig.acqConfig=Info-About-Chemistry \
-
 // optional:
 //   system.analyzerHardware
 //   algorithm
 
-// Doesn't this need the darkcalfile?
 func WriteBasecallerBash(wr io.Writer, tc config.TopStruct, obj *SocketBasecallerObject, SocketId string) error {
 	t := CreateTemplate(Template_basecaller, "")
 	kv := make(map[string]string)
@@ -249,6 +245,9 @@ func WriteBasecallerBash(wr io.Writer, tc config.TopStruct, obj *SocketBasecalle
 	acqConfig.PhotoelectronSensitivity = obj.PhotoelectronSensitivity
 
 	basecallerConfigBytes, err := json.MarshalIndent(basecallerConfig, "", "    ")
+	if err != nil {
+		return err
+	}
 	basecallerConfigString := string(basecallerConfigBytes)
 
 	log.Printf("Writing basecaller config to file '%s'", config_json_fn)
@@ -263,7 +262,9 @@ func WriteBasecallerBash(wr io.Writer, tc config.TopStruct, obj *SocketBasecalle
 	kv["optDarkCalFileName"] = TranslateDiscardableUrl("--config dataSource.darkCalFileName=", obj.DarkCalFileUrl)
 
 	raw, err := json.Marshal(obj.PixelSpreadFunction)
-	check(err)
+	if err != nil {
+		return err
+	}
 	if len(raw) == 0 || string(raw) == "null" {
 		kv["optImagePsfKernel"] = ""
 	} else {
@@ -271,7 +272,9 @@ func WriteBasecallerBash(wr io.Writer, tc config.TopStruct, obj *SocketBasecalle
 	}
 
 	raw, err = json.Marshal(obj.CrosstalkFilter)
-	check(err)
+	if err != nil {
+		return err
+	}
 	if len(raw) == 0 || string(raw) == "null" {
 		kv["optCrosstalkFilterKernel"] = ""
 	} else {
@@ -297,7 +300,9 @@ func WriteBasecallerBash(wr io.Writer, tc config.TopStruct, obj *SocketBasecalle
 		kv["optTraceFile"] = optTraceFile
 
 		raw, err := json.Marshal(obj.TraceFileRoi)
-		check(err)
+		if err != nil {
+			return err
+		}
 		kv["optTraceFileRoi"] = "--config traceSaver.roi='" + string(raw) + "'"
 	}
 	if len(obj.BazUrl) == 0 {
