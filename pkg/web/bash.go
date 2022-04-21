@@ -250,8 +250,6 @@ func WriteBasecallerBash(wr io.Writer, tc config.TopStruct, obj *SocketBasecalle
 	}
 	basecallerConfigString := string(basecallerConfigBytes)
 
-	log.Printf("Writing basecaller config to file '%s'", config_json_fn)
-	log.Print(basecallerConfigString)
 	WriteStringToFile(basecallerConfigString, config_json_fn)
 
 	// Note: This file will be over-written on each call.
