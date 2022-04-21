@@ -132,65 +132,7 @@ func WriteLoadingcalBash(wr io.Writer, tc config.TopStruct, obj *SocketLoadingca
 	return t.Execute(wr, &ts)
 }
 
-var defaultBasecallerConfig = `
-{
-	"source" :
-	{
-		"WXIPCDataSourceConfig" :
-		{
-			"acqConfig" :
-			{
-				"A" :
-				{
-					"baseLabel" : "A",
-					"excessNoiseCV" : 0.1,
-					"interPulseDistance" : 0.08,
-					"ipd2SlowStepRatio" : 0,
-					"pulseWidth" : 0.166,
-					"pw2SlowStepRatio" : 3.2,
-					"relAmplitude" : 0.67
-				},
-				"C" :
-				{
-					"baseLabel" : "C",
-					"excessNoiseCV" : 0.1,
-					"interPulseDistance" : 0.07,
-					"ipd2SlowStepRatio" : 0,
-					"pulseWidth" : 0.209,
-					"pw2SlowStepRatio" : 3.2,
-					"relAmplitude" : 1.0
-				},
-				"G" :
-				{
-					"baseLabel" : "G",
-					"excessNoiseCV" : 0.1,
-					"interPulseDistance" : 0.07,
-					"ipd2SlowStepRatio" : 0,
-					"pulseWidth" : 0.193,
-					"pw2SlowStepRatio" : 3.2,
-					"relAmplitude" : 0.26
-				},
-				"T" :
-				{
-					"baseLabel" : "T",
-					"excessNoiseCV" : 0.1,
-					"interPulseDistance" : 0.08,
-					"ipd2SlowStepRatio" : 0,
-					"pulseWidth" : 0.163,
-					"pw2SlowStepRatio" : 3.2,
-					"relAmplitude" : 0.445
-				},
-				"refSnr" : 12
-			}
-		}
-	}
-}
-`
 
-func CopyDefaultBasecallerConfig(dest_fn string) {
-	log.Printf("Copy basecaller config to file '%s'", dest_fn)
-	WriteStringToFile(defaultBasecallerConfig, dest_fn)
-}
 
 // Supports:
 //  file:/path   <- strips off file: and returns /path
@@ -274,7 +216,44 @@ func WriteBasecallerBash(wr io.Writer, tc config.TopStruct, obj *SocketBasecalle
 	outdir := filepath.Join(DataDir, sraName)
 	os.MkdirAll(outdir, 0777)
 	config_json_fn := filepath.Join(outdir, obj.Mid+".basecaller.config.json")
-	CopyDefaultBasecallerConfig(config_json_fn)
+
+	// translate PAWS API to smrt-basecaller API JSON. UGH.
+	var basecallerConfig SmrtBasecallerConfigObject
+	acqConfig := &basecallerConfig.Source.WXIPCDataSourceConfig.AcqConfig
+	for _, analog := range obj.Analogs {
+		var a *Smrt_AnalogObject
+		if analog.BaseLabel == "A" {
+			a = &acqConfig.A
+		} else if analog.BaseLabel == "C" {
+			a = &acqConfig.C
+		} else if analog.BaseLabel == "G" {
+			a = &acqConfig.G
+		} else if analog.BaseLabel == "T" {
+			a = &acqConfig.T
+		} else {
+			a = nil
+			log.Print("WARNING: Skipping analog ", analog)
+		}
+		if a != nil {
+			a.BaseLabel = string(analog.BaseLabel)
+			a.ExcessNoiseCV = analog.ExcessNoiseCv
+			a.InterPulseDistance = analog.InterPulseDistanceSec
+			a.Ipd2SlowStepRatio = analog.Ipd2SlowStepRatio
+			a.PulseWidth = analog.PulseWidthSec
+			a.Pw2SlowStepRatio = analog.Pw2SlowStepRatio
+			a.RelAmplitude = analog.RelativeAmp
+		}
+	}
+	acqConfig.RefSnr = obj.RefSnr
+	acqConfig.PhotoelectronSensitivity = obj.PhotoelectronSensitivity
+
+	basecallerConfigBytes, err := json.MarshalIndent(basecallerConfig, "", "    ")
+	basecallerConfigString := string(basecallerConfigBytes)
+
+	log.Printf("Writing basecaller config to file '%s'", config_json_fn)
+	log.Print(basecallerConfigString)
+	WriteStringToFile(basecallerConfigString, config_json_fn)
+
 	// Note: This file will be over-written on each call.
 
 	kv["sra"] = strconv.Itoa(sra)
