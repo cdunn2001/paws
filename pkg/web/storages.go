@@ -106,16 +106,16 @@ func freeStorageByMid(c *gin.Context, state *State) {
 	c.Status(http.StatusOK)
 }
 
-func StorageObjectUrlToLinuxPath(so *StorageObject, url string) string {
+func StorageObjectUrlToLinuxPath(so *StorageObject, url string) (string, error) {
 	if !strings.HasPrefix(url, so.RootUrl) {
 		msg := fmt.Sprintf("Precondition violated. RootURL %q is not a prefix of URL %q.",
 			so.RootUrl, url)
-		panic(msg)
+		return "/dev/null", errors.New(msg)
 	}
 	l := len(so.RootUrl)
 	filepath := url[l:]
 	linuxPath := so.LinuxPath + filepath
-	return linuxPath
+	return linuxPath, nil
 }
 func StorageUrlToLinuxPath(url string, state *State) (string, error) {
 	log.Println("Converting:", url)
@@ -133,7 +133,7 @@ func StorageUrlToLinuxPath(url string, state *State) (string, error) {
 		if strings.HasPrefix(url, so.RootUrl) {
 			//log.Println("url[0:l]:",url[0:l])
 			//log.Println("Found match, linux path:", linuxPath)
-			return StorageObjectUrlToLinuxPath(so, url), nil
+			return StorageObjectUrlToLinuxPath(so, url)
 		}
 	}
 	return "/dev/null", errors.New("Could not convert " + url)
