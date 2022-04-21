@@ -49,7 +49,9 @@ ppa-reducestats \
 	}
 	var b bytes.Buffer
 	tc := config.Top()
-	err := WriteReduceStatsBash(&b, tc, obj)
+	mid := "m123"
+	so := GetLocalStorageObject(mid)
+	err := WriteReduceStatsBash(&b, tc, obj, so)
 	check(err)
 	got := b.String()
 	if got != expected {
@@ -124,7 +126,9 @@ smrt-basecaller-launch.sh \
 		var b bytes.Buffer
 		tc := config.Top()
 		DataDir = "/tmp" // Note: global side-effect
-		err = WriteBasecallerBash(&b, tc, obj, "4")
+		mid := "m84003_220325_032134_s1"
+		so := GetLocalStorageObject(mid)
+		err = WriteBasecallerBash(&b, tc, obj, "4", so)
 		check(err)
 		got := b.String()
 		if got != expected {
@@ -191,7 +195,7 @@ smrt-basecaller-launch.sh \
 	obj.TraceFileRoi = obj.TraceFileRoi[:0] // or nil; both have len()==0
 	obj.PhotoelectronSensitivity = 6.0
 	obj.PixelSpreadFunction = nil
-	obj.CrosstalkFilter = [][]float64{{0.0,0.0,0.0},{0.0,0.0,1.0},{0.0,0.0,0.0}}
+	obj.CrosstalkFilter = [][]float64{{0.0, 0.0, 0.0}, {0.0, 0.0, 1.0}, {0.0, 0.0, 0.0}}
 	{
 		expected := `
 smrt-basecaller-launch.sh \
@@ -212,7 +216,9 @@ smrt-basecaller-launch.sh \
 `
 		var b bytes.Buffer
 		tc := config.Top()
-		err = WriteBasecallerBash(&b, tc, obj, "4")
+		mid := "m84003_220325_032134_s1"
+		so := GetLocalStorageObject(mid)
+		err = WriteBasecallerBash(&b, tc, obj, "4", so)
 		check(err)
 		got := b.String()
 		if got != expected {
