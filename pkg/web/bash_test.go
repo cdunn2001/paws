@@ -184,7 +184,7 @@ smrt-basecaller-launch.sh \
     }
 }`
 		if got != expected {
-			t.Errorf("basecaller.config.json[1] Got\n%s, Expected\n%s", got, expected)
+			t.Errorf("basecaller.config.json[1] Got\n%v, Expected\n%v", got, expected)
 		}
 	}
 
@@ -272,7 +272,7 @@ smrt-basecaller-launch.sh \
     }
 }`
 		if got != expected {
-			t.Errorf("basecaller.config.json[2] Got\n%s, Expected\n%s", got, expected)
+			t.Errorf("basecaller.config.json[2] Got\n%v, Expected\n%v", got, expected)
 		}
 	}
 }
