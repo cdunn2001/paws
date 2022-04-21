@@ -2,12 +2,14 @@ package web
 
 import (
 	"errors"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
 	"os"
 	"path/filepath"
 	"sort"
+	"strings"
 )
 
 // Returns a list of MIDs for each storage object.
@@ -104,34 +106,34 @@ func freeStorageByMid(c *gin.Context, state *State) {
 	c.Status(http.StatusOK)
 }
 
+func StorageObjectUrlToLinuxPath(so *StorageObject, url string) string {
+	if !strings.HasPrefix(url, so.RootUrl) {
+		msg := fmt.Sprintf("Precondition violated. RootURL %q is not a prefix of URL %q.",
+			so.RootUrl, url)
+		panic(msg)
+	}
+	l := len(so.RootUrl)
+	filepath := url[l:]
+	linuxPath := so.LinuxPath + filepath
+	return linuxPath
+}
 func StorageUrlToLinuxPath(url string, state *State) (string, error) {
 	log.Println("Converting:", url)
-	lenUrl := len(url)
-	if lenUrl >= 1 {
-		if url[0:1] == "/" {
-			//log.Println("Already linuxed: ",url)
-			return url, nil
-		}
+	if strings.HasPrefix(url, "/") {
+		//log.Println("Already linuxed: ",url)
+		return url, nil
 	}
-	if lenUrl >= 5 {
-		if url[0:5] == "file:" {
-			//log.Println("Removing file: prefix from ",url)
-			return url[5:], nil
-		}
+	if strings.HasPrefix(url, "file:") {
+		//log.Println("Removing file: prefix from ",url)
+		return url[5:], nil
 	}
 	for _, so := range state.Storages {
 		//log.Printf("StorageUrlToLinuxPath so:%v\n", *so)
 		// r, _ := regexp.Compile("^" + so.RootUrl)
-		l := len(so.RootUrl)
-		//log.Println("l:",l)
-		if lenUrl >= l {
+		if strings.HasPrefix(url, so.RootUrl) {
 			//log.Println("url[0:l]:",url[0:l])
-			if url[0:l] == so.RootUrl {
-				filepath := url[l:]
-				linuxPath := so.LinuxPath + filepath
-				//log.Println("Found match, linux path:",linuxPath)
-				return linuxPath, nil
-			}
+			//log.Println("Found match, linux path:", linuxPath)
+			return StorageObjectUrlToLinuxPath(so, url), nil
 		}
 	}
 	return "/dev/null", errors.New("Could not convert " + url)
