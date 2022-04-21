@@ -64,15 +64,19 @@ func InitFixtures() {
 		Loadingcals:   make(map[string]*SocketLoadingcalObject),
 		Postprimaries: make(map[string]*PostprimaryObject),
 		AllProcesses:  make(map[int]*ControlledProcess),
-		Store: &OneDirStore{
-			Dir: DefaultStorageRoot, // from storages.go:init()
-		},
 	}
+	// Note: top.state.Store still needs to be initialized.
+
 	for k := range top.state.Sockets {
 		top.state.Basecallers[k] = CreateSocketBasecallerObject()
 		top.state.Darkcals[k] = CreateSocketDarkcalObject()
 		top.state.Loadingcals[k] = CreateSocketLoadingcalObject()
 	}
+}
+
+// Register in "top.state" global.
+func RegisterStore(s IStore) {
+	top.state.Store = s
 }
 
 type StateHandlerFunc func(*gin.Context, *State)

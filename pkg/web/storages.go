@@ -28,10 +28,25 @@ type IStore interface {
 	GetBasedir() string
 }
 
-var DefaultStorageRoot string // Must be asbolute.
+func CreatePathIfNeeded(path string) {
+	err := os.MkdirAll(path, 0777) // Does not guarantee 0777 if already exists.
+	if err != nil {
+		msg := fmt.Sprintf("Could not create directory %q: %v", path, err)
+		panic(msg)
+	}
+}
 
-func init() {
-	root := "./tmp/storage"
+var DefaultStorageRoot string = "/data/nrta" // Must be asbolute.
+
+type OneDirStore struct {
+	Dir string
+}
+
+func CreateDefaultStore() *OneDirStore {
+	return CreateOneDirStore(DefaultStorageRoot) // TODO: Should be multi-dir.
+}
+
+func CreateOneDirStore(root string) *OneDirStore {
 	if !filepath.IsAbs(root) {
 		absroot, err := filepath.Abs(root)
 		if err != nil {
@@ -40,11 +55,10 @@ func init() {
 		}
 		root = absroot
 	}
-	DefaultStorageRoot = root
-}
-
-type OneDirStore struct {
-	Dir string
+	CreatePathIfNeeded(root)
+	return &OneDirStore{
+		Dir: root,
+	}
 }
 
 func (self *OneDirStore) GetBasedir() string {

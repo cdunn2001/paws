@@ -41,7 +41,7 @@ bin/%: .FORCE
 serve: bin/pawsgo
 	${MAKE} local
 local:
-	bin/pawsgo --data-dir tmp --logoutput pa-wsgo.log #--config SNAFU.json
+	bin/pawsgo --storage ./tmp/storage --data-dir tmp --logoutput pa-wsgo.log #--config SNAFU.json
 # this target runs paws slower, to be used by end to end python testing
 slowlocal: bin/pawsgo
 	STATUS_COUNT=5 STATUS_DELAY_SECONDS=1 ./bin/pawsgo --console
