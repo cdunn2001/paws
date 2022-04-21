@@ -22,6 +22,7 @@ type State struct {
 	Loadingcals   map[string]*SocketLoadingcalObject
 	Postprimaries map[string]*PostprimaryObject
 	AllProcesses  map[int]*ControlledProcess
+	store         Store
 }
 
 // Someday, move this to separate package, for privacy.
@@ -55,6 +56,7 @@ func InitFixtures() {
 		Loadingcals:   make(map[string]*SocketLoadingcalObject),
 		Postprimaries: make(map[string]*PostprimaryObject),
 		AllProcesses:  make(map[int]*ControlledProcess),
+		store:         Store{},
 	}
 	for k := range top.state.Sockets {
 		top.state.Basecallers[k] = CreateSocketBasecallerObject()

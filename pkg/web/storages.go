@@ -20,6 +20,20 @@ func listStorageMids(c *gin.Context, state *State) {
 	c.IndentedJSON(http.StatusOK, mids)
 }
 
+type Store struct {
+}
+
+func (self *Store) AcquireStorageObjectFromMid(mid string, state *State) *StorageObject {
+	obj := &StorageObject{
+		Mid:     mid,
+		RootUrl: filepath.Join("./tmp/storage", mid),
+	}
+	dir, err := StorageUrlToLinuxPath(obj.RootUrl, state)
+	check(err)
+	os.MkdirAll(dir, 0777)
+	return obj
+}
+
 // Creates a storages resource for a movie.
 func createStorage(c *gin.Context, state *State) {
 	obj := new(StorageObject)
@@ -27,9 +41,9 @@ func createStorage(c *gin.Context, state *State) {
 		c.Writer.WriteString("Could not parse body into struct.\n")
 		return
 	}
-	mid := obj.Mid
-	obj.RootUrl = filepath.Join("./tmp/storage", mid)
-	os.MkdirAll(obj.RootUrl, 0777)
+	mid := obj.Mid // This is the only thing we get from the input obj, right?
+
+	obj = state.store.AcquireStorageObjectFromMid(mid, state)
 	state.Storages[mid] = obj
 	c.IndentedJSON(http.StatusOK, obj)
 }
