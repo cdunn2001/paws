@@ -2,12 +2,14 @@ package web
 
 import (
 	"errors"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
 	"os"
 	"path/filepath"
 	"sort"
+	"strings"
 )
 
 // Returns a list of MIDs for each storage object.
@@ -20,6 +22,36 @@ func listStorageMids(c *gin.Context, state *State) {
 	c.IndentedJSON(http.StatusOK, mids)
 }
 
+type Store struct {
+}
+
+func (self *Store) AcquireStorageObjectFromMid(mid string, state *State) *StorageObject {
+	obj := &StorageObject{
+		Mid:     mid,
+		RootUrl: filepath.Join("./tmp/storage", mid),
+	}
+	dir, err := StorageUrlToLinuxPath(obj.RootUrl, state)
+	check(err)
+	os.MkdirAll(dir, 0777)
+	return obj
+}
+func (self *Store) Free(obj *StorageObject) {
+	for _, sio := range obj.Files {
+		url := sio.Url
+		fn, err := StorageObjectUrlToLinuxPath(obj, url)
+		if err != nil {
+			log.Printf("WARNING: Failed to convert URL %q to LinuxPath: %v.\n  Cannot remove from disk.", url, err)
+			continue
+		}
+		log.Printf("Removing %q (%s)", fn, url)
+		err = os.Remove(fn)
+		if err != nil {
+			log.Printf("WARNING: Failed to remove %q: %v", fn, err)
+		}
+	}
+	obj.Files = obj.Files[:0]
+}
+
 // Creates a storages resource for a movie.
 func createStorage(c *gin.Context, state *State) {
 	obj := new(StorageObject)
@@ -27,9 +59,9 @@ func createStorage(c *gin.Context, state *State) {
 		c.Writer.WriteString("Could not parse body into struct.\n")
 		return
 	}
-	mid := obj.Mid
-	obj.RootUrl = filepath.Join("./tmp/storage", mid)
-	os.MkdirAll(obj.RootUrl, 0777)
+	mid := obj.Mid // This is the only thing we get from the input obj, right?
+
+	obj = state.store.AcquireStorageObjectFromMid(mid, state)
 	state.Storages[mid] = obj
 	c.IndentedJSON(http.StatusOK, obj)
 }
@@ -48,43 +80,60 @@ func getStorageByMid(c *gin.Context, state *State) {
 // Deletes the storages resource for the provided movie context name (MID).
 func deleteStorageByMid(c *gin.Context, state *State) {
 	mid := c.Param("mid")
-	c.String(http.StatusConflict, "For mid '%s', if all files have not been freed, the DELETE will fail.\n", mid)
+	obj, found := state.Storages[mid]
+	if !found {
+		c.String(http.StatusOK, "The storage for mid '%s' was not found. Must have been deleted already, which is fine.\n", mid)
+		return
+	}
+	if len(obj.Files) != 0 {
+		c.String(http.StatusConflict, "For mid '%s', %d files have not been freed.\n", mid, len(obj.Files))
+		return
+	}
+	delete(state.Storages, mid)
+	c.Status(http.StatusOK)
 }
 
 // Frees all directories and files associated with the storages resources and reclaims disk space.
 func freeStorageByMid(c *gin.Context, state *State) {
-	//mid := c.Param("mid")
+	mid := c.Param("mid")
+	obj, found := state.Storages[mid]
+	if !found {
+		c.String(http.StatusConflict, "The storage for mid '%s' was not found. Must have been deleted already.\n", mid)
+		return
+	}
+	// TODO: Do this in the background. PTSD-1282
+	state.store.Free(obj)
 	c.Status(http.StatusOK)
 }
 
+func StorageObjectUrlToLinuxPath(so *StorageObject, url string) (string, error) {
+	if !strings.HasPrefix(url, so.RootUrl) {
+		msg := fmt.Sprintf("Precondition violated. RootURL %q is not a prefix of URL %q.",
+			so.RootUrl, url)
+		return "/dev/null", errors.New(msg)
+	}
+	l := len(so.RootUrl)
+	filepath := url[l:]
+	linuxPath := so.LinuxPath + filepath
+	return linuxPath, nil
+}
 func StorageUrlToLinuxPath(url string, state *State) (string, error) {
 	log.Println("Converting:", url)
-	lenUrl := len(url)
-	if lenUrl >= 1 {
-		if url[0:1] == "/" {
-			//log.Println("Already linuxed: ",url)
-			return url, nil
-		}
+	if strings.HasPrefix(url, "/") {
+		//log.Println("Already linuxed: ",url)
+		return url, nil
 	}
-	if lenUrl >= 5 {
-		if url[0:5] == "file:" {
-			//log.Println("Removing file: prefix from ",url)
-			return url[5:], nil
-		}
+	if strings.HasPrefix(url, "file:") {
+		//log.Println("Removing file: prefix from ",url)
+		return url[5:], nil
 	}
 	for _, so := range state.Storages {
 		//log.Printf("StorageUrlToLinuxPath so:%v\n", *so)
 		// r, _ := regexp.Compile("^" + so.RootUrl)
-		l := len(so.RootUrl)
-		//log.Println("l:",l)
-		if lenUrl >= l {
+		if strings.HasPrefix(url, so.RootUrl) {
 			//log.Println("url[0:l]:",url[0:l])
-			if url[0:l] == so.RootUrl {
-				filepath := url[l:]
-				linuxPath := so.LinuxPath + filepath
-				//log.Println("Found match, linux path:",linuxPath)
-				return linuxPath, nil
-			}
+			//log.Println("Found match, linux path:", linuxPath)
+			return StorageObjectUrlToLinuxPath(so, url)
 		}
 	}
 	return "/dev/null", errors.New("Could not convert " + url)
