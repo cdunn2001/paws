@@ -22,7 +22,10 @@ func listStorageMids(c *gin.Context, state *State) {
 	c.IndentedJSON(http.StatusOK, mids)
 }
 
-type Store struct {
+type IStore interface {
+	Free(obj *StorageObject)
+	AcquireStorageObject(mid string) *StorageObject
+	GetBasedir() string
 }
 
 var DefaultStorageRoot string // Must be asbolute.
@@ -40,31 +43,22 @@ func init() {
 	DefaultStorageRoot = root
 }
 
-func GetLocalStorageObject(mid string) *StorageObject {
-	obj := &StorageObject{
-		Mid:     mid,
-		RootUrl: filepath.Join(DefaultStorageRoot, mid),
-	}
-	return obj
+type OneDirStore struct {
+	Dir string
 }
 
-// If not found, generate a local file.
-func GetStorageObjectForMid(mid string, state *State) *StorageObject {
-	obj, found := state.Storages[mid]
-	if !found {
-		obj = GetLocalStorageObject(mid)
-	}
-	return obj
+func (self *OneDirStore) GetBasedir() string {
+	return self.Dir
 }
-
-func (self *Store) AcquireStorageObjectFromMid(mid string, state *State) *StorageObject {
-	obj := GetLocalStorageObject(mid)
-	dir, err := StorageUrlToLinuxPath(obj.RootUrl, state)
+func (self *OneDirStore) AcquireStorageObject(mid string) *StorageObject {
+	basedir := self.GetBasedir()
+	obj := GetLocalStorageObject(basedir, mid)
+	dir, err := StorageObjectUrlToLinuxPath(obj, obj.RootUrl)
 	check(err)
 	os.MkdirAll(dir, 0777)
 	return obj
 }
-func (self *Store) Free(obj *StorageObject) {
+func (self *OneDirStore) Free(obj *StorageObject) {
 	for _, sio := range obj.Files {
 		url := sio.Url
 		fn, err := StorageObjectUrlToLinuxPath(obj, url)
@@ -81,6 +75,25 @@ func (self *Store) Free(obj *StorageObject) {
 	obj.Files = obj.Files[:0]
 }
 
+func GetLocalStorageObject(basedir string, mid string) *StorageObject {
+	obj := &StorageObject{
+		Mid:     mid,
+		RootUrl: filepath.Join(basedir, mid),
+	}
+	return obj
+}
+
+// If not found, generate a local file.
+// We use 'store' only b/c (for now) we want to fall-back on a local storage.
+func GetStorageObjectForMid(store IStore, mid string, state *State) *StorageObject {
+	obj, found := state.Storages[mid]
+	basedir := store.GetBasedir()
+	if !found {
+		obj = GetLocalStorageObject(basedir, mid)
+	}
+	return obj
+}
+
 // Creates a storages resource for a movie.
 func createStorage(c *gin.Context, state *State) {
 	obj := new(StorageObject)
@@ -90,7 +103,7 @@ func createStorage(c *gin.Context, state *State) {
 	}
 	mid := obj.Mid // This is the only thing we get from the input obj, right?
 
-	obj = state.store.AcquireStorageObjectFromMid(mid, state)
+	obj = state.Store.AcquireStorageObject(mid)
 	state.Storages[mid] = obj
 	c.IndentedJSON(http.StatusOK, obj)
 }
@@ -131,7 +144,7 @@ func freeStorageByMid(c *gin.Context, state *State) {
 		return
 	}
 	// TODO: Do this in the background. PTSD-1282
-	state.store.Free(obj)
+	state.Store.Free(obj)
 	c.Status(http.StatusOK)
 }
 

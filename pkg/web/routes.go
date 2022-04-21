@@ -30,7 +30,7 @@ type State struct {
 	Loadingcals   map[string]*SocketLoadingcalObject
 	Postprimaries map[string]*PostprimaryObject
 	AllProcesses  map[int]*ControlledProcess
-	store         Store
+	Store         IStore
 }
 
 // Someday, move this to separate package, for privacy.
@@ -64,7 +64,9 @@ func InitFixtures() {
 		Loadingcals:   make(map[string]*SocketLoadingcalObject),
 		Postprimaries: make(map[string]*PostprimaryObject),
 		AllProcesses:  make(map[int]*ControlledProcess),
-		store:         Store{},
+		Store: &OneDirStore{
+			Dir: DefaultStorageRoot, // from storages.go:init()
+		},
 	}
 	for k := range top.state.Sockets {
 		top.state.Basecallers[k] = CreateSocketBasecallerObject()
@@ -291,7 +293,7 @@ func startBasecallerBySocketId(c *gin.Context, state *State) {
 	obj.ProcessStatus.Armed = false
 	obj.ProcessStatus.Timestamp = TimestampNow()
 	state.Basecallers[sid] = obj // TODO: Error if already running?
-	so := GetStorageObjectForMid(obj.Mid, state)
+	so := GetStorageObjectForMid(state.Store, obj.Mid, state)
 	setup := DumpBasecallerScript(config.Top(), obj, sid, so)
 	setup.Stall = c.DefaultQuery("stall", "0")
 	cp := StartControlledShellProcess(setup, &obj.ProcessStatus)
@@ -370,7 +372,7 @@ func startDarkcalBySocketId(c *gin.Context, state *State) {
 	obj.ProcessStatus.Armed = false
 	obj.ProcessStatus.Timestamp = TimestampNow()
 	state.Darkcals[sid] = obj // TODO: Error if already running?
-	so := GetStorageObjectForMid(obj.Mid, state)
+	so := GetStorageObjectForMid(state.Store, obj.Mid, state)
 	setup := DumpDarkcalScript(config.Top(), obj, sid, so)
 	setup.Stall = c.DefaultQuery("stall", "0")
 	cp := StartControlledShellProcess(setup, &obj.ProcessStatus)
@@ -451,7 +453,7 @@ func startLoadingcalBySocketId(c *gin.Context, state *State) {
 	obj.ProcessStatus.Armed = false
 	obj.ProcessStatus.Timestamp = TimestampNow()
 	state.Loadingcals[sid] = obj // TODO: Error if already running?
-	so := GetStorageObjectForMid(obj.Mid, state)
+	so := GetStorageObjectForMid(state.Store, obj.Mid, state)
 	setup := DumpLoadingcalScript(config.Top(), obj, sid, so)
 	setup.Stall = c.DefaultQuery("stall", "0")
 	cp := StartControlledShellProcess(setup, &obj.ProcessStatus)
@@ -537,7 +539,7 @@ func startPostprimary(c *gin.Context, state *State) {
 	obj.ProcessStatus.Armed = false // always false for Postprimary
 	obj.ProcessStatus.Timestamp = TimestampNow()
 	state.Postprimaries[mid] = obj // TODO: Error if already running?
-	so := GetStorageObjectForMid(mid, state)
+	so := GetStorageObjectForMid(state.Store, mid, state)
 	setup := DumpPostprimaryScript(config.Top(), obj, so)
 	setup.Stall = c.DefaultQuery("stall", "0")
 	cp := StartControlledShellProcess(setup, &obj.ProcessStatus)

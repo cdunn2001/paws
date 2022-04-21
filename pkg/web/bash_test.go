@@ -53,7 +53,7 @@ ppa-reducestats \
 	var b bytes.Buffer
 	tc := config.Top()
 	mid := "m123"
-	so := GetLocalStorageObject(mid)
+	so := GetLocalStorageObject("", mid)
 	err := WriteReduceStatsBash(&b, tc, obj, so)
 	check(err)
 	got := b.String()
@@ -133,8 +133,7 @@ smrt-basecaller-launch.sh \
 		tc := config.Top()
 		DataDir = "/tmp" // Note: global side-effect
 		mid := "m84003_220325_032134_s1"
-		os.Remove("/tmp/3/m84003_220325_032134_s1.basecaller.config.json")
-		so := GetLocalStorageObject(mid)
+		so := GetLocalStorageObject("/data/nrta/0", mid)
 		err = WriteBasecallerBash(&b, tc, obj, "4", so)
 		check(err)
 		got := b.String()
@@ -229,8 +228,7 @@ smrt-basecaller-launch.sh \
 		var b bytes.Buffer
 		tc := config.Top()
 		mid := "m84003_220325_032134_s1"
-		os.Remove("/tmp/2/m84003_220325_032134_s1.basecaller.config.json")
-		so := GetLocalStorageObject(mid)
+		so := GetLocalStorageObject("/data/nrta/0", mid)
 		err = WriteBasecallerBash(&b, tc, obj, "3", so)
 		check(err)
 		got := b.String()
