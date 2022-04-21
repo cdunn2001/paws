@@ -117,6 +117,7 @@ smrt-basecaller-launch.sh \
   --config source.WXIPCDataSourceConfig.sraIndex=3 \
   --config dataSource.darkCalFileName=/data/nrta/0/m84003_220325_032134_s1.darkcal_220325_032954.h5 \
   --config dataSource.imagePsfKernel=[[0.0009999999,0.00390000013,0.00735,0.0044,0.00195000006],[0.00199999986,0.0201000012,0.05845,0.02015,0.0049],[0.0055,0.0528,0.634799957,0.04755,0.0088],[0.00445,0.021949999,0.0569000021,0.02155,0.0035],[0.00195000006,0.0044,0.0059,0.00390000013,0.00195000006]] \
+   \
   --config system.analyzerHardware=A100 \
   --maxFrames 60000 \
 `
@@ -189,6 +190,8 @@ smrt-basecaller-launch.sh \
 
 	obj.TraceFileRoi = obj.TraceFileRoi[:0] // or nil; both have len()==0
 	obj.PhotoelectronSensitivity = 6.0
+	obj.PixelSpreadFunction = nil
+	obj.CrosstalkFilter = [][]float64{{0.0,0.0,0.0},{0.0,0.0,1.0},{0.0,0.0,0.0}}
 	{
 		expected := `
 smrt-basecaller-launch.sh \
@@ -202,7 +205,8 @@ smrt-basecaller-launch.sh \
   --config /tmp/3/m84003_220325_032134_s1.basecaller.config.json \
   --config source.WXIPCDataSourceConfig.sraIndex=3 \
   --config dataSource.darkCalFileName=/data/nrta/0/m84003_220325_032134_s1.darkcal_220325_032954.h5 \
-  --config dataSource.imagePsfKernel=[[0.0009999999,0.00390000013,0.00735,0.0044,0.00195000006],[0.00199999986,0.0201000012,0.05845,0.02015,0.0049],[0.0055,0.0528,0.634799957,0.04755,0.0088],[0.00445,0.021949999,0.0569000021,0.02155,0.0035],[0.00195000006,0.0044,0.0059,0.00390000013,0.00195000006]] \
+   \
+  --config dataSource.crosstalkFilterKernel=[[0,0,0],[0,0,1],[0,0,0]] \
   --config system.analyzerHardware=A100 \
   --maxFrames 60000 \
 `
@@ -212,7 +216,7 @@ smrt-basecaller-launch.sh \
 		check(err)
 		got := b.String()
 		if got != expected {
-			t.Errorf("Got %s", got)
+			t.Errorf("Got %s\nExpected %s", got, expected)
 		}
 	}
 	{
