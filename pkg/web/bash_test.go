@@ -46,8 +46,12 @@ func TestTranslateDiscardableUrl(t *testing.T) {
 		}
 	}
 	{
-		got := TranslateUrl(nil, "http://hostname:port/storages/bar")
-		expected := "/bar"
+		so := &StorageObject{
+			RootUrl:   "http://hostname:port/storages/MID",
+			LinuxPath: "/var",
+		}
+		got := TranslateUrl(so, "http://hostname:port/storages/MID/foo/bar")
+		expected := "/var/foo/bar"
 		if got != expected {
 			t.Errorf("Got %s", got)
 		}

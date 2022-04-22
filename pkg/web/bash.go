@@ -184,7 +184,13 @@ func TranslateUrl(so *StorageObject, url string) string {
 		log.Printf(msg)
 		panic(msg)
 	}
-	return storagesplus[9:]
+	result, err := StorageObjectUrlToLinuxPath(so, url)
+	if err != nil {
+		msg := fmt.Sprintf("Unable to translate URL %q into linux path via StorageObject %+v: %v", url, so, err)
+		log.Printf(msg)
+		panic(msg)
+	}
+	return result
 }
 
 // Translates the arguments into a command line option, or empty string if the URL is discardable.
