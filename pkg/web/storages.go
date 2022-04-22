@@ -79,18 +79,16 @@ func GetLocalStorageObject(basedir string, mid string) *StorageObject {
 	obj := &StorageObject{
 		Mid:     mid,
 		RootUrl: filepath.Join(basedir, mid),
+		//LinuxPath: filepath.Join(basedir, mid), // should not be needed
 	}
 	return obj
 }
 
-// If not found, generate a local file.
-// We use 'store' only b/c (for now) we want to fall-back on a local storage.
+// TODO: Stop passing store.
 func GetStorageObjectForMid(store IStore, mid string, state *State) *StorageObject {
-	obj, found := state.Storages[mid]
-	basedir := store.GetBasedir()
-	if !found {
-		obj = GetLocalStorageObject(basedir, mid)
-	}
+	obj, _ := state.Storages[mid]
+	// If not found, return nil. Storage URLs need a StorageObject only if they are
+	//   http://host:port/storage/...
 	return obj
 }
 
