@@ -144,8 +144,14 @@ func TranslateUrl(url string) string {
 	if strings.HasPrefix(url, "/") {
 		return url
 	} else if strings.HasPrefix(url, "file://") {
-		// TODO skip the hostname field (i.e. file://hostname/path0/path1/path2 to /path0/path1/path2 )
-		panic("file:// not supported")
+		hostnameplus := url[7:]
+		slash := strings.Index(hostnameplus, "/")
+		if slash == -1 {
+			msg := fmt.Sprintf("Unable to translate URL %q into linux path. Expected 'file://hostname/path...'", url)
+			log.Printf(msg)
+			panic(msg)
+		}
+		return hostnameplus[slash:]
 	} else if strings.HasPrefix(url, "file:/") {
 		return url[5:]
 	} else if url == "discard:" {

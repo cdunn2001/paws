@@ -32,6 +32,13 @@ func TestTranslateDiscardableUrl(t *testing.T) {
 		}
 	}
 	{
+		got := TranslateUrl("file://hostname/bar")
+		expected := "/bar"
+		if got != expected {
+			t.Errorf("Got %s", got)
+		}
+	}
+	{
 		got := TranslateUrl("local")
 		expected := "local"
 		if got != expected {
