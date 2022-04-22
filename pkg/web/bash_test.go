@@ -25,22 +25,29 @@ func TestTranslateDiscardableUrl(t *testing.T) {
 		}
 	}
 	{
-		got := TranslateUrl("file:/bar")
+		got := TranslateStoragesUrl(nil, "file:/bar")
 		expected := "/bar"
 		if got != expected {
 			t.Errorf("Got %s", got)
 		}
 	}
 	{
-		got := TranslateUrl("file://hostname/bar")
+		got := TranslateStoragesUrl(nil, "file://hostname/bar")
 		expected := "/bar"
 		if got != expected {
 			t.Errorf("Got %s", got)
 		}
 	}
 	{
-		got := TranslateUrl("local")
+		got := TranslateStoragesUrl(nil, "local")
 		expected := "local"
+		if got != expected {
+			t.Errorf("Got %s", got)
+		}
+	}
+	{
+		got := TranslateStoragesUrl(nil, "http://hostname:port/storages/bar")
+		expected := "/bar"
 		if got != expected {
 			t.Errorf("Got %s", got)
 		}

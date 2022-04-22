@@ -166,6 +166,28 @@ func TranslateUrl(url string) string {
 	}
 }
 
+// Support storage http URL, in addition to others.
+//  http://host:port/storages/mid  <- will convert to a Linux path after being processed by the storages framework
+func TranslateStoragesUrl(so *StorageObject, url string) string {
+	if !strings.HasPrefix(url, "http://") {
+		return TranslateUrl(url)
+	}
+	hostportplus := url[7:]
+	slash := strings.Index(hostportplus, "/")
+	if slash == -1 {
+		msg := fmt.Sprintf("Unable to translate URL %q into linux path. Expected 'http://host:port/path...'", url)
+		log.Printf(msg)
+		panic(msg)
+	}
+	storagesplus := hostportplus[slash:]
+	if !strings.HasPrefix(storagesplus, "/storages/") {
+		msg := fmt.Sprintf("Unable to translate URL %q into linux path. Expected 'http://host:port/storages/path...'", url)
+		log.Printf(msg)
+		panic(msg)
+	}
+	return storagesplus[9:]
+}
+
 // Translates the arguments into a command line option, or empty string if the URL is discardable.
 //  ex. Translate("--outputtrcfile", "discard:", ) returns ""
 //  ex. Translate("--foo","file:/bar") returns "--foo /bar"
