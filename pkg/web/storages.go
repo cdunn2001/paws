@@ -25,10 +25,25 @@ func listStorageMids(c *gin.Context, state *State) {
 type Store struct {
 }
 
+var DefaultStorageRoot string // Must be asbolute.
+
+func init() {
+	root := "./tmp/storage"
+	if !filepath.IsAbs(root) {
+		absroot, err := filepath.Abs(root)
+		if err != nil {
+			msg := fmt.Sprintf("Unable to run filepath.Abs(%q). Someone must have deleted the current working directory.", root)
+			panic(msg)
+		}
+		root = absroot
+	}
+	DefaultStorageRoot = root
+}
+
 func GetLocalStorageObject(mid string) *StorageObject {
 	obj := &StorageObject{
 		Mid:     mid,
-		RootUrl: filepath.Join("./tmp/storage", mid),
+		RootUrl: filepath.Join(DefaultStorageRoot, mid),
 	}
 	return obj
 }
