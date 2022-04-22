@@ -11,42 +11,42 @@ import (
 
 func TestTranslateDiscardableUrl(t *testing.T) {
 	{
-		got := TranslateDiscardableUrl("--foo", "discard:")
+		got := TranslateDiscardableUrl(nil, "--foo", "discard:")
 		expected := ""
 		if got != expected {
 			t.Errorf("Got %s", got)
 		}
 	}
 	{
-		got := TranslateDiscardableUrl("--foo", "/bar")
+		got := TranslateDiscardableUrl(nil, "--foo", "/bar")
 		expected := "--foo /bar"
 		if got != expected {
 			t.Errorf("Got %s", got)
 		}
 	}
 	{
-		got := TranslateStoragesUrl(nil, "file:/bar")
+		got := TranslateUrl(nil, "file:/bar")
 		expected := "/bar"
 		if got != expected {
 			t.Errorf("Got %s", got)
 		}
 	}
 	{
-		got := TranslateStoragesUrl(nil, "file://hostname/bar")
+		got := TranslateUrl(nil, "file://hostname/bar")
 		expected := "/bar"
 		if got != expected {
 			t.Errorf("Got %s", got)
 		}
 	}
 	{
-		got := TranslateStoragesUrl(nil, "local")
+		got := TranslateUrl(nil, "local")
 		expected := "local"
 		if got != expected {
 			t.Errorf("Got %s", got)
 		}
 	}
 	{
-		got := TranslateStoragesUrl(nil, "http://hostname:port/storages/bar")
+		got := TranslateUrl(nil, "http://hostname:port/storages/bar")
 		expected := "/bar"
 		if got != expected {
 			t.Errorf("Got %s", got)
