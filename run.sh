@@ -15,6 +15,9 @@ curl $f -X GET $E/status
 curl $f -X GET $E/sockets
 # Should print [1,2,3,4] quoted.
 
+curl $F -X POST -d @sims/storages.simple.json $E/storages
+# No-op for now.
+
 
 # darkcalFileUrl=file:/data/nrta/0/darkcal.h5
 #curl $F -X POST -d '{"calibFileUrl": ""}' $E/sockets/1/darkcal/start
