@@ -557,6 +557,8 @@ func WriteBaz2bamBash(wr io.Writer, tc config.TopStruct, obj *PostprimaryObject,
 }
 
 var Template_reducestats = `
+echo 2> 'PA_PPA_STATUS {"counter":0,"counterMax":1,"stageName":"Bash","stageNumber":0,"stageWeights":[100],"state":"progress","timeoutForNextStatus":300}'
+
 {{.Global.Binaries.Binary_reducestats}} \
   {{.Local.OutputStatsH5}} \
   {{.Local.OutputReduceStatsH5}} \
