@@ -183,8 +183,8 @@ func StorageObjectUrlToLinuxPath(so *StorageObject, Url string) (string, error) 
 			so.RootUrlPath, urlpath.Path)
 		return "/dev/null", errors.New(msg)
 	}
-	l := len(so.RootUrl)
-	filepath := Url[l:]
+	l := len(so.RootUrlPath)
+	filepath := urlpath.Path[l:]
 	linuxPath := so.LinuxPath + filepath
 	return linuxPath, nil
 }

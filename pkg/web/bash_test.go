@@ -14,46 +14,47 @@ func TestTranslateDiscardableUrl(t *testing.T) {
 		got := TranslateDiscardableUrl(nil, "--foo", "discard:")
 		expected := ""
 		if got != expected {
-			t.Errorf("Got %s", got)
+			t.Errorf("Got %q\nNot %q", got, expected)
 		}
 	}
 	{
 		got := TranslateDiscardableUrl(nil, "--foo", "/bar")
 		expected := "--foo /bar"
 		if got != expected {
-			t.Errorf("Got %s", got)
+			t.Errorf("Got %q\nNot %q", got, expected)
 		}
 	}
 	{
 		got := TranslateUrl(nil, "file:/bar")
 		expected := "/bar"
 		if got != expected {
-			t.Errorf("Got %s", got)
+			t.Errorf("Got %q\nNot %q", got, expected)
 		}
 	}
 	{
 		got := TranslateUrl(nil, "file://hostname/bar")
 		expected := "/bar"
 		if got != expected {
-			t.Errorf("Got %s", got)
+			t.Errorf("Got %q\nNot %q", got, expected)
 		}
 	}
 	{
 		got := TranslateUrl(nil, "local")
 		expected := "local"
 		if got != expected {
-			t.Errorf("Got %s", got)
+			t.Errorf("Got %q\nNot %q", got, expected)
 		}
 	}
 	{
 		so := &StorageObject{
-			RootUrl:   "http://hostname:9999/storages/MID",
-			LinuxPath: "/var",
+			RootUrl:     "http://hostname:9999/storages/MID/files",
+			RootUrlPath: "/storages/MID/files",
+			LinuxPath:   "/var",
 		}
-		got := TranslateUrl(so, "http://hostname:9999/storages/MID/foo/bar")
+		got := TranslateUrl(so, "http://hostname:9999/storages/MID/files/foo/bar")
 		expected := "/var/foo/bar"
 		if got != expected {
-			t.Errorf("Got %s", got)
+			t.Errorf("Got %q\nNot %q", got, expected)
 		}
 	}
 }
@@ -76,7 +77,7 @@ ppa-reducestats \
 	check(err)
 	got := b.String()
 	if got != expected {
-		t.Errorf("Got %s", got)
+		t.Errorf("Got %q\nNot %q", got, expected)
 	}
 }
 
@@ -156,8 +157,7 @@ smrt-basecaller-launch.sh \
 		check(err)
 		got := b.String()
 		if got != expected {
-			t.Errorf("Got\n%s Expected\n%s", hex.Dump([]byte(got)), hex.Dump([]byte(expected)))
-			//t.Errorf("Got %v Expected %v", got, expected)
+			t.Errorf("Got %q\nNot %q\nGot\n%s Expected\n%s", got, expected, hex.Dump([]byte(got)), hex.Dump([]byte(expected)))
 		}
 	}
 	{
