@@ -167,7 +167,7 @@ func createStorage(c *gin.Context, state *State) {
 		c.String(http.StatusBadRequest, "Could not parse body into struct.\n")
 		return
 	}
-	socketId := "0" // TODO: This should not be hard-coded.
+	socketId := obj.SocketId
 	mid := obj.Mid
 	if socketId == "" || mid == "" {
 		c.String(http.StatusBadRequest, "/storages endpoint requires both 'mid' and 'socketId' fields.\n")
