@@ -65,8 +65,8 @@ func WriteDarkcalBash(wr io.Writer, tc config.TopStruct, obj *SocketDarkcalObjec
 	kv["numFrames"] = strconv.Itoa(numFrames)
 	// --numFrames # gets overridden w/ 128 or 512 for now, but setting prevents warning
 
-	kv["outputFile"] = obj.CalibFileUrl // TODO: Convert from URL!
-	kv["logoutput"] = obj.LogUrl        // TODO: Convert from URL!
+	kv["outputFile"] = TranslateUrl(so, obj.CalibFileUrl)
+	kv["logoutput"] = TranslateUrl(so, obj.LogUrl)
 
 	timeout := float64(numFrames) * 1.1 / tc.Values.DefaultFrameRate // default
 	if obj.MovieMaxSeconds > 0 {
@@ -116,9 +116,9 @@ func WriteLoadingcalBash(wr io.Writer, tc config.TopStruct, obj *SocketLoadingca
 	kv["numFrames"] = strconv.Itoa(numFrames)
 	// --numFrames # gets overridden w/ 128 or 512 for now, but setting prevents warning
 
-	kv["outputFile"] = obj.CalibFileUrl           // TODO: Convert from URL!
-	kv["logoutput"] = obj.LogUrl                  // TODO: Convert from URL!
-	kv["inputDarkCalFile"] = obj.DarkFrameFileUrl // TODO: Convert from URL!
+	kv["outputFile"] = TranslateUrl(so, obj.CalibFileUrl)
+	kv["logoutput"] = TranslateUrl(so, obj.LogUrl)
+	kv["inputDarkCalFile"] = TranslateUrl(so, obj.DarkFrameFileUrl)
 
 	timeout := float64(numFrames) * 1.1 / tc.Values.DefaultFrameRate // default
 	if obj.MovieMaxSeconds > 0 {
@@ -554,7 +554,7 @@ func WriteBaz2bamBash(wr io.Writer, tc config.TopStruct, obj *PostprimaryObject,
 		logoutput = "/dev/null"
 		loglevel = Error
 	} else {
-		logoutput = obj.LogUrl // TODO
+		logoutput = TranslateUrl(so, obj.LogUrl)
 	}
 	if loglevel == "" {
 		kv["logfilter"] = ""
@@ -603,26 +603,25 @@ echo 'PA_PPA_STATUS {"counter":0,"counterMax":1,"stageName":"Bash","stageNumber"
 func WriteReduceStatsBash(wr io.Writer, tc config.TopStruct, obj *PostprimaryObject, so *StorageObject) error {
 	t := CreateTemplate(Template_reducestats, "")
 	kv := make(map[string]string)
-	// TODO: Urls
 
-	OutputStatsH5 := obj.OutputStatsH5Url
-	if OutputStatsH5 == "" {
-		OutputStatsH5 = obj.OutputPrefixUrl + ".sts.h5"
+	OutputStatsH5Url := obj.OutputStatsH5Url
+	if OutputStatsH5Url == "" {
+		OutputStatsH5Url = obj.OutputPrefixUrl + ".sts.h5"
 	}
-	if OutputStatsH5 == "discard:" {
+	if OutputStatsH5Url == "discard:" {
 		kv["OutputStatsH5"] = ""
 	} else {
-		kv["OutputStatsH5"] = "--input " + OutputStatsH5
+		kv["OutputStatsH5"] = "--input " + TranslateUrl(so, OutputStatsH5Url)
 	}
 
-	OutputReduceStatsH5 := obj.OutputReduceStatsH5Url
-	if OutputReduceStatsH5 == "" {
-		OutputReduceStatsH5 = obj.OutputPrefixUrl + ".rsts.h5"
+	OutputReduceStatsH5Url := obj.OutputReduceStatsH5Url
+	if OutputReduceStatsH5Url == "" {
+		OutputReduceStatsH5Url = obj.OutputPrefixUrl + ".rsts.h5"
 	}
-	if OutputReduceStatsH5 == "discard:" {
+	if OutputReduceStatsH5Url == "discard:" {
 		kv["OutputReduceStatsH5"] = ""
 	} else {
-		kv["OutputReduceStatsH5"] = "--output " + OutputReduceStatsH5
+		kv["OutputReduceStatsH5"] = "--output " + TranslateUrl(so, OutputReduceStatsH5Url)
 	}
 
 	ts := TemplateSub{
