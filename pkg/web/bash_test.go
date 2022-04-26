@@ -40,7 +40,7 @@ func TestTranslateDiscardableUrl(t *testing.T) {
 }
 func TestWriteReduceStatsBash(t *testing.T) {
 	expected := `
-echo 2> 'PA_PPA_STATUS {"counter":0,"counterMax":1,"stageName":"Bash","stageNumber":0,"stageWeights":[100],"state":"progress","timeoutForNextStatus":300}'
+echo 'PA_PPA_STATUS {"counter":0,"counterMax":1,"stageName":"Bash","stageNumber":0,"stageWeights":[100],"state":"progress","timeoutForNextStatus":300}' >&2
 
 ppa-reducestats \
   --input PREFIX.sts.h5 \
