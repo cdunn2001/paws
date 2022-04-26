@@ -24,7 +24,7 @@ func listStorageMids(c *gin.Context, state *State) {
 
 type IStore interface {
 	Free(obj *StorageObject)
-	AcquireStorageObject(mid string) *StorageObject
+	AcquireStorageObject(sid string, mid string) *StorageObject
 	GetBasedir() string
 }
 
@@ -64,9 +64,15 @@ func CreateOneDirStore(root string) *OneDirStore {
 func (self *OneDirStore) GetBasedir() string {
 	return self.Dir
 }
-func (self *OneDirStore) AcquireStorageObject(mid string) *StorageObject {
+func (self *OneDirStore) AcquireStorageObject(socketId string, mid string) *StorageObject {
 	basedir := self.GetBasedir()
-	obj := GetLocalStorageObject(basedir, mid)
+	obj := &StorageObject{
+		SocketId:  socketId,
+		Mid:       mid,
+		RootUrl:   filepath.Join("http://storages", mid),
+		LinuxPath: filepath.Join(basedir, socketId, mid),
+	}
+	CreatePathIfNeeded(obj.LinuxPath)
 	dir, err := StorageObjectUrlToLinuxPath(obj, obj.RootUrl)
 	check(err)
 	os.MkdirAll(dir, 0777)
@@ -113,9 +119,10 @@ func createStorage(c *gin.Context, state *State) {
 		c.Writer.WriteString("Could not parse body into struct.\n")
 		return
 	}
-	mid := obj.Mid // This is the only thing we get from the input obj, right?
+	socketId := obj.SocketId
+	mid := obj.Mid
 
-	obj = state.Store.AcquireStorageObject(mid)
+	obj = state.Store.AcquireStorageObject(socketId, mid)
 	state.Storages[mid] = obj
 	c.IndentedJSON(http.StatusOK, obj)
 }
