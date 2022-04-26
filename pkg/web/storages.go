@@ -116,11 +116,15 @@ func GetStorageObjectForMid(store IStore, mid string, state *State) *StorageObje
 func createStorage(c *gin.Context, state *State) {
 	obj := new(StorageObject)
 	if err := c.BindJSON(obj); err != nil {
-		c.Writer.WriteString("Could not parse body into struct.\n")
+		c.String(http.StatusBadRequest, "Could not parse body into struct.\n")
 		return
 	}
 	socketId := obj.SocketId
 	mid := obj.Mid
+	if socketId == "" || mid == "" {
+		c.String(http.StatusBadRequest, "/storages endpoint requires both 'mid' and 'socketId' fields.\n")
+		return
+	}
 
 	obj = state.Store.AcquireStorageObject(socketId, mid)
 	state.Storages[mid] = obj
