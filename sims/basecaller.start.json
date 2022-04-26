@@ -1,10 +1,10 @@
 {
     "mid": "m123",
     "uuid": "MyUuid",
-    "darkCalFileUrl": "tmp/darkcal.h5",
-    "bazUrl": "tmp/foo.baz",
-    "traceFileUrl": "tmp/foo.trc.h5",
-    "logUrl": "tmp/foo.basecaller.log",
+    "darkCalFileUrl": "http://hostname/storages/m123/files/darkcal.h5",
+    "bazUrl": "http://hostname/storages/m123/files/foo.baz",
+    "traceFileUrl": "http://hostname/storages/m123/files/foo.trc.h5",
+    "logUrl": "http://hostname/storages/m123/files/foo.basecaller.log",
     "logLevel": "INFO",
   "movieMaxFrames": 3600000,
   "movieMaxSeconds": 36000,
@@ -23,9 +23,9 @@
   "expectedFrameRate": 100,
   "photoelectronSensitivity": 1.4,
   "refSnr": 10,
-  "simulationFileUrl": "file://localhost/data/pa/sample_file.trc.h5",
+  "simulationFileUrl": "http://hostname/storages/m123/files/sample_file.trc.h5",
   "smrtBasecallerConfig": null,
   "rtMetrics": {
-    "url": "http://localhost:23632/storages/m123456_987654/rtmetrics_20210625_123456.xml"
+    "url": "http://hostname/storages/m123/files/rtmetrics_20210625_123456.xml"
   }
 }

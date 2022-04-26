@@ -1,9 +1,9 @@
 {
-    "calibFileUrl": "tmp/darkcal.h5",
-    "mid": "",
+    "calibFileUrl": "http://hostname/storages/m123/files/darkcal.h5",
+    "mid": "m123",
     "MovieMaxFrames": 0,
     "MovieMaxSeconds": 0.0,
     "movieNumber": 0,
-    "logUrl": "tmp/log.darkcal.txt",
+    "logUrl": "http://hostname/storages/m123/files/foo.darkcal.log",
     "logLevel": "INFO"
 }

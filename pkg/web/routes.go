@@ -298,6 +298,9 @@ func startBasecallerBySocketId(c *gin.Context, state *State) {
 	obj.ProcessStatus.Timestamp = TimestampNow()
 	state.Basecallers[sid] = obj // TODO: Error if already running?
 	so := GetStorageObjectForMid(state.Store, obj.Mid, state)
+	if so == nil {
+		panic(fmt.Sprintf("Could not find SO for mid %q", obj.Mid))
+	}
 	setup := DumpBasecallerScript(config.Top(), obj, sid, so)
 	setup.Stall = c.DefaultQuery("stall", "0")
 	cp := StartControlledShellProcess(setup, &obj.ProcessStatus)
@@ -377,6 +380,9 @@ func startDarkcalBySocketId(c *gin.Context, state *State) {
 	obj.ProcessStatus.Timestamp = TimestampNow()
 	state.Darkcals[sid] = obj // TODO: Error if already running?
 	so := GetStorageObjectForMid(state.Store, obj.Mid, state)
+	if so == nil {
+		panic(fmt.Sprintf("Could not find SO for mid %q", obj.Mid))
+	}
 	setup := DumpDarkcalScript(config.Top(), obj, sid, so)
 	setup.Stall = c.DefaultQuery("stall", "0")
 	cp := StartControlledShellProcess(setup, &obj.ProcessStatus)
@@ -458,6 +464,9 @@ func startLoadingcalBySocketId(c *gin.Context, state *State) {
 	obj.ProcessStatus.Timestamp = TimestampNow()
 	state.Loadingcals[sid] = obj // TODO: Error if already running?
 	so := GetStorageObjectForMid(state.Store, obj.Mid, state)
+	if so == nil {
+		panic(fmt.Sprintf("Could not find SO for mid %q", obj.Mid))
+	}
 	setup := DumpLoadingcalScript(config.Top(), obj, sid, so)
 	setup.Stall = c.DefaultQuery("stall", "0")
 	cp := StartControlledShellProcess(setup, &obj.ProcessStatus)

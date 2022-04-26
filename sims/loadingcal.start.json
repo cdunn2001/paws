@@ -1,10 +1,10 @@
 {
-    "darkFrameFileUrl": "tmp/darkcal.h5",
-    "calibFileUrl": "tmp/loadingcal.h5",
-    "mid": "",
+    "darkFrameFileUrl": "http://hostname/storages/m123/files/darkcal.h5",
+    "calibFileUrl": "http://hostname/storages/m123/files/loadingcal.h5",
+    "mid": "m123",
     "MovieMaxFrames": 0,
     "MovieMaxSeconds": 0.0,
     "movieNumber": 0,
-    "logUrl": "tmp/log.loadingcal.txt",
+    "logUrl": "http://hostname/storages/m123/files/foo.loadingcal.log",
     "logLevel": "INFO"
 }
