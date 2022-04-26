@@ -7,6 +7,7 @@ import (
 	"github.com/pkg/errors"
 	"io"
 	"log"
+	"net/url"
 	"os"
 	"pacb.com/seq/paws/pkg/config"
 	"path/filepath"
@@ -139,54 +140,33 @@ func WriteLoadingcalBash(wr io.Writer, tc config.TopStruct, obj *SocketLoadingca
 //  discard:     <- returns ""
 // eventually will support
 //  file://host/path  <- returns /path assuming the path is NFS mounted, otherwise panics
-func TranslateNonStoragesUrl(url string) string {
-	if strings.HasPrefix(url, "/") {
-		return url
-	} else if strings.HasPrefix(url, "file://") {
-		hostnameplus := url[7:]
-		slash := strings.Index(hostnameplus, "/")
-		if slash == -1 {
-			msg := fmt.Sprintf("Unable to translate URL %q into linux path. Expected 'file://hostname/path...'", url)
-			log.Printf(msg)
-			panic(msg)
-		}
-		return hostnameplus[slash:]
-	} else if strings.HasPrefix(url, "file:/") {
-		return url[5:]
-	} else if url == "discard:" {
-		return "" // or "/dev/null" ? not sure
-	} else if !strings.Contains(url, ":") {
-		return url
-	} else {
-		// TODO support http:/storages
-		msg := fmt.Sprintf("Unable to translate URL (%s) into linux path", url)
-		log.Printf(msg)
-		panic(msg)
-	}
-}
-
-// Support storage http URL, in addition to others.
 //  http://host:port/storages/mid  <- will convert to a Linux path after being processed by the storages framework
-func TranslateUrl(so *StorageObject, url string) string {
-	if !strings.HasPrefix(url, "http://") {
-		return TranslateNonStoragesUrl(url)
+func TranslateUrl(so *StorageObject, Url string) string {
+	if strings.HasPrefix(Url, "/") {
+		return Url
 	}
-	hostportplus := url[7:]
-	slash := strings.Index(hostportplus, "/")
-	if slash == -1 {
-		msg := fmt.Sprintf("Unable to translate URL %q into linux path. Expected 'http://host:port/path...'", url)
-		log.Printf(msg)
-		panic(msg)
-	}
-	storagesplus := hostportplus[slash:]
-	if !strings.HasPrefix(storagesplus, "/storages/") {
-		msg := fmt.Sprintf("Unable to translate URL %q into linux path. Expected 'http://host:port/storages/path...'", url)
-		log.Printf(msg)
-		panic(msg)
-	}
-	result, err := StorageObjectUrlToLinuxPath(so, url)
+	parsed, err := url.Parse(Url)
 	if err != nil {
-		msg := fmt.Sprintf("Unable to translate URL %q into linux path via StorageObject %+v: %v", url, so, err)
+		msg := fmt.Sprintf("URL parsing error: %v", err)
+		panic(msg)
+	}
+	if parsed.Scheme == "file" {
+		return parsed.Path
+	} else if parsed.Scheme == "discard" {
+		return "" // TODO: or "/dev/null" ? not sure
+	} else if parsed.Scheme == "" {
+		return parsed.Path
+	}
+
+	// Must be storages endpoint.
+	if !strings.HasPrefix(parsed.Path, "/storages/") {
+		msg := fmt.Sprintf("Unable to translate URL %q w/ path %q into linux path. Expected 'http://host:port/storages/path...'", Url, parsed.Path)
+		log.Printf(msg)
+		panic(msg)
+	}
+	result, err := StorageObjectUrlToLinuxPath(so, Url)
+	if err != nil {
+		msg := fmt.Sprintf("Unable to translate URL %q into linux path via StorageObject %+v: %v", Url, so, err)
 		log.Printf(msg)
 		panic(msg)
 	}
