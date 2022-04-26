@@ -130,6 +130,8 @@ func createStorage(c *gin.Context, state *State) {
 
 	obj = state.Store.AcquireStorageObject(socketId, mid)
 	state.Storages[mid] = obj
+	//log.Printf("New StorageObject: %+v", obj)
+	log.Printf("New StorageObject: %q\n  -> %q", obj.RootUrl, obj.LinuxPath)
 	c.IndentedJSON(http.StatusOK, obj)
 }
 
