@@ -164,6 +164,10 @@ func TranslateUrl(so *StorageObject, Url string) string {
 		log.Printf(msg)
 		panic(msg)
 	}
+	if so == nil {
+		msg := fmt.Sprintf("Nil StorageObject for URL %q", Url)
+		panic(msg)
+	}
 	result, err := StorageObjectUrlToLinuxPath(so, Url)
 	if err != nil {
 		msg := fmt.Sprintf("Unable to translate URL %q into linux path via StorageObject %+v: %v", Url, so, err)

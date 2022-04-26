@@ -299,7 +299,7 @@ func startBasecallerBySocketId(c *gin.Context, state *State) {
 	state.Basecallers[sid] = obj // TODO: Error if already running?
 	so := GetStorageObjectForMid(state.Store, obj.Mid, state)
 	if so == nil {
-		panic(fmt.Sprintf("Could not find SO for mid %q", obj.Mid))
+		log.Printf("Could not find SO for mid %q", obj.Mid)
 	}
 	setup := DumpBasecallerScript(config.Top(), obj, sid, so)
 	setup.Stall = c.DefaultQuery("stall", "0")
@@ -381,7 +381,7 @@ func startDarkcalBySocketId(c *gin.Context, state *State) {
 	state.Darkcals[sid] = obj // TODO: Error if already running?
 	so := GetStorageObjectForMid(state.Store, obj.Mid, state)
 	if so == nil {
-		panic(fmt.Sprintf("Could not find SO for mid %q", obj.Mid))
+		log.Printf("Could not find SO for mid %q", obj.Mid)
 	}
 	setup := DumpDarkcalScript(config.Top(), obj, sid, so)
 	setup.Stall = c.DefaultQuery("stall", "0")
@@ -465,7 +465,7 @@ func startLoadingcalBySocketId(c *gin.Context, state *State) {
 	state.Loadingcals[sid] = obj // TODO: Error if already running?
 	so := GetStorageObjectForMid(state.Store, obj.Mid, state)
 	if so == nil {
-		panic(fmt.Sprintf("Could not find SO for mid %q", obj.Mid))
+		log.Printf("Could not find SO for mid %q", obj.Mid)
 	}
 	setup := DumpLoadingcalScript(config.Top(), obj, sid, so)
 	setup.Stall = c.DefaultQuery("stall", "0")
@@ -554,7 +554,7 @@ func startPostprimary(c *gin.Context, state *State) {
 	state.Postprimaries[mid] = obj // TODO: Error if already running?
 	so := GetStorageObjectForMid(state.Store, mid, state)
 	if so == nil {
-		panic(fmt.Sprintf("Could not find SO for mid %q", mid))
+		log.Printf("Could not find SO for mid %q", mid)
 	}
 	setup := DumpPostprimaryScript(config.Top(), obj, so)
 	setup.Stall = c.DefaultQuery("stall", "0")
