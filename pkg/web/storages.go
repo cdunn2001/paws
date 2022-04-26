@@ -70,8 +70,8 @@ func (self *OneDirStore) AcquireStorageObject(socketId string, mid string) *Stor
 	obj := &StorageObject{
 		SocketId:    socketId,
 		Mid:         mid,
-		RootUrl:     filepath.Join("http://storages", mid),
-		RootUrlPath: filepath.Join("/storages", mid),
+		RootUrl:     filepath.Join("http://storages", mid, "files"),
+		RootUrlPath: filepath.Join("/storages", mid, "files"),
 		LinuxPath:   filepath.Join(basedir, socketId, mid),
 	}
 	CreatePathIfNeeded(obj.LinuxPath)
