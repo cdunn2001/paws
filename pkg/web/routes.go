@@ -544,6 +544,9 @@ func startPostprimary(c *gin.Context, state *State) {
 	obj.ProcessStatus.Timestamp = TimestampNow()
 	state.Postprimaries[mid] = obj // TODO: Error if already running?
 	so := GetStorageObjectForMid(state.Store, mid, state)
+	if so == nil {
+		panic(fmt.Sprintf("Could not find SO for mid %q", mid))
+	}
 	setup := DumpPostprimaryScript(config.Top(), obj, so)
 	setup.Stall = c.DefaultQuery("stall", "0")
 	cp := StartControlledShellProcess(setup, &obj.ProcessStatus)

@@ -2,7 +2,7 @@
     "mid": "m123",
     "uuid": "MyUuid",
     "bazFileUrl": "tmp/foo.baz",
-    "outputPrefixUrl": "tmp/out",
+    "outputPrefixUrl": "http://hostname/storages/m123",
     "logUrl": "tmp/log.baz2bam.txt",
     "subreadsetMetadataXml": "<SubreadSet></SubreadSet>",
     "logLevel": "INFO"

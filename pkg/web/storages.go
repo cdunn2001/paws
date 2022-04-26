@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"sort"
@@ -67,10 +68,11 @@ func (self *OneDirStore) GetBasedir() string {
 func (self *OneDirStore) AcquireStorageObject(socketId string, mid string) *StorageObject {
 	basedir := self.GetBasedir()
 	obj := &StorageObject{
-		SocketId:  socketId,
-		Mid:       mid,
-		RootUrl:   filepath.Join("http://storages", mid),
-		LinuxPath: filepath.Join(basedir, socketId, mid),
+		SocketId:    socketId,
+		Mid:         mid,
+		RootUrl:     filepath.Join("http://storages", mid),
+		RootUrlPath: filepath.Join("/storages", mid),
+		LinuxPath:   filepath.Join(basedir, socketId, mid),
 	}
 	CreatePathIfNeeded(obj.LinuxPath)
 	dir, err := StorageObjectUrlToLinuxPath(obj, obj.RootUrl)
@@ -171,14 +173,18 @@ func freeStorageByMid(c *gin.Context, state *State) {
 	c.Status(http.StatusOK)
 }
 
-func StorageObjectUrlToLinuxPath(so *StorageObject, url string) (string, error) {
-	if !strings.HasPrefix(url, so.RootUrl) {
-		msg := fmt.Sprintf("Precondition violated. RootURL %q is not a prefix of URL %q.",
-			so.RootUrl, url)
+func StorageObjectUrlToLinuxPath(so *StorageObject, Url string) (string, error) {
+	urlpath, err := url.Parse(Url)
+	if err != nil {
+		return "", err
+	}
+	if !strings.HasPrefix(urlpath.Path, so.RootUrlPath) {
+		msg := fmt.Sprintf("Precondition violated. RootUrlPath %q is not a prefix of URL %q.",
+			so.RootUrlPath, urlpath.Path)
 		return "/dev/null", errors.New(msg)
 	}
 	l := len(so.RootUrl)
-	filepath := url[l:]
+	filepath := Url[l:]
 	linuxPath := so.LinuxPath + filepath
 	return linuxPath, nil
 }

@@ -390,6 +390,9 @@ type StorageObject struct {
 	// Example: http://localhost:23632/storages/m123456_987654
 	RootUrl string `json:"rootUrl"`
 
+	// Internal use
+	RootUrlPath string `json:"rootUrlPath"`
+
 	// physical path to storage directory (should only be used for debugging and logging)
 	// Example: file:/data/pa/m123456_987654
 	LinuxPath string `json:"linuxPath"`
