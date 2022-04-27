@@ -68,7 +68,6 @@ func (self *OneDirStore) GetBasedir() string {
 func (self *OneDirStore) AcquireStorageObject(socketId string, mid string) *StorageObject {
 	basedir := self.GetBasedir()
 	obj := &StorageObject{
-		SocketId:    socketId,
 		Mid:         mid,
 		RootUrl:     filepath.Join("http://storages", mid, "files"),
 		RootUrlPath: filepath.Join("/storages", mid, "files"),
@@ -121,7 +120,7 @@ func createStorage(c *gin.Context, state *State) {
 		c.String(http.StatusBadRequest, "Could not parse body into struct.\n")
 		return
 	}
-	socketId := obj.SocketId
+	socketId := "1" // TODO: This should not be hard-coded.
 	mid := obj.Mid
 	if socketId == "" || mid == "" {
 		c.String(http.StatusBadRequest, "/storages endpoint requires both 'mid' and 'socketId' fields.\n")

@@ -382,10 +382,6 @@ type StorageObject struct {
 	// Example: m123456_987654
 	Mid string `json:"mid"`
 
-	// The socket identifier, typically "1" thru "4". Used to created this object.
-	// Example: 2
-	SocketId string `json:"socketId"`
-
 	// symbolic link to storage directory which points back to this StorageObject
 	// Example: http://localhost:23632/storages/m123456_987654
 	RootUrl string `json:"rootUrl"`
