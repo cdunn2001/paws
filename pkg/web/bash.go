@@ -254,7 +254,13 @@ func WriteBasecallerBash(wr io.Writer, tc config.TopStruct, obj *SocketBasecalle
 	// Note: This file will be over-written on each call.
 
 	kv["sra"] = strconv.Itoa(sra)
-	kv["chipLayout"] = obj.ChipLayout
+	chipLayout := obj.Chiplayout
+	if chipLayout == "" || chipLayout == "Spider_1p0_NTO" {
+		log.Printf("WARNING: Overriding bad or missing chipLayout name %q with %q",
+			chipLayout, "KestrelRTO2")
+		chipLayout = "KestrelRTO2"
+	}
+	kv["chipLayout"] = chipLayout
 	kv["config_json_fn"] = config_json_fn
 	kv["maxFrames"] = strconv.Itoa(int(obj.MovieMaxFrames))
 	kv["optDarkCalFileName"] = TranslateDiscardableUrl("--config dataSource.darkCalFileName=", obj.DarkCalFileUrl)
