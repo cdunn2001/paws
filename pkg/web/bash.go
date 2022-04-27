@@ -241,6 +241,13 @@ func WriteBasecallerBash(wr io.Writer, tc config.TopStruct, obj *SocketBasecalle
 	}
 	acqConfig.RefSnr = obj.RefSnr
 	acqConfig.PhotoelectronSensitivity = obj.PhotoelectronSensitivity
+	chipLayout := obj.Chiplayout
+	if chipLayout == "" || chipLayout == "Spider_1p0_NTO" {
+		log.Printf("WARNING: Overriding bad or missing chipLayout name %q with %q",
+			chipLayout, "KestrelRTO2")
+		chipLayout = "KestrelRTO2"
+	}
+	acqConfig.ChipLayoutName = chipLayout
 
 	basecallerConfigBytes, err := json.MarshalIndent(basecallerConfig, "", "    ")
 	if err != nil {

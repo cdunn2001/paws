@@ -183,6 +183,7 @@ smrt-basecaller-launch.sh \
                     "pw2SlowStepRatio": 3.200000047683716,
                     "relAmplitude": 0.4300000071525574
                 },
+                "chipLayoutName": "KestrelRTO2",
                 "refSnr": 15.300000190734863,
                 "photoelectronSensitivity": 6.666666507720947
             }
@@ -273,6 +274,7 @@ smrt-basecaller-launch.sh \
                     "pw2SlowStepRatio": 3.200000047683716,
                     "relAmplitude": 0.4300000071525574
                 },
+                "chipLayoutName": "KestrelRTO2",
                 "refSnr": 15.300000190734863,
                 "photoelectronSensitivity": 6
             }
