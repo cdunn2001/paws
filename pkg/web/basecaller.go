@@ -19,6 +19,7 @@ type Smrt_AcqConfig struct {
 	C                        Smrt_AnalogObject
 	G                        Smrt_AnalogObject
 	T                        Smrt_AnalogObject
+	ChipLayoutName           string  `json:"chipLayoutName"`
 	RefSnr                   float64 `json:"refSnr"`
 	PhotoelectronSensitivity float64 `json:"photoelectronSensitivity"`
 }

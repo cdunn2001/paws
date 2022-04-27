@@ -186,7 +186,6 @@ var Template_basecaller = `
   {{.Local.optOutputBazFile}} \
   --config {{.Local.config_json_fn}} \
   --config source.WXIPCDataSourceConfig.sraIndex={{.Local.sra}} \
-  --config source.WXIPCDataSource.acqConfig.chipLayoutName={{.Local.chipLayout}} \
   {{.Local.optDarkCalFileName}} \
   {{.Local.optImagePsfKernel}} \
   {{.Local.optCrosstalkFilterKernel}} \
@@ -242,6 +241,13 @@ func WriteBasecallerBash(wr io.Writer, tc config.TopStruct, obj *SocketBasecalle
 	}
 	acqConfig.RefSnr = obj.RefSnr
 	acqConfig.PhotoelectronSensitivity = obj.PhotoelectronSensitivity
+	chipLayout := obj.Chiplayout
+	if chipLayout == "" || chipLayout == "Spider_1p0_NTO" {
+		log.Printf("WARNING: Overriding bad or missing chipLayout name %q with %q",
+			chipLayout, "KestrelRTO2")
+		chipLayout = "KestrelRTO2"
+	}
+	acqConfig.ChipLayoutName = chipLayout
 
 	basecallerConfigBytes, err := json.MarshalIndent(basecallerConfig, "", "    ")
 	if err != nil {
@@ -254,13 +260,6 @@ func WriteBasecallerBash(wr io.Writer, tc config.TopStruct, obj *SocketBasecalle
 	// Note: This file will be over-written on each call.
 
 	kv["sra"] = strconv.Itoa(sra)
-	chipLayout := obj.Chiplayout
-	if chipLayout == "" || chipLayout == "Spider_1p0_NTO" {
-		log.Printf("WARNING: Overriding bad or missing chipLayout name %q with %q",
-			chipLayout, "KestrelRTO2")
-		chipLayout = "KestrelRTO2"
-	}
-	kv["chipLayout"] = chipLayout
 	kv["config_json_fn"] = config_json_fn
 	kv["maxFrames"] = strconv.Itoa(int(obj.MovieMaxFrames))
 	kv["optDarkCalFileName"] = TranslateDiscardableUrl("--config dataSource.darkCalFileName=", obj.DarkCalFileUrl)
