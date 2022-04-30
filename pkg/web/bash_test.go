@@ -47,11 +47,17 @@ func TestTranslateDiscardableUrl(t *testing.T) {
 	}
 	{
 		so := &StorageObject{
-			RootUrl:     "http://hostname:9999/storages/MID/files",
-			RootUrlPath: "/storages/MID/files",
-			LinuxPath:   "/var",
+			RootUrl:      "http://hostname:9999/storages/MID/files",
+			RootUrlPath:  "/storages/MID/files",
+			LinuxIccPath: "/var",
+			UrlPath2Item: make(map[string]*StorageItemObject),
 		}
-		got := TranslateUrl(so, "http://hostname:9999/storages/MID/files/foo/bar")
+		url := ChooseUrlThenRegister(so, "", StoragePathIcc, "foo/bar")
+		expectedUrl := "http://hostname:9999/storages/MID/files/foo/bar"
+		if url != expectedUrl {
+			t.Errorf("URL:\nGot %q\nNot %q", url, expectedUrl)
+		}
+		got := TranslateUrl(so, url)
 		expected := "/var/foo/bar"
 		if got != expected {
 			t.Errorf("Got %q\nNot %q", got, expected)
@@ -59,34 +65,74 @@ func TestTranslateDiscardableUrl(t *testing.T) {
 	}
 }
 func TestWriteReduceStatsBash(t *testing.T) {
-	expected := `
+	if false {
+		expected := `
 echo 'PA_PPA_STATUS {"counter":0,"counterMax":1,"stageName":"Bash","stageNumber":0,"stageWeights":[100],"state":"progress","timeoutForNextStatus":300}' >&2
 
 ppa-reducestats \
   --input PREFIX.sts.h5 \
   --output PREFIX.rsts.h5 \
 `
-	obj := &PostprimaryObject{
-		OutputPrefixUrl: "PREFIX",
+		mid := "m123"
+		obj := &PostprimaryObject{
+			OutputPrefixUrl: "PREFIX",
+			//Mid: mid, // does not matter in this case
+		}
+		var b bytes.Buffer
+		tc := config.Top()
+		so := GetLocalStorageObject("", "", "", mid)
+		err := WriteReduceStatsBash(&b, tc, obj, so)
+		check(err)
+		got := b.String()
+		if got != expected {
+			t.Errorf("\nGot %q\nNot %q", got, expected)
+		}
 	}
-	var b bytes.Buffer
-	tc := config.Top()
-	mid := "m123"
-	so := GetLocalStorageObject("", mid)
-	err := WriteReduceStatsBash(&b, tc, obj, so)
-	check(err)
-	got := b.String()
-	if got != expected {
-		t.Errorf("Got %q\nNot %q", got, expected)
+	{
+		expected := `
+echo 'PA_PPA_STATUS {"counter":0,"counterMax":1,"stageName":"Bash","stageNumber":0,"stageWeights":[100],"state":"progress","timeoutForNextStatus":300}' >&2
+
+ppa-reducestats \
+  --input nrt/0/m123/m123.sts.h5 \
+  --output nrt/0/m123/m123.rsts.h5 \
+`
+		mid := "m123"
+		obj := &PostprimaryObject{
+			//OutputPrefixUrl: "PREFIX",
+			Mid: mid,
+		}
+		var b bytes.Buffer
+		tc := config.Top()
+		partition := "0"
+		so := GetLocalStorageObject("nrt", "icc", partition, mid)
+		obj.OutputPrefixUrl = ChooseUrlThenRegister(so, obj.OutputPrefixUrl, StoragePathNrt, mid)
+		//obj.LogUrl = ChooseUrlThenRegister(so, obj.LogUrl, StoragePathNrt, mid+".baz2bam.log")
+		//log.Printf("OutputPrefixUrl: %q", obj.OutputPrefixUrl)
+
+		//obj.LogReducdStatsUrl = ChooseUrlThenRegister(so, obj.LogReduceStatsUrl, StoragePathNrt, mid+".reducestats.log")
+		//logoutput := TranslateUrl(so, obj.LogReduceStatsUrl)
+
+		OutputStatsH5Url := obj.OutputPrefixUrl + ".sts.h5"
+		obj.OutputStatsH5Url = ChooseUrlThenRegister(so, OutputStatsH5Url, StoragePathNrt, mid+".sts.h5")
+		OutputReduceStatsH5Url := obj.OutputPrefixUrl + ".rsts.h5"
+		obj.OutputReduceStatsH5Url = ChooseUrlThenRegister(so, OutputReduceStatsH5Url, StoragePathNrt, mid+".rsts.h5")
+		//log.Printf("OutputReduceStatsH5Url: %q", OutputReduceStatsH5Url)
+
+		err := WriteReduceStatsBash(&b, tc, obj, so)
+		check(err)
+		got := b.String()
+		if got != expected {
+			t.Errorf("\nGot %q\nNot %q", got, expected)
+		}
 	}
 }
 
 const (
 	basecallerObjJson = `
 {"uuid":"eea6a94e-8e8b-4203-9844-8540d49662a8",
-"bazUrl":"/data/nrta/0/m84003_220325_032134_s1.baz",
-"traceFileUrl":"file:/data/nrta/0/m84003_220325_032134_s1.trc.h5",
-"darkcalFileUrl":"file:/data/nrta/0/m84003_220325_032134_s1.darkcal_220325_032954.h5",
+"bazUrl":"/data/nrta/3/m123/m123.baz",
+"traceFileUrl":"file:/data/nrta/3/m123/m123.trc.h5",
+"darkcalFileUrl":"file:/data/nrta/3/m123/m123.darkcal_220325_032954.h5",
 "chiplayout":"Spider_1p0_NTO",
 "pixelSpreadFunction":[[0.0009999999,0.00390000013,0.00735,0.0044,0.00195000006],[0.00199999986,0.0201000012,0.05845,0.02015,0.0049],[0.0055,0.0528,0.634799957,0.04755,0.0088],[0.00445,0.021949999,0.0569000021,0.02155,0.0035],
 [0.00195000006,0.0044,0.0059,0.00390000013,0.00195000006]],
@@ -112,8 +158,8 @@ const (
     "movieMaxFrames":60000,
     "movieMaxSeconds":660.0,
     "movieNumber":1,
-    "mid":"m84003_220325_032134_s1",
-    "logUrl":"/data/nrta/0/m84003_220325_032134_s1.basecaller.log",
+    "mid":"m123",
+    "logUrl":"/data/nrta/3/m123/m123.basecaller.log",
     "logLevel":"INFO"}
 `
 )
@@ -121,7 +167,7 @@ const (
 func TestWriteBasecallerBash(t *testing.T) {
 	// Clean up for previous Bamboo runs.
 	defer func() {
-		_ = os.Remove("/tmp/3/m84003_220325_032134_s1.basecaller.config.json")
+		_ = os.Remove("/tmp/pawsgo/TestWriteBasecallerBash/m123/m123.basecaller.config.json")
 	}()
 	obj := &SocketBasecallerObject{}
 	err := json.Unmarshal([]byte(basecallerObjJson), &obj)
@@ -135,14 +181,14 @@ export GPU_ID=1
 smrt-basecaller-launch.sh \
   --config multipleBazFiles=false \
   --statusfd 2 \
-  --logoutput /data/nrta/0/m84003_220325_032134_s1.basecaller.log \
+  --logoutput /data/nrta/3/m123/m123.basecaller.log \
   --logfilter INFO \
-  --outputtrcfile /data/nrta/0/m84003_220325_032134_s1.trc.h5 \
+  --outputtrcfile /data/nrta/3/m123/m123.trc.h5 \
   --config traceSaver.roi='[[135,288,1,32],[135,768,1,32],[135,1248,1,32],[135,1728,1,32],[405,288,1,32],[405,768,1,32],[405,1248,1,32],[405,1728,1,32],[675,288,1,32],[675,768,1,32],[675,1248,1,32],[675,1728,1,32],[945,288,1,32],[945,768,1,32],[945,1248,1,32],[945,1728,1,32]]' \
-  --outputbazfile /data/nrta/0/m84003_220325_032134_s1.baz \
-  --config /tmp/3/m84003_220325_032134_s1.basecaller.config.json \
+  --outputbazfile /data/nrta/3/m123/m123.baz \
+  --config /tmp/pawsgo/TestWriteBasecallerBash/m123/m123.basecaller.config.json \
   --config source.WXIPCDataSourceConfig.sraIndex=3 \
-  --config dataSource.darkCalFileName=/data/nrta/0/m84003_220325_032134_s1.darkcal_220325_032954.h5 \
+  --config dataSource.darkCalFileName=/data/nrta/3/m123/m123.darkcal_220325_032954.h5 \
   --config dataSource.imagePsfKernel=[[0.0009999999,0.00390000013,0.00735,0.0044,0.00195000006],[0.00199999986,0.0201000012,0.05845,0.02015,0.0049],[0.0055,0.0528,0.634799957,0.04755,0.0088],[0.00445,0.021949999,0.0569000021,0.02155,0.0035],[0.00195000006,0.0044,0.0059,0.00390000013,0.00195000006]] \
    \
   --config system.analyzerHardware=A100 \
@@ -150,18 +196,18 @@ smrt-basecaller-launch.sh \
 `
 		var b bytes.Buffer
 		tc := config.Top()
-		DataDir = "/tmp" // Note: global side-effect
-		mid := "m84003_220325_032134_s1"
-		so := GetLocalStorageObject("/data/nrta/0", mid)
+		DataDir = "/tmp/pawsgo/TestWriteBasecallerBash" // Note: global side-effect
+		mid := "m123"
+		so := GetLocalStorageObject("/data/nrta", "/data/icc", "3", mid)
 		err = WriteBasecallerBash(&b, tc, obj, "4", so)
 		check(err)
 		got := b.String()
 		if got != expected {
-			t.Errorf("Got %q\nNot %q\nGot\n%s Expected\n%s", got, expected, hex.Dump([]byte(got)), hex.Dump([]byte(expected)))
+			t.Errorf("\nGot %q\nNot %q\nGot\n%s Expected\n%s", got, expected, hex.Dump([]byte(got)), hex.Dump([]byte(expected)))
 		}
 	}
 	{
-		dat, err := os.ReadFile("/tmp/3/m84003_220325_032134_s1.basecaller.config.json")
+		dat, err := os.ReadFile("/tmp/pawsgo/TestWriteBasecallerBash/m123/m123.basecaller.config.json")
 		check(err)
 		// fmt.Print(got)
 		got := string(dat)
@@ -230,14 +276,14 @@ export GPU_ID=0
 smrt-basecaller-launch.sh \
   --config multipleBazFiles=false \
   --statusfd 2 \
-  --logoutput /data/nrta/0/m84003_220325_032134_s1.basecaller.log \
+  --logoutput /data/nrta/3/m123/m123.basecaller.log \
   --logfilter INFO \
    \
    \
-  --outputbazfile /data/nrta/0/m84003_220325_032134_s1.baz \
-  --config /tmp/2/m84003_220325_032134_s1.basecaller.config.json \
+  --outputbazfile /data/nrta/3/m123/m123.baz \
+  --config /tmp/pawsgo/TestWriteBasecallerBash/m123/m123.basecaller.config.json \
   --config source.WXIPCDataSourceConfig.sraIndex=2 \
-  --config dataSource.darkCalFileName=/data/nrta/0/m84003_220325_032134_s1.darkcal_220325_032954.h5 \
+  --config dataSource.darkCalFileName=/data/nrta/3/m123/m123.darkcal_220325_032954.h5 \
    \
   --config dataSource.crosstalkFilterKernel=[[0,0,0],[0,0,1],[0,0,0]] \
   --config system.analyzerHardware=A100 \
@@ -245,18 +291,17 @@ smrt-basecaller-launch.sh \
 `
 		var b bytes.Buffer
 		tc := config.Top()
-		mid := "m84003_220325_032134_s1"
-		so := GetLocalStorageObject("/data/nrta/0", mid)
+		mid := "m123"
+		so := GetLocalStorageObject("/data/nrta", "/data/icc", "2", mid)
 		err = WriteBasecallerBash(&b, tc, obj, "3", so)
 		check(err)
 		got := b.String()
 		if got != expected {
-			t.Errorf("Got\n%s Expected\n%s", hex.Dump([]byte(got)), hex.Dump([]byte(expected)))
-			//t.Errorf("Got %s\nExpected %s", got, expected)
+			t.Errorf("\nGot %q\nNot %q\nGot\n%s Expected\n%s", got, expected, hex.Dump([]byte(got)), hex.Dump([]byte(expected)))
 		}
 	}
 	{
-		dat, err := os.ReadFile("/tmp/2/m84003_220325_032134_s1.basecaller.config.json")
+		dat, err := os.ReadFile("/tmp/pawsgo/TestWriteBasecallerBash/m123/m123.basecaller.config.json")
 		check(err)
 		// fmt.Print(got)
 		got := string(dat)

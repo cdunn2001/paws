@@ -343,11 +343,23 @@ type PostprimaryObject struct {
 
 	ProcessStatus ProcessStatusObject `json:"processStatus"`
 }
+type StoragePathEnum string
+
+const (
+	StoragePathUnknown StoragePathEnum = "UNKNOWN"
+	StoragePathIcc     StoragePathEnum = "ICC"
+	StoragePathNrt     StoragePathEnum = "NRT"
+)
+
 type StorageItemObject struct {
 
 	// URL of this object
 	// Example: http://localhost:23632/storages/m123456_987654/foobar1.bam
-	Url string `json:"url"`
+	Url     string `json:"url"`
+	UrlPath string `json:"urlPath"`
+
+	// Not sure yet when there are split baz-files.
+	LinuxPath string `json:"linuxPath"`
 
 	// ISO8601 timestamp (with milliseconds) of file write time
 	// Example: 2017-01-31T01:59:49.103998Z
@@ -403,11 +415,11 @@ type StorageObject struct {
 	// Example: "INFO"
 	LogLevel LogLevelEnum `json:"logLevel"`
 
-	Files            []*StorageItemObject          `json:"files"`
-	UrlPath2Object   map[string]*StorageItemObject `json:"urlPath2Object"`
-	LinuxPath2Object map[string]*StorageItemObject `json:"linuxPath2Object"`
-	Space            []StorageDiskReportObject     `json:"space"`
-	ProcessStatus    ProcessStatusObject           `json:"processStatus"`
+	Files        []*StorageItemObject          `json:"files"`
+	UrlPath2Item map[string]*StorageItemObject `json:"urlPath2Item"`
+	//LinuxPath2Item map[string]*StorageItemObject `json:"linuxPath2Item"`
+	Space         []StorageDiskReportObject `json:"space"`
+	ProcessStatus ProcessStatusObject       `json:"processStatus"`
 }
 
 func CreateSocketBasecallerObject() (result *SocketBasecallerObject) {

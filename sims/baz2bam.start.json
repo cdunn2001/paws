@@ -4,6 +4,6 @@
     "bazFileUrl": "http://hostname/storages/m123/files/foo.baz",
     "outputPrefixUrl": "http://hostname/storages/m123/files/m123",
     "logUrl": "http://hostname/storages/m123/files/m123.baz2bam.log",
-    "subreadsetMetadataXml": "<SubreadSet></SubreadSet>",
+    "subreadsetMetadataXml": "<PacBioDataModel></PacBioDataModel>",
     "logLevel": "INFO"
 }
