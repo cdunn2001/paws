@@ -386,12 +386,14 @@ type StorageObject struct {
 	// Example: http://localhost:23632/storages/m123456_987654
 	RootUrl string `json:"rootUrl"`
 
-	// Internal use
+	// Internal use. UrlPath is Url after hostport (and before query-string if any).
 	RootUrlPath string `json:"rootUrlPath"`
 
 	// physical path to storage directory (should only be used for debugging and logging)
 	// Example: file:/data/pa/m123456_987654
-	LinuxPath string `json:"linuxPath"`
+	LinuxIccPath  string
+	LinuxNrtaPath string
+	LinuxNrtbPath string
 
 	// Destination URL for the log file. Logging happens during construction and freeing.
 	// Example: http://localhost:23632/storages/m123456_987654/storage.log
@@ -401,9 +403,11 @@ type StorageObject struct {
 	// Example: "INFO"
 	LogLevel LogLevelEnum `json:"logLevel"`
 
-	Files         []StorageItemObject       `json:"files"`
-	Space         []StorageDiskReportObject `json:"space"`
-	ProcessStatus ProcessStatusObject       `json:"processStatus"`
+	Files            []*StorageItemObject          `json:"files"`
+	UrlPath2Object   map[string]*StorageItemObject `json:"urlPath2Object"`
+	LinuxPath2Object map[string]*StorageItemObject `json:"linuxPath2Object"`
+	Space            []StorageDiskReportObject     `json:"space"`
+	ProcessStatus    ProcessStatusObject           `json:"processStatus"`
 }
 
 func CreateSocketBasecallerObject() (result *SocketBasecallerObject) {
