@@ -21,15 +21,18 @@
     -->
 
     <script src="js/jquery.js"></script>
+    <!--
     <script src="js/bootstrap.min.js"></script>
     <script src="js/d3.min.js"></script>
     <script src="js/epoch.min.js"></script>
+    -->
 
 </head>
 <body>
     <h1>PA WS Status Panel</h1>
     <!-- some more ideas http://code.shutterstock.com/rickshaw/examples/ -->
-    <div id="baseport">baseport</div>
+    <div>PAWS dashboard is </div><a id="paws_url" href="discard:">?</a></div>
+    <div>wx-daemon dashboard is </div><a id="wxdaemon_url" href="discard:">?</a></div>
 
     <p>
     </p>
@@ -44,13 +47,13 @@
                 <tr><td>Completion Status</td><td id="darkcal1_completionStatus"> ? </td> <td id="darkcal2_completionStatus"> ? </td> <td id="darkcal3_completionStatus"> ? </td> <td id="darkcal4_completionStatus"> ? </td></tr>
                 <tr><td>Armed</td><td id="darkcal1_armed"> ? </td>                        <td id="darkcal2_armed"> ? </td>            <td id="darkcal3_armed"> ? </td>            <td id="darkcal4_armed"> ? </td></tr>
                 <tr><td>Timestamp</td><td id="darkcal1_timestamp"> ? </td>                <td id="darkcal2_timestamp"> ? </td>        <td id="darkcal3_timestamp"> ? </td>        <td id="darkcal4_timestamp"> ? </td></tr>
-                <tr><td>movieMaxFrames</td><td id="darkcal1_maxMovieFrames"> ? </td>      <td id="darkcal2_maxMovieFrames"> ? </td>   <td id="darkcal3_maxMovieFrames"> ? </td>   <td id="darkcal4_maxMovieFrames"> ? </td></tr>
+                <tr><td>movieMaxFrames</td><td id="darkcal1_movieMaxFrames"> ? </td>      <td id="darkcal2_movieMaxFrames"> ? </td>   <td id="darkcal3_movieMaxFrames"> ? </td>   <td id="darkcal4_movieMaxFrames"> ? </td></tr>
                 <tr><td>MID</td><td id="darkcal1_mid"> ? </td>                            <td id="darkcal2_mid"> ? </td>              <td id="darkcal3_mid"> ? </td>              <td id="darkcal4_mid"> ? </td></tr>
                 <tr><td>Progress</td><td id="darkcal1_netProgress"> ? </td>               <td id="darkcal2_netProgress"> ? </td>      <td id="darkcal3_netProgress"> ? </td>      <td id="darkcal4_netProgress"> ? </td></tr>
                 <tr><td>Stage</td><td id="darkcal1_stageName"> ? </td>                    <td id="darkcal2_stageName"> ? </td>        <td id="darkcal3_stageName"> ? </td>        <td id="darkcal4_stageName"> ? </td></tr>
                 <tr><td>LOADING CAL</td></tr>
-
-                <tr><td>BASECALLER></td></tr>
+                <tr><td> (place holder) </td></tr>
+                <tr><td>BASECALLER</td></tr>
                 <tr><td>Execution Status</td><td id="basecaller1_executionStatus"> ? </td> <td id="basecaller2_executionStatus"> ? </td>  <td id="basecaller3_executionStatus"> ? </td>  <td id="basecaller4_executionStatus"> ? </td></tr>
                 <tr><td>Complete Status</td><td id="basecaller1_completionStatus"> ? </td> <td id="basecaller2_completionStatus"> ? </td> <td id="basecaller3_completionStatus"> ? </td> <td id="basecaller4_completionStatus"> ? </td></tr>
                 <tr><td>Armed</td><td id="basecaller1_armed"> ? </td>                      <td id="basecaller2_armed"> ? </td>            <td id="basecaller3_armed"> ? </td>            <td id="basecaller4_armed"> ? </td></tr>
@@ -80,7 +83,7 @@
             "url": ""
         },
         "mid": "",
-        "maxMovieFrames": 0,
+        "movieMaxFrames": 0,
         "maxMovieSeconds": 0,
         "movieNumber": 0,
         "logUrl": "",
@@ -101,29 +104,27 @@
         </div>
         <div class="list-left">
             ppad Post Primary
-            <table border="1">
-                <tr><th></th><th>HOST</th></tr>
-                <tr><td>State</td><td id="ppadState"> ? </td></tr>
-                <tr><td>Timestamp</td><td id="ppadTimeStatus"> ? </td></tr>
-                <tr><td>Uptime</td><td id="ppadUptime"> ? </td></tr>
-                <tr><td>AcqId</td><td id="ppadAcqId"> ? </td></tr>
-                <tr><td>Message</td><td id="ppadMessage"> ? </td></tr>
-                <tr><td>Progress (%)</td><td id="ppadProgress"> ? </td></tr>
-            </table>
+            <p>(place holder)</p>
+        </div>
+        <div class="list-left">
+            ppad Storages
+            <p>(place holder)</p>
         </div>
     </div>
-    <div id="errorMessages"></div>
-    <input type="checkbox" id="isShowAllAlarmsSelected">Show All Alarms</input>
 
     <div class="list-left">
-        Versions
+        Status
         <table border="1">
-            <tr><td>pa-ws   </td> <td id="pawsVersion"> ? </td></tr>
-            <tr><td>pa-acq  </td> <td id="wxVersion"> ? </td></tr>
-            <tr><td>pa-t2b@0</td> <td id="basecallerVersion"> ? </td></tr>
+            <tr><td>uptimeMessage</td><td id="uptimeMessage">?</td></tr>
+            <tr><td>timestamp  </td><td id="timestamp">?</td></tr>
+            <tr><th>Application</th> <th>Version</th>                     <th>Path</th></tr>
+            <tr><td>pa-ws      </td> <td id="pa-wsgo_version"> ? </td>    <td id="pa-wsgo_path">?</td></tr>
+            <tr><td>basecaller </td> <td id="basecaller_version"> ? </td> <td id="basecaller_path">?</td></tr>
+            <tr><td>baz2bam    </td> <td id="baz2bam_version"> ? </td>    <td id="baz2bam_path">?</td></tr>
+            <tr><td>pa-cal     </td> <td id="pa-cal_version"> ? </td>     <td id="pa-cal_path">?</td></tr>
+            <tr><td>reducestats</td> <td id="reducestats_version"> ? </td><td id="reducestats_path">?</td></tr>
         </table>
     </div>
-
 
     <p>
     </p>
@@ -143,6 +144,7 @@
         }
 
         $(function () {
+
             var baseport=$.urlParam("baseport");
             if (baseport == null)
             {
@@ -152,9 +154,20 @@
             {
                 baseport = parseInt(baseport);
             }
-            $('#baseport')[0].innerText = window.location.hostname +":" + baseport;
-            console.log("baseport=%d ",baseport)
-
+            var hostname=$.urlParam("hostname");
+            if (hostname == null)
+            {
+                hostname = window.location.hostname
+            }
+            pawsHost = hostname
+            console.log("hostname=%s baseport=%d ",hostname, baseport)
+            pawsUrl = "http://" + pawsHost + ":" + (baseport+32) + "/dashboard"
+            $('#paws_url')[0].innerText = pawsUrl;
+            $('#paws_url')[0].href = pawsUrl;
+            wxdaemonUrl = "http://" + pawsHost + ":" + (baseport+2) + "/dashboard"
+            $('#wxdaemon_url')[0].innerText = wxdaemonUrl;
+            $('#wxdaemon_url')[0].href = wxdaemonUrl;
+            
             function timeStatus(field,t) {
                 tt = new Date(t * 1000);
                 now = Date.now();
@@ -211,7 +224,7 @@
                 $(tag+'_armed')[0].innerText = darkcal.processStatus.armed;
                 $(tag+'_netProgress')[0].innerText =darkcal.processStatus.Progress.netProgress;
                 $(tag+'_stageName')[0].innerText =darkcal.processStatus.Progress.stageName;
-                $(tag+'_maxMovieFrames')[0].innerText = darkcal.maxMovieFrames;
+                $(tag+'_movieMaxFrames')[0].innerText = darkcal.movieMaxFrames;
                 colorState(tag+'_executionStatus', darkcal.processStatus.executionStatus);
 
                 basecaller = json1.basecaller
@@ -225,58 +238,6 @@
                 $(tag+'_stageName')[0].innerText =basecaller.processStatus.Progress.stageName;
 
                 colorState(tag+'_executionStatus', basecaller.processStatus.executionStatus);
-
-/*                 $('#acqVersion')[0].innerText = json.version;
-                $('#acqTimeStatus')[0].innerText = timeStatus('#acqTimeStatus', parseFloat(json.time));
-                $('#acqUptime')[0].innerText = convertTime(json.uptime);
-                $('#acqLoad')[0].innerText = parseFloat(json.load1m);
-                $('#acqChipClass')[0].innerText = json.chipClass;
-                $('#auroraStatus')[0].innerText = json.auroraStatus;
-                if (json.auroraStatus == "up") {
-                    $('#auroraStatus')[0].style.backgroundColor = "lightgreen";
-                } else if (json.auroraStatus == "na") {
-                    $('#auroraStatus')[0].style.backgroundColor = "white";
-                } else {
-                    $('#auroraStatus')[0].style.backgroundColor = "red";
-                }
-                // $('#transmitFrame')[0].innerText = parseInt(json.transmitFrame).toLocaleString();
-                if (json.movieTransmitterFrameIndex >= 18446744073709552000) {
-                    $('#transmitStatus')[0].innerText = json.transmitStatus + " index: none sent";
-                } else {
-                    $('#transmitStatus')[0].innerText = json.transmitStatus + " index:" + json.movieTransmitterFrameIndex;
-                }
-                $('#currentFrame')[0].innerText = parseInt(json.currentFrame).toLocaleString() + " index:" + json.currentFrameIndex;
-                $('#movieFrame')[0].innerText = parseInt(json.movieFrame).toLocaleString();
-                $('#acqToken')[0].innerText = json.token;
-
-                $('#freeTilePercent')[0].innerText = json.freeTilePercent;
-
-                if (json1.warning) {
-                    $('#pduOverflows')[0].innerText = json1.warning.rxOverflowPduCount;
-                    $('#crcErrors')[0].innerText = json1.warning.rxGthCrcErrorCount;
-                }
-                else {
-                    $('#pduOverflows')[0].innerText = 0;
-                    $('#crcErrors')[0].innerText = 0;
-                }
-                if (json1.fpga) {
-                    $('#tlbProcInvCnt')[0].innerText = json1.fpga.tlbProcInvCnt;
-                }
-                $('#tilesOwnedByFpga')[0].innerText = json1.tilesOwnedByFpga;
-                $('#acqSentDeeds')[0].innerText = json.sentDeeds;
-                $('#acqFractionOfChunk')[0].innerText = json.fractionOfChunk;
-                $('#acqFractionOfSuperChunk')[0].innerText = json.fractionOfSuperChunk;
- */
-                hoursLeft
-                d = [
-                    { time: parseInt(json.time), y: parseFloat(json.frameRate) },
-                    { time: parseInt(json.time), y: parseFloat(json.freeTilePercent) },
-                    { time: parseInt(json.time), y: parseFloat(json.fractionOfChunk)*100.0 },
-                    { time: parseInt(json.time), y: parseFloat(json.fractionOfSuperChunk)*100.0 },
-                ];
-                chartAcq.push(d);
-
-//                console.warn(json);
             }
 
             function onDataReceivedPpad(json) {
@@ -329,6 +290,36 @@
                     dataType: 'json',
                     contentType: "application/json",
                     success: onSockets
+                });
+            }, 1000);
+
+
+            function onDataReceivedStatus(json1) {
+                $('#uptimeMessage')[0].innerText = json1.uptimeMessage;
+                $('#timestamp')[0].innerText = json1.timestamp;
+
+                $('#basecaller_version')[0].innerText = json1.Binaries.basecaller.Version;
+                $('#basecaller_path')[0].innerText = json1.Binaries.basecaller.Path;
+
+                $('#baz2bam_version')[0].innerText = json1.Binaries.baz2bam.Version;
+                $('#baz2bam_path')[0].innerText = json1.Binaries.baz2bam.Path;
+
+                $('#pa-cal_version')[0].innerText = json1.Binaries["pa-cal"].Version;
+                $('#pa-cal_path')[0].innerText = json1.Binaries["pa-cal"].Path;
+
+                $('#pa-wsgo_version')[0].innerText = json1.Binaries["pa-wsgo"].Version;
+                $('#pa-wsgo_path')[0].innerText = json1.Binaries["pa-wsgo"].Path;
+
+                $('#reducestats_version')[0].innerText = json1.Binaries.reducestats.Version;
+                $('#reducestats_path')[0].innerText = json1.Binaries.reducestats.Path;
+            }
+            setInterval(function () {
+                $.ajax({
+                    url: "http://"+ pawsHost + ":" + (baseport +32) + "/status",
+                    method: 'GET',
+                    dataType: 'json',
+                    contentType: "application/json",
+                    success: onDataReceivedStatus
                 });
             }, 1000);
 
