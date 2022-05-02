@@ -381,6 +381,9 @@ type StorageItemObject struct {
 	// information about the source of this file
 	// Example: null
 	SourceInfo string `json:"sourceInfo"`
+
+	// For debugging only. Was used to select LinuxPath
+	Loc StoragePathEnum
 }
 type StorageDiskReportObject struct {
 

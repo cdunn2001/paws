@@ -304,6 +304,7 @@ func ChooseUrlThenRegister(so *StorageObject, Url string, loc StoragePathEnum, l
 		item = &StorageItemObject{
 			UrlPath:   urlpath,
 			LinuxPath: linuxpath,
+			Loc:       loc,
 		}
 		so.UrlPath2Item[urlpath] = item
 		//so.LinuxPath2Item[item.LinuxPath] = item
