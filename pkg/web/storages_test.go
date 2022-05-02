@@ -116,3 +116,17 @@ func TestStorageUrlToLinuxPath(t *testing.T) {
 		}
 	}
 }
+func TestNextPartition(t *testing.T) {
+	try := func(arg, expected string) {
+		got := NextPartition(arg)
+		if got != expected {
+			t.Errorf("\nGot: %q\nNot: %q", got, expected)
+		}
+	}
+
+	try("0", "1")
+	try("1", "2")
+	try("2", "3")
+	try("3", "0")
+	try("", "0")
+}

@@ -25,7 +25,7 @@ func listStorageMids(c *gin.Context, state *State) {
 
 type IStore interface {
 	Free(obj *StorageObject)
-	AcquireStorageObject(sid string, mid string) *StorageObject
+	AcquireStorageObject(mid string) *StorageObject
 }
 
 func CreatePathIfNeeded(path string) {
@@ -40,8 +40,9 @@ var DefaultStorageRootNrt string = "/data/nrta"
 var DefaultStorageRootIcc string = "/data/icc"
 
 type MultiDirStore struct {
-	NrtDir string
-	IccDir string
+	NrtDir        string
+	IccDir        string
+	LastPartition string
 }
 
 func CreateDefaultStore() *MultiDirStore {
@@ -72,20 +73,37 @@ func CreateMultiDirStore(nrtroot string, iccroot string) *MultiDirStore {
 	CreatePathIfNeeded(nrtroot)
 	CreatePathIfNeeded(iccroot)
 	return &MultiDirStore{
-		NrtDir: nrtroot,
-		IccDir: iccroot,
+		NrtDir:        nrtroot,
+		IccDir:        iccroot,
+		LastPartition: "",
 	}
 }
 
-func (self *MultiDirStore) AcquireStorageObject(socketId string, mid string) *StorageObject {
-	//paths := GetStorageObjectPaths(self.NrtDir, self.IccDir, socketId, mid) // TODO: socketId should be decoupled from choice of partition.
+// Someday, this will have smart logic, to load-balance the partitions.
+// For now, just cycle.
+func NextPartition(last string) string {
+	switch last {
+	case "0":
+		return "1"
+	case "1":
+		return "2"
+	case "2":
+		return "3"
+	case "3":
+		return "0"
+	default:
+		return "0"
+	}
+}
+func (self *MultiDirStore) AcquireStorageObject(mid string) *StorageObject {
+	partition := NextPartition(self.LastPartition)
 	obj := &StorageObject{
 		Mid:           mid,
 		RootUrl:       filepath.Join("http://storages", mid, "files"),
 		RootUrlPath:   filepath.Join("/storages", mid, "files"),
 		LinuxIccPath:  filepath.Join(self.IccDir, mid),
-		LinuxNrtaPath: filepath.Join(self.NrtDir, socketId, mid),
-		//LinuxNrtbPath: filepath.Join(self.NrtbDir, socketId, mid), // TODO
+		LinuxNrtaPath: filepath.Join(self.NrtDir, partition, mid),
+		//LinuxNrtbPath: filepath.Join(self.NrtbDir, partition, mid), // TODO
 		UrlPath2Item: make(map[string]*StorageItemObject),
 	}
 	CreatePathIfNeeded(obj.LinuxIccPath)
@@ -167,14 +185,13 @@ func createStorage(c *gin.Context, state *State) {
 		c.String(http.StatusBadRequest, "Could not parse body into struct.\n")
 		return
 	}
-	socketId := obj.SocketId
 	mid := obj.Mid
-	if socketId == "" || mid == "" {
-		c.String(http.StatusBadRequest, "/storages endpoint requires both 'mid' and 'socketId' fields.\n")
+	if mid == "" {
+		c.String(http.StatusBadRequest, "/storages endpoint requires 'mid' (movie id).\n")
 		return
 	}
 
-	obj = state.Store.AcquireStorageObject(socketId, mid)
+	obj = state.Store.AcquireStorageObject(mid)
 	state.Storages[mid] = obj
 	//log.Printf("New StorageObject: %+v", obj)
 	log.Printf("New StorageObject: %q\n  -> %q", obj.RootUrl, obj.LinuxIccPath)
