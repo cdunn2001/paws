@@ -523,6 +523,11 @@ func DumpDarkcalScript(tc config.TopStruct, obj *SocketDarkcalObject, sid string
 	DumpBash(setup, wr.String())
 	return setup
 }
+func UniqueLabel(so *StorageObject) string {
+	prev := so.Counter
+	so.Counter++
+	return fmt.Sprintf(".%02d", prev)
+}
 func DumpLoadingcalScript(tc config.TopStruct, obj *SocketLoadingcalObject, sid string, so *StorageObject) ProcessSetupObject {
 	setup := ProcessSetupObject{
 		Tool: "loadingcal",
@@ -530,9 +535,9 @@ func DumpLoadingcalScript(tc config.TopStruct, obj *SocketLoadingcalObject, sid 
 
 	// Choose and register any output paths first.
 	mid := obj.Mid
-	timestamp := "." + "220430_235959"
-	obj.CalibFileUrl = ChooseUrlThenRegister(so, obj.CalibFileUrl, StoragePathNrt, mid+timestamp+".loadingcal.h5")
-	obj.LogUrl = ChooseUrlThenRegister(so, obj.LogUrl, StoragePathNrt, mid+".loadingcal.log")
+	ul := UniqueLabel(so)
+	obj.CalibFileUrl = ChooseUrlThenRegister(so, obj.CalibFileUrl, StoragePathNrt, mid+ul+".loadingcal.h5")
+	obj.LogUrl = ChooseUrlThenRegister(so, obj.LogUrl, StoragePathNrt, mid+ul+".loadingcal.log")
 
 	// Now we can use the output Urls.
 	rundir := filepath.Dir(TranslateUrl(so, obj.CalibFileUrl))

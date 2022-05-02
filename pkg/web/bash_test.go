@@ -374,3 +374,15 @@ func TestGetPostprimaryHostname(t *testing.T) {
 		}
 	}
 }
+func TestUniqueLabel(t *testing.T) {
+	try := func(so *StorageObject, expected string) {
+		got := UniqueLabel(so)
+		if got != expected {
+			t.Errorf("Got %q\nNot %q", got, expected)
+		}
+	}
+	so := &StorageObject{}
+	try(so, ".00")
+	try(so, ".01")
+	try(so, ".02")
+}

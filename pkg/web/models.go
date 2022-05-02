@@ -422,6 +422,8 @@ type StorageObject struct {
 	// Example: "INFO"
 	LogLevel LogLevelEnum `json:"logLevel"`
 
+	Counter int
+
 	Files        []*StorageItemObject          `json:"files"`
 	UrlPath2Item map[string]*StorageItemObject `json:"urlPath2Item"`
 	//LinuxPath2Item map[string]*StorageItemObject `json:"linuxPath2Item"`
