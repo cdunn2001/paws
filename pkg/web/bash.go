@@ -456,7 +456,7 @@ func DumpBasecallerScript(tc config.TopStruct, obj *SocketBasecallerObject, sid 
 		rundir = filepath.Dir(TranslateUrl(obj.TraceFileUrl))
 	} else {
 		rundir = "/tmp"
-	}	
+	}
 	setup.RunDir = rundir
 	setup.ScriptFn = filepath.Join(setup.RunDir, "run.basecaller.sh")
 	setup.Hostname = ""
