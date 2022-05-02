@@ -1,6 +1,7 @@
 package web
 
 import (
+	"path/filepath"
 	"testing"
 )
 
@@ -123,10 +124,42 @@ func TestNextPartition(t *testing.T) {
 			t.Errorf("\nGot: %q\nNot: %q", got, expected)
 		}
 	}
-
 	try("0", "1")
 	try("1", "2")
 	try("2", "3")
 	try("3", "0")
 	try("", "0")
+}
+func TestAcquireStorageObject(t *testing.T) {
+	// This call creates directories, so we need to use testtmpdir.
+
+	store := &MultiDirStore{
+		NrtaDir:       filepath.Join(testtmpdir, "nrta"),
+		NrtbDir:       filepath.Join(testtmpdir, "nrtb"),
+		IccDir:        filepath.Join(testtmpdir, "icc"),
+		LastPartition: "",
+		LastNrt:       "",
+	}
+	try := func(expectedNrtDir, expectedPartition, mid string) {
+		so := store.AcquireStorageObject(mid)
+		expectedNrtPath := filepath.Join(expectedNrtDir, expectedPartition, mid)
+		actualNrtPath := so.LinuxNrtPath
+		if actualNrtPath != expectedNrtPath {
+			t.Errorf("Actual %q != %q expected", actualNrtPath, expectedNrtPath)
+		}
+		expectedIccPath := filepath.Join(store.IccDir, mid)
+		actualIccPath := so.LinuxIccPath
+		if actualIccPath != expectedIccPath {
+			t.Errorf("Actual %q != %q expected", actualIccPath, expectedIccPath)
+		}
+	}
+	try(store.NrtaDir, "0", "m123")
+	try(store.NrtbDir, "0", "m123")
+	try(store.NrtaDir, "1", "m123")
+	try(store.NrtbDir, "1", "m123")
+	try(store.NrtaDir, "2", "m123")
+	try(store.NrtbDir, "2", "m123")
+	try(store.NrtaDir, "3", "m123")
+	try(store.NrtbDir, "3", "m123")
+	try(store.NrtaDir, "0", "m123")
 }

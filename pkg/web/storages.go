@@ -29,6 +29,7 @@ type IStore interface {
 }
 
 func CreatePathIfNeeded(path string) {
+	log.Printf("CreatePathIfNeeded(%q)\n", path)
 	err := os.MkdirAll(path, 0777) // Does not guarantee 0777 if already exists.
 	if err != nil {
 		msg := fmt.Sprintf("Could not create directory %q: %v", path, err)
