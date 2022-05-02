@@ -6,11 +6,11 @@ import (
 
 func TestStorageObjectUrlToLinuxPath(t *testing.T) {
 	m1234 := &StorageObject{
-		Mid:           "m1234",
-		RootUrl:       "http://localhost:23632/storages/m1234/files",
-		RootUrlPath:   "/storages/m1234/files",
-		LinuxNrtaPath: "/data/nrta/0/m1234",
-		UrlPath2Item:  make(map[string]*StorageItemObject),
+		Mid:          "m1234",
+		RootUrl:      "http://localhost:23632/storages/m1234/files",
+		RootUrlPath:  "/storages/m1234/files",
+		LinuxNrtPath: "/data/nrta/0/m1234",
+		UrlPath2Item: make(map[string]*StorageItemObject),
 	}
 	{
 		url := ChooseUrlThenRegister(m1234, "", StoragePathNrt, "somefile.txt")
@@ -49,11 +49,11 @@ func TestStorageUrlToLinuxPath(t *testing.T) {
 	var state State
 	state.Storages = make(map[string]*StorageObject)
 	m1234 := &StorageObject{
-		Mid:           "m1234",
-		RootUrl:       "http://localhost:23632/storages/m1234/files",
-		RootUrlPath:   "/storages/m1234/files",
-		LinuxNrtaPath: "/data/nrta/0/m1234",
-		UrlPath2Item:  make(map[string]*StorageItemObject),
+		Mid:          "m1234",
+		RootUrl:      "http://localhost:23632/storages/m1234/files",
+		RootUrlPath:  "/storages/m1234/files",
+		LinuxNrtPath: "/data/nrta/0/m1234",
+		UrlPath2Item: make(map[string]*StorageItemObject),
 	}
 	state.Storages["m1234"] = m1234
 	{
@@ -64,11 +64,11 @@ func TestStorageUrlToLinuxPath(t *testing.T) {
 		}
 	}
 	m5678 := &StorageObject{
-		Mid:           "m5678",
-		RootUrl:       "http://localhost:23632/storages/m5678/files",
-		RootUrlPath:   "/storages/m5678/files",
-		LinuxNrtaPath: "/data/nrta/1/m5678",
-		UrlPath2Item:  make(map[string]*StorageItemObject),
+		Mid:          "m5678",
+		RootUrl:      "http://localhost:23632/storages/m5678/files",
+		RootUrlPath:  "/storages/m5678/files",
+		LinuxNrtPath: "/data/nrta/1/m5678",
+		UrlPath2Item: make(map[string]*StorageItemObject),
 	}
 	state.Storages["m5678"] = m5678
 	{

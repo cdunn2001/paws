@@ -36,27 +36,31 @@ func CreatePathIfNeeded(path string) {
 	}
 }
 
-var DefaultStorageRootNrt string = "/data/nrta"
+var DefaultStorageRootNrta string = "/data/nrta"
+var DefaultStorageRootNrtb string = "/data/nrtb"
 var DefaultStorageRootIcc string = "/data/icc"
 
 type MultiDirStore struct {
-	NrtDir        string
+	NrtaDir       string
+	NrtbDir       string
 	IccDir        string
 	LastPartition string
+	LastNrt       string // a|b
 }
 
 func CreateDefaultStore() *MultiDirStore {
-	return CreateMultiDirStore(DefaultStorageRootNrt, DefaultStorageRootIcc)
+	return CreateMultiDirStore(DefaultStorageRootNrta, DefaultStorageRootNrtb, DefaultStorageRootIcc)
 }
 
-// For testing, use root + "/icc" and root + "/nrt" as output dirs.
+// For testing, use root + "/icc" and root + "/nrta|b" as output dirs.
 func CreateMultiDirStoreFromOne(root string) *MultiDirStore {
-	nrtroot := filepath.Join(root, "nrt")
+	nrtaroot := filepath.Join(root, "nrta")
+	nrtbroot := filepath.Join(root, "nrtb")
 	iccroot := filepath.Join(root, "icc")
-	return CreateMultiDirStore(nrtroot, iccroot)
+	return CreateMultiDirStore(nrtaroot, nrtbroot, iccroot)
 	// TODO: Figure a way to avoid accidentally reversing the args.
 }
-func CreateMultiDirStore(nrtroot string, iccroot string) *MultiDirStore {
+func CreateMultiDirStore(nrtaroot, nrtbroot, iccroot string) *MultiDirStore {
 	abspath := func(root string) string {
 		if filepath.IsAbs(root) {
 			return root
@@ -68,14 +72,18 @@ func CreateMultiDirStore(nrtroot string, iccroot string) *MultiDirStore {
 		}
 		return absroot
 	}
-	nrtroot = abspath(nrtroot)
+	nrtaroot = abspath(nrtaroot)
+	nrtbroot = abspath(nrtbroot)
 	iccroot = abspath(iccroot)
-	CreatePathIfNeeded(nrtroot)
+	CreatePathIfNeeded(nrtaroot)
+	CreatePathIfNeeded(nrtbroot)
 	CreatePathIfNeeded(iccroot)
 	return &MultiDirStore{
-		NrtDir:        nrtroot,
+		NrtaDir:       nrtaroot,
+		NrtbDir:       nrtbroot,
 		IccDir:        iccroot,
 		LastPartition: "",
+		LastNrt:       "",
 	}
 }
 
@@ -96,20 +104,36 @@ func NextPartition(last string) string {
 	}
 }
 func (self *MultiDirStore) AcquireStorageObject(mid string) *StorageObject {
-	partition := NextPartition(self.LastPartition)
+	var (
+		partition string
+		nrt       string
+		nrtDir    string
+	)
+	// Temporary, until we split BAZ files to both NRTs at the same time.
+	// TODO: Reimplement
+	if self.LastNrt == "a" {
+		nrt = "b"
+		nrtDir = self.NrtbDir
+		partition = self.LastPartition
+	} else {
+		nrt = "a"
+		nrtDir = self.NrtaDir
+		partition = NextPartition(self.LastPartition)
+	}
 	obj := &StorageObject{
-		Mid:           mid,
-		RootUrl:       filepath.Join("http://storages", mid, "files"),
-		RootUrlPath:   filepath.Join("/storages", mid, "files"),
-		LinuxIccPath:  filepath.Join(self.IccDir, mid),
-		LinuxNrtaPath: filepath.Join(self.NrtDir, partition, mid),
-		//LinuxNrtbPath: filepath.Join(self.NrtbDir, partition, mid), // TODO
+		Mid:          mid,
+		RootUrl:      filepath.Join("http://storages", mid, "files"),
+		RootUrlPath:  filepath.Join("/storages", mid, "files"),
+		LinuxIccPath: filepath.Join(self.IccDir, mid),
+		LinuxNrtPath: filepath.Join(nrtDir, partition, mid),
 		UrlPath2Item: make(map[string]*StorageItemObject),
 	}
 	CreatePathIfNeeded(obj.LinuxIccPath)
-	CreatePathIfNeeded(obj.LinuxNrtaPath)
+	CreatePathIfNeeded(obj.LinuxNrtPath)
 	os.MkdirAll(obj.LinuxIccPath, 0777)
-	os.MkdirAll(obj.LinuxNrtaPath, 0777)
+	os.MkdirAll(obj.LinuxNrtPath, 0777)
+	self.LastPartition = partition
+	self.LastNrt = nrt
 	return obj
 }
 func (self *MultiDirStore) Free(obj *StorageObject) {
@@ -129,43 +153,16 @@ func (self *MultiDirStore) Free(obj *StorageObject) {
 	obj.Files = obj.Files[:0]
 }
 
-/*
-func GetStorageObjectPaths(nrtbasedir string, iccbasedir string, partition string, mid string) StorageObjectPaths {
-	nrtdir := filepath.Join(nrtbasedir, partition, mid)
-	iccdir := filepath.Join(iccbasedir, mid)
-	os.MkdirAll(nrtdir, 0777)
-	os.MkdirAll(iccdir, 0777)
-	Ppa_OutputPrefix := filepath.Join(iccdir, mid)
-	paths := StorageObjectPaths{
-		Darkcal_CalibFile:    filepath.Join(nrtdir, mid+".darkcal.h5"),
-		Darkcal_Log:          filepath.Join(nrtdir, mid+".darkcal.log"),
-		Loadingcal_CalibFile: filepath.Join(nrtdir, mid+".loadingcal.h5"),
-		Loadingcal_Log:       filepath.Join(nrtdir, mid+".loadingcal.log"),
-		Basecaller_Baz:       filepath.Join(nrtdir, mid+".baz"),
-		Basecaller_Log:       filepath.Join(nrtdir, mid+".basecaller.log"),
-		//Basecaller_SimulationFile:          filepath.Join(nrtdir, mid+".baz"),
-		Basecaller_TraceFile: filepath.Join(nrtdir, mid+".trc.h5"),
-		//ReduceStats_Log:         filepath.Join(iccdir, mid+".reducestats.log"),
-		Ppa_OutputPrefix:        Ppa_OutputPrefix,
-		Ppa_OutputStatsH5:       Ppa_OutputPrefix + ".sts.h5",
-		Ppa_OutputStatsXml:      Ppa_OutputPrefix + ".sts.xml",
-		Ppa_OutputReduceStatsH5: Ppa_OutputPrefix + ".rsts.h5",
-	}
-	return paths
-}
-*/
-
 // Currently only used for tests.
-func GetLocalStorageObject(nrtbasedir string, iccbasedir string, sra string, mid string) *StorageObject {
-	//paths := GetStorageObjectPaths(nrtbasedir, iccbasedir, sra, mid)
+func GetLocalStorageObject(nrtbasedir string, iccbasedir string, partition string, mid string) *StorageObject {
 	baseurl := "http://storages"
 	obj := &StorageObject{
-		Mid:           mid,
-		RootUrl:       filepath.Join(baseurl, mid, "files"),
-		RootUrlPath:   filepath.Join("/storages", mid, "files"),
-		LinuxNrtaPath: filepath.Join(nrtbasedir, sra, mid),
-		LinuxIccPath:  filepath.Join(iccbasedir, sra),
-		UrlPath2Item:  make(map[string]*StorageItemObject),
+		Mid:          mid,
+		RootUrl:      filepath.Join(baseurl, mid, "files"),
+		RootUrlPath:  filepath.Join("/storages", mid, "files"),
+		LinuxNrtPath: filepath.Join(nrtbasedir, partition, mid),
+		LinuxIccPath: filepath.Join(iccbasedir, partition),
+		UrlPath2Item: make(map[string]*StorageItemObject),
 	}
 	return obj
 }
@@ -312,12 +309,12 @@ func ChooseUrlThenRegister(so *StorageObject, Url string, loc StoragePathEnum, l
 		case StoragePathIcc:
 			linuxpath = filepath.Join(so.LinuxIccPath, linuxtail)
 		case StoragePathNrt:
-			linuxpath = filepath.Join(so.LinuxNrtaPath, linuxtail) // TODO: a/b
+			linuxpath = filepath.Join(so.LinuxNrtPath, linuxtail)
 		default:
 			msg := fmt.Sprintf("Unexpected StoragePathEnum %v", loc)
 			panic(msg)
 		}
-		log.Printf("linuxpath: %q from %q or %q", linuxpath, so.LinuxNrtaPath, so.LinuxIccPath)
+		log.Printf("linuxpath: %q from %q or %q", linuxpath, so.LinuxNrtPath, so.LinuxIccPath)
 		item = &StorageItemObject{
 			UrlPath:   urlpath,
 			LinuxPath: linuxpath,

@@ -414,9 +414,10 @@ type StorageObject struct {
 
 	// physical path to storage directory (should only be used for debugging and logging)
 	// Example: file:/data/pa/m123456_987654
-	LinuxIccPath  string
-	LinuxNrtaPath string
-	LinuxNrtbPath string
+	LinuxIccPath string
+	LinuxNrtPath string
+	//LinuxNrtaPath string
+	//LinuxNrtbPath string
 
 	// Destination URL for the log file. Logging happens during construction and freeing.
 	// Example: http://localhost:23632/storages/m123456_987654/storage.log
