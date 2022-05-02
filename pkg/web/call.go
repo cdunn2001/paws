@@ -325,10 +325,10 @@ func WatchBashStderr(bash string, ps *ProcessStatusObject, envExtra []string, to
 			select {
 			case <-time.After(time.Duration((timeout + 0.01) * float64(time.Second))):
 				timedout = true
-				log.Printf("%sTimed out! Killing.\n", prefix)
+				log.Printf("%sTimed out! Killing. (Sending SIGTERM to pid %d: %s %s)\n", prefix, cmd.Process.Pid, cmd.Path, cmd.Args)
 				cmd.Process.Kill() // TODO: What happens if not running? Also, check sub-children, or maybe ssid.
 			case <-chanKill:
-				log.Printf("%sGot chanKill. Killing.\n", prefix)
+				log.Printf("%sGot chanKill. Killing. (Sending SIGTERM to pid %d: %s %s)\n", prefix, cmd.Process.Pid, cmd.Path, cmd.Args)
 				cmd.Process.Kill() // TODO: What happens if not running? Also, check sub-children, or maybe ssid.
 				done = true
 			case <-chanDone:
