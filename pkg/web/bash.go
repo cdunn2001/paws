@@ -176,6 +176,8 @@ func TranslateDiscardableUrl(option string, url string) string {
 }
 
 var Template_basecaller = `
+export NUMA_NODE={{.Local.numa}}
+export GPU_ID={{.Local.gpu}}
 {{.Global.Binaries.Binary_smrt_basecaller}} \
   {{.Local.optMultiple}} \
   --statusfd 2 \
@@ -260,6 +262,11 @@ func WriteBasecallerBash(wr io.Writer, tc config.TopStruct, obj *SocketBasecalle
 	// Note: This file will be over-written on each call.
 
 	kv["sra"] = strconv.Itoa(sra)
+	numNumaNodes := 2 // FIXME This works for rt-8400* machines, but doesn't work for kos-dev01 for example.
+	numGpuNodes := 2  // FIXME
+
+	kv["numa"] = strconv.Itoa(sra % numNumaNodes)
+	kv["gpu"] = strconv.Itoa(sra % numGpuNodes)
 	kv["config_json_fn"] = config_json_fn
 	kv["maxFrames"] = strconv.Itoa(int(obj.MovieMaxFrames))
 	kv["optDarkCalFileName"] = TranslateDiscardableUrl("--config dataSource.darkCalFileName=", obj.DarkCalFileUrl)
@@ -442,7 +449,14 @@ func DumpBasecallerScript(tc config.TopStruct, obj *SocketBasecallerObject, sid 
 	setup := ProcessSetupObject{
 		Tool: "smrt-basecaller",
 	}
-	rundir := filepath.Dir(TranslateUrl(obj.BazUrl))
+	var rundir string
+	if obj.BazUrl != "discard:" && obj.BazUrl != "" {
+		rundir = filepath.Dir(TranslateUrl(obj.BazUrl))
+	} else if obj.TraceFileUrl != "discard:" && obj.TraceFileUrl != "" {
+		rundir = filepath.Dir(TranslateUrl(obj.TraceFileUrl))
+	} else {
+		rundir = "/tmp"
+	}	
 	setup.RunDir = rundir
 	setup.ScriptFn = filepath.Join(setup.RunDir, "run.basecaller.sh")
 	setup.Hostname = ""
