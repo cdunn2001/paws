@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/coreos/go-systemd/v22/daemon"
 	"github.com/gin-gonic/gin"
+	"github.com/itsjamie/gin-cors"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -79,6 +80,18 @@ var bootTime time.Time
 
 func AddRoutes(router *gin.Engine) {
 	bootTime = time.Now()
+
+	// This allows Javascript from a browser (say Chrome) to access pa-wsgo
+	router.Use(cors.Middleware(cors.Config{
+		Origins:         "*",
+		Methods:         "GET, PUT, POST, DELETE",
+		RequestHeaders:  "Origin, Authorization, Content-Type",
+		ExposedHeaders:  "",
+		MaxAge:          50 * time.Second,
+		Credentials:     false,
+		ValidateHeaders: false,
+	}))
+
 	router.PUT("/feed-watchdog", feedWatchdog)
 	router.GET("/status", SafeState(getStatus))
 	router.GET("/sockets", SafeState(getSockets))
