@@ -109,7 +109,7 @@ func TestWriteBasecallerBash(t *testing.T) {
 	check(err)
 
 	{
-        // NUMA_NODE and GPU_ID are currently implemented as (sraIndex % 2) which may change in the future.
+		// NUMA_NODE and GPU_ID are currently implemented as (sraIndex % 2) which may change in the future.
 		expected := `
 export NUMA_NODE=1
 export GPU_ID=1
@@ -139,7 +139,7 @@ smrt-basecaller-launch.sh \
 		check(err)
 		got := b.String()
 		if got != expected {
-            t.Errorf("Got\n%s Expected\n%s", hex.Dump([]byte(got)), hex.Dump([]byte(expected)))
+			t.Errorf("Got\n%s Expected\n%s", hex.Dump([]byte(got)), hex.Dump([]byte(expected)))
 			//t.Errorf("Got %v Expected %v", got, expected)
 		}
 	}
@@ -197,7 +197,7 @@ smrt-basecaller-launch.sh \
     }
 }`
 		if got != expected {
-            t.Errorf("basecaller.config.json[1] Got\n%s Expected\n%s", hex.Dump([]byte(got)), hex.Dump([]byte(expected)))
+			t.Errorf("basecaller.config.json[1] Got\n%s Expected\n%s", hex.Dump([]byte(got)), hex.Dump([]byte(expected)))
 			//t.Errorf("basecaller.config.json[1] Got\n%v, Expected\n%v", got, expected)
 		}
 	}
@@ -229,13 +229,13 @@ smrt-basecaller-launch.sh \
 		var b bytes.Buffer
 		tc := config.Top()
 		mid := "m84003_220325_032134_s1"
-        os.Remove("/tmp/2/m84003_220325_032134_s1.basecaller.config.json")
+		os.Remove("/tmp/2/m84003_220325_032134_s1.basecaller.config.json")
 		so := GetLocalStorageObject(mid)
 		err = WriteBasecallerBash(&b, tc, obj, "3", so)
 		check(err)
 		got := b.String()
 		if got != expected {
-            t.Errorf("Got\n%s Expected\n%s", hex.Dump([]byte(got)), hex.Dump([]byte(expected)))
+			t.Errorf("Got\n%s Expected\n%s", hex.Dump([]byte(got)), hex.Dump([]byte(expected)))
 			//t.Errorf("Got %s\nExpected %s", got, expected)
 		}
 	}
