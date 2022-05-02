@@ -106,7 +106,6 @@ type ProgressMetricsObject struct {
 	NetProgress   float64 `json:"netProgress"`
 }
 
-
 // For composition in others
 type socketCommonObject struct {
 

@@ -2,6 +2,7 @@ package web
 
 import (
 	"bytes"
+	"encoding/hex"
 	"encoding/json"
 	"os"
 	"pacb.com/seq/paws/pkg/config"
@@ -108,7 +109,10 @@ func TestWriteBasecallerBash(t *testing.T) {
 	check(err)
 
 	{
+        // NUMA_NODE and GPU_ID are currently implemented as (sraIndex % 2) which may change in the future.
 		expected := `
+export NUMA_NODE=1
+export GPU_ID=1
 smrt-basecaller-launch.sh \
   --config multipleBazFiles=false \
   --statusfd 2 \
@@ -129,12 +133,14 @@ smrt-basecaller-launch.sh \
 		tc := config.Top()
 		DataDir = "/tmp" // Note: global side-effect
 		mid := "m84003_220325_032134_s1"
+		os.Remove("/tmp/3/m84003_220325_032134_s1.basecaller.config.json")
 		so := GetLocalStorageObject(mid)
 		err = WriteBasecallerBash(&b, tc, obj, "4", so)
 		check(err)
 		got := b.String()
 		if got != expected {
-			t.Errorf("Got %s", got)
+            t.Errorf("Got\n%s Expected\n%s", hex.Dump([]byte(got)), hex.Dump([]byte(expected)))
+			//t.Errorf("Got %v Expected %v", got, expected)
 		}
 	}
 	{
@@ -191,7 +197,8 @@ smrt-basecaller-launch.sh \
     }
 }`
 		if got != expected {
-			t.Errorf("basecaller.config.json[1] Got\n%v, Expected\n%v", got, expected)
+            t.Errorf("basecaller.config.json[1] Got\n%s Expected\n%s", hex.Dump([]byte(got)), hex.Dump([]byte(expected)))
+			//t.Errorf("basecaller.config.json[1] Got\n%v, Expected\n%v", got, expected)
 		}
 	}
 
@@ -201,6 +208,8 @@ smrt-basecaller-launch.sh \
 	obj.CrosstalkFilter = [][]float64{{0.0, 0.0, 0.0}, {0.0, 0.0, 1.0}, {0.0, 0.0, 0.0}}
 	{
 		expected := `
+export NUMA_NODE=0
+export GPU_ID=0
 smrt-basecaller-launch.sh \
   --config multipleBazFiles=false \
   --statusfd 2 \
@@ -209,8 +218,8 @@ smrt-basecaller-launch.sh \
    \
    \
   --outputbazfile /data/nrta/0/m84003_220325_032134_s1.baz \
-  --config /tmp/3/m84003_220325_032134_s1.basecaller.config.json \
-  --config source.WXIPCDataSourceConfig.sraIndex=3 \
+  --config /tmp/2/m84003_220325_032134_s1.basecaller.config.json \
+  --config source.WXIPCDataSourceConfig.sraIndex=2 \
   --config dataSource.darkCalFileName=/data/nrta/0/m84003_220325_032134_s1.darkcal_220325_032954.h5 \
    \
   --config dataSource.crosstalkFilterKernel=[[0,0,0],[0,0,1],[0,0,0]] \
@@ -220,16 +229,18 @@ smrt-basecaller-launch.sh \
 		var b bytes.Buffer
 		tc := config.Top()
 		mid := "m84003_220325_032134_s1"
+        os.Remove("/tmp/2/m84003_220325_032134_s1.basecaller.config.json")
 		so := GetLocalStorageObject(mid)
-		err = WriteBasecallerBash(&b, tc, obj, "4", so)
+		err = WriteBasecallerBash(&b, tc, obj, "3", so)
 		check(err)
 		got := b.String()
 		if got != expected {
-			t.Errorf("Got %s\nExpected %s", got, expected)
+            t.Errorf("Got\n%s Expected\n%s", hex.Dump([]byte(got)), hex.Dump([]byte(expected)))
+			//t.Errorf("Got %s\nExpected %s", got, expected)
 		}
 	}
 	{
-		dat, err := os.ReadFile("/tmp/3/m84003_220325_032134_s1.basecaller.config.json")
+		dat, err := os.ReadFile("/tmp/2/m84003_220325_032134_s1.basecaller.config.json")
 		check(err)
 		// fmt.Print(got)
 		got := string(dat)
