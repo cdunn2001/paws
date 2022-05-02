@@ -225,15 +225,18 @@ func WriteBasecallerBash(wr io.Writer, tc config.TopStruct, obj *SocketBasecalle
 		return err
 	}
 
-	var outdir string
-	if DataDir != "" {
-		outdir = filepath.Join(DataDir, obj.Mid)
-	} else {
-		bazpath := TranslateUrl(so, obj.BazUrl)
-		outdir = filepath.Dir(bazpath)
+	var config_json_fn string
+	{
+		var outdir string
+		if DataDir != "" {
+			outdir = filepath.Join(DataDir, obj.Mid)
+		} else {
+			bazpath := TranslateUrl(so, obj.BazUrl)
+			outdir = filepath.Dir(bazpath)
+		}
+		os.MkdirAll(outdir, 0777)
+		config_json_fn = filepath.Join(outdir, obj.Mid+".basecaller.config.json")
 	}
-	os.MkdirAll(outdir, 0777)
-	config_json_fn := filepath.Join(outdir, obj.Mid+".basecaller.config.json")
 
 	// translate PAWS API to smrt-basecaller API JSON. UGH.
 	var basecallerConfig SmrtBasecallerConfigObject
@@ -596,11 +599,13 @@ func WriteBaz2bamBash(wr io.Writer, tc config.TopStruct, obj *PostprimaryObject,
 	// Now we can use the output Urls.
 	outputPrefix := TranslateUrl(so, obj.OutputPrefixUrl)
 	kv["outputPrefix"] = outputPrefix
-	outdir := filepath.Dir(outputPrefix)
-	if outdir == "" {
-		return errors.Errorf("Got empty dir for OutputPrefixUrl '%s'", outputPrefix)
+	{
+		outdir := filepath.Dir(outputPrefix)
+		if outdir == "" {
+			return errors.Errorf("Got empty dir for OutputPrefixUrl '%s'", outputPrefix)
+		}
+		os.MkdirAll(outdir, 0777)
 	}
-	os.MkdirAll(outdir, 0777)
 	metadata_xml := outputPrefix + ".metadata.xml"
 	HandleMetadata(metadata_xml, obj.SubreadsetMetadataXml)
 	kv["metadata"] = "--metadata " + metadata_xml
@@ -660,6 +665,7 @@ func WriteReduceStatsBash(wr io.Writer, tc config.TopStruct, obj *PostprimaryObj
 		kv["OutputStatsH5"] = ""
 	} else {
 		kv["OutputStatsH5"] = "--input " + TranslateUrl(so, obj.OutputStatsH5Url)
+		// Output from baz2bam; Input for reducestats. But Output of PPA.
 	}
 
 	if obj.OutputReduceStatsH5Url == "discard:" {

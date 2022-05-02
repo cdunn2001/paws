@@ -355,7 +355,11 @@ type StorageItemObject struct {
 
 	// URL of this object
 	// Example: http://localhost:23632/storages/m123456_987654/foobar1.bam
-	Url     string `json:"url"`
+	Url string `json:"url"`
+
+	// UrlPath is the "path" part, as described here:
+	//   https://pkg.go.dev/net/url#URL
+	// For us, the path always includes a leading slash.
 	UrlPath string `json:"urlPath"`
 
 	// Not sure yet when there are split baz-files.
