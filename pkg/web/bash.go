@@ -507,8 +507,8 @@ func DumpDarkcalScript(tc config.TopStruct, obj *SocketDarkcalObject, sid string
 
 	// Choose and register any output paths first.
 	mid := obj.Mid
-	obj.CalibFileUrl = ChooseUrlThenRegister(so, obj.CalibFileUrl, StoragePathNrt, mid+".darkcal.h5")
-	obj.LogUrl = ChooseUrlThenRegister(so, obj.LogUrl, StoragePathNrt, mid+".darkcal.log")
+	obj.CalibFileUrl = ChooseUrlThenRegister(so, obj.CalibFileUrl, StoragePathIcc, mid+".darkcal.h5")
+	obj.LogUrl = ChooseUrlThenRegister(so, obj.LogUrl, StoragePathIcc, mid+".darkcal.log")
 
 	// Now we can use the output Urls.
 	rundir := filepath.Dir(TranslateUrl(so, obj.CalibFileUrl))
@@ -536,8 +536,8 @@ func DumpLoadingcalScript(tc config.TopStruct, obj *SocketLoadingcalObject, sid 
 	// Choose and register any output paths first.
 	mid := obj.Mid
 	ul := UniqueLabel(so)
-	obj.CalibFileUrl = ChooseUrlThenRegister(so, obj.CalibFileUrl, StoragePathNrt, mid+ul+".loadingcal.h5")
-	obj.LogUrl = ChooseUrlThenRegister(so, obj.LogUrl, StoragePathNrt, mid+ul+".loadingcal.log")
+	obj.CalibFileUrl = ChooseUrlThenRegister(so, obj.CalibFileUrl, StoragePathIcc, mid+ul+".loadingcal.h5")
+	obj.LogUrl = ChooseUrlThenRegister(so, obj.LogUrl, StoragePathIcc, mid+ul+".loadingcal.log")
 
 	// Now we can use the output Urls.
 	rundir := filepath.Dir(TranslateUrl(so, obj.CalibFileUrl))
