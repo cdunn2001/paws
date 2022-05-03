@@ -98,6 +98,9 @@ func SkipGETLogger() gin.HandlerFunc {
 
 			param.Path = path
 
+			if c.Request.Method == "GET" {
+				return
+			}
 			fmt.Fprint(out, formatter(param))
 		}
 	}
