@@ -1,8 +1,11 @@
 package main
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/mattn/go-isatty"
+	"os"
+	"time"
 )
 
 // defaultLogFormatter is the default log format function Logger middleware uses.
@@ -30,7 +33,7 @@ var defaultLogFormatter = func(param gin.LogFormatterParams) string {
 }
 
 // Same gin.LoggerWithConfig(LoggerConfig{})
-func SkipGETLogger() {
+func SkipGETLogger() gin.HandlerFunc {
 	conf := gin.LoggerConfig{}
 	formatter := conf.Formatter
 	if formatter == nil {
@@ -44,11 +47,11 @@ func SkipGETLogger() {
 
 	notlogged := conf.SkipPaths
 
-	isTerm := true
+	//isTerm := true
 
 	if w, ok := out.(*os.File); !ok || os.Getenv("TERM") == "dumb" ||
 		(!isatty.IsTerminal(w.Fd()) && !isatty.IsCygwinTerminal(w.Fd())) {
-		isTerm = false
+		//isTerm = false
 	}
 
 	var skip map[string]struct{}
@@ -61,7 +64,7 @@ func SkipGETLogger() {
 		}
 	}
 
-	return func(c *Context) {
+	return func(c *gin.Context) {
 		// Start timer
 		start := time.Now()
 		path := c.Request.URL.Path
@@ -72,10 +75,10 @@ func SkipGETLogger() {
 
 		// Log only when path is not being skipped
 		if _, ok := skip[path]; !ok {
-			param := LogFormatterParams{
+			param := gin.LogFormatterParams{
 				Request: c.Request,
-				isTerm:  isTerm,
-				Keys:    c.Keys,
+				//isTerm:  isTerm,
+				Keys: c.Keys,
 			}
 
 			// Stop timer
@@ -85,7 +88,7 @@ func SkipGETLogger() {
 			param.ClientIP = c.ClientIP()
 			param.Method = c.Request.Method
 			param.StatusCode = c.Writer.Status()
-			param.ErrorMessage = c.Errors.ByType(ErrorTypePrivate).String()
+			param.ErrorMessage = c.Errors.ByType(gin.ErrorTypePrivate).String()
 
 			param.BodySize = c.Writer.Size()
 
