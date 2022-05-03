@@ -2,9 +2,11 @@ package web
 
 import (
 	"encoding/json"
+	_ "embed"
 	"fmt"
 	"github.com/coreos/go-systemd/v22/daemon"
 	"github.com/gin-gonic/gin"
+	"github.com/itsjamie/gin-cors"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -13,6 +15,11 @@ import (
 	"sync"
 	"time"
 )
+
+//go:embed dashboard.html
+var dashboardString []byte
+//go:embed js/jquery.js
+var jquery_js []byte
 
 type State struct {
 	Sockets       map[string]int
@@ -79,6 +86,18 @@ var bootTime time.Time
 
 func AddRoutes(router *gin.Engine) {
 	bootTime = time.Now()
+
+	// This allows Javascript from a browser (say Chrome) to access pa-wsgo
+	router.Use(cors.Middleware(cors.Config{
+		Origins:         "*",
+		Methods:         "GET, PUT, POST, DELETE",
+		RequestHeaders:  "Origin, Authorization, Content-Type",
+		ExposedHeaders:  "",
+		MaxAge:          50 * time.Second,
+		Credentials:     false,
+		ValidateHeaders: false,
+	}))
+
 	router.PUT("/feed-watchdog", feedWatchdog)
 	router.GET("/status", SafeState(getStatus))
 	router.GET("/sockets", SafeState(getSockets))
@@ -109,6 +128,13 @@ func AddRoutes(router *gin.Engine) {
 	router.GET("/postprimaries/:mid", SafeState(getPostprimaryByMid))
 	router.DELETE("/postprimaries/:mid", SafeState(deletePostprimaryByMid))
 	router.POST("/postprimaries/:mid/stop", SafeState(stopPostprimaryByMid))
+
+	router.GET("/dashboard", func(c *gin.Context) { 
+		c.Data(http.StatusOK, "text/html", dashboardString) 
+	})
+	router.GET("/js/jquery.js", func(c *gin.Context) {
+		c.Data(http.StatusOK, "application/javascript", jquery_js)
+	})
 }
 
 type SystemdStruct struct {

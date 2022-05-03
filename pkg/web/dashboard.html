@@ -1,0 +1,357 @@
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<! 
+
+
+    THIS FILE IS JUST A PLACEHOLDER FOR A REAL IMPLEMENTATION.
+
+    It was just copied over from Sequel.  The actually implementation will
+    poll wx-daemon's HTTP/REST interface and display the information in 
+    tabular or graphical format.  The code here is an example of how to 
+    write in Jquery and Javascript.
+
+>
+<head>
+    <meta charset="utf-8" />
+    <title>Primary Analysis</title>
+
+    <!--
+
+    <link rel="stylesheet" type="text/css" href="css/pa.css">
+    <link rel="stylesheet" type="text/css" href="css/epoch.min.css">
+    -->
+
+    <script src="js/jquery.js"></script>
+    <!--
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/d3.min.js"></script>
+    <script src="js/epoch.min.js"></script>
+    -->
+
+</head>
+<body>
+    <h1>PA WS Status Panel</h1>
+    <!-- some more ideas http://code.shutterstock.com/rickshaw/examples/ -->
+    <div>PAWS dashboard is </div><a id="paws_url" href="discard:">?</a></div>
+    <div>wx-daemon dashboard is </div><a id="wxdaemon_url" href="discard:">?</a></div>
+
+    <p>
+    </p>
+
+    <div class="list-row">
+        <div class="list-left">
+            
+            <table border="1" id="mybody">
+                <tr><th></th><th>1</th><th>2</th><th>3</th><th>4</th></tr>
+                <tr><td>DARKCAL</td></tr>
+                <tr><td>Execution Status</td><td id="darkcal1_executionStatus"> ? </td>   <td id="darkcal2_executionStatus"> ? </td>  <td id="darkcal3_executionStatus"> ? </td>  <td id="darkcal4_executionStatus"> ? </td></tr>
+                <tr><td>Completion Status</td><td id="darkcal1_completionStatus"> ? </td> <td id="darkcal2_completionStatus"> ? </td> <td id="darkcal3_completionStatus"> ? </td> <td id="darkcal4_completionStatus"> ? </td></tr>
+                <tr><td>Armed</td><td id="darkcal1_armed"> ? </td>                        <td id="darkcal2_armed"> ? </td>            <td id="darkcal3_armed"> ? </td>            <td id="darkcal4_armed"> ? </td></tr>
+                <tr><td>Timestamp</td><td id="darkcal1_timestamp"> ? </td>                <td id="darkcal2_timestamp"> ? </td>        <td id="darkcal3_timestamp"> ? </td>        <td id="darkcal4_timestamp"> ? </td></tr>
+                <tr><td>movieMaxFrames</td><td id="darkcal1_movieMaxFrames"> ? </td>      <td id="darkcal2_movieMaxFrames"> ? </td>   <td id="darkcal3_movieMaxFrames"> ? </td>   <td id="darkcal4_movieMaxFrames"> ? </td></tr>
+                <tr><td>MID</td><td id="darkcal1_mid"> ? </td>                            <td id="darkcal2_mid"> ? </td>              <td id="darkcal3_mid"> ? </td>              <td id="darkcal4_mid"> ? </td></tr>
+                <tr><td>Progress</td><td id="darkcal1_netProgress"> ? </td>               <td id="darkcal2_netProgress"> ? </td>      <td id="darkcal3_netProgress"> ? </td>      <td id="darkcal4_netProgress"> ? </td></tr>
+                <tr><td>Stage</td><td id="darkcal1_stageName"> ? </td>                    <td id="darkcal2_stageName"> ? </td>        <td id="darkcal3_stageName"> ? </td>        <td id="darkcal4_stageName"> ? </td></tr>
+                <tr><td>LOADING CAL</td></tr>
+                <tr><td> (place holder) </td></tr>
+                <tr><td>BASECALLER</td></tr>
+                <tr><td>Execution Status</td><td id="basecaller1_executionStatus"> ? </td> <td id="basecaller2_executionStatus"> ? </td>  <td id="basecaller3_executionStatus"> ? </td>  <td id="basecaller4_executionStatus"> ? </td></tr>
+                <tr><td>Complete Status</td><td id="basecaller1_completionStatus"> ? </td> <td id="basecaller2_completionStatus"> ? </td> <td id="basecaller3_completionStatus"> ? </td> <td id="basecaller4_completionStatus"> ? </td></tr>
+                <tr><td>Armed</td><td id="basecaller1_armed"> ? </td>                      <td id="basecaller2_armed"> ? </td>            <td id="basecaller3_armed"> ? </td>            <td id="basecaller4_armed"> ? </td></tr>
+                <tr><td>Timestamp</td><td id="basecaller1_timestamp"> ? </td>              <td id="basecaller2_timestamp"> ? </td>        <td id="basecaller3_timestamp"> ? </td>        <td id="basecaller4_timestamp"> ? </td></tr>
+                <tr><td>MID</td><td id="basecaller1_mid"> ? </td>                          <td id="basecaller2_mid"> ? </td>              <td id="basecaller3_mid"> ? </td>              <td id="basecaller4_mid"> ? </td></tr>
+                <tr><td>Progress</td><td id="basecaller1_netProgress"> ? </td>             <td id="basecaller2_netProgress"> ? </td>      <td id="basecaller3_netProgress"> ? </td>      <td id="basecaller4_netProgress"> ? </td></tr>
+                <tr><td>Stage</td><td id="basecaller1_stageName"> ? </td>                  <td id="basecaller2_stageName"> ? </td>        <td id="basecaller3_stageName"> ? </td>        <td id="basecaller4_stageName"> ? </td></tr>
+
+
+<!--     "basecaller": {
+        "uuid": "",
+        "bazUrl": "",
+        "traceFileUrl": "",
+        "chiplayout": "",
+        "darkcalFileUrl": "",
+        "pixelSpreadFunction": null,
+        "crosstalkFilter": null,
+        "analogs": null,
+        "sequencingRoi": null,
+        "traceFileRoi": null,
+        "expectedFrameRate": 0,
+        "photoelectronSensitivity": 0,
+        "refSnr": 0,
+        "simulationFileUrl": "",
+        "smrtBasecallerConfig": "",
+        "RtMetrics": {
+            "url": ""
+        },
+        "mid": "",
+        "movieMaxFrames": 0,
+        "maxMovieSeconds": 0,
+        "movieNumber": 0,
+        "logUrl": "",
+        "logLevel": "",
+        "processStatus": {
+            "executionStatus": "",
+            "completionStatus": "",
+            "timestamp": "",
+            "exitCode": 0,
+            "PID": 0
+        }
+    } 
+ -->
+
+
+
+            </table>
+        </div>
+        <div class="list-left">
+            ppad Post Primary
+            <p>(place holder)</p>
+        </div>
+        <div class="list-left">
+            ppad Storages
+            <p>(place holder)</p>
+        </div>
+    </div>
+
+    <div class="list-left">
+        Status
+        <table border="1">
+            <tr><td>uptimeMessage</td><td id="uptimeMessage">?</td></tr>
+            <tr><td>timestamp  </td><td id="timestamp">?</td></tr>
+            <tr><th>Application</th> <th>Version</th>                     <th>Path</th></tr>
+            <tr><td>pa-ws      </td> <td id="pa-wsgo_version"> ? </td>    <td id="pa-wsgo_path">?</td></tr>
+            <tr><td>basecaller </td> <td id="basecaller_version"> ? </td> <td id="basecaller_path">?</td></tr>
+            <tr><td>baz2bam    </td> <td id="baz2bam_version"> ? </td>    <td id="baz2bam_path">?</td></tr>
+            <tr><td>pa-cal     </td> <td id="pa-cal_version"> ? </td>     <td id="pa-cal_path">?</td></tr>
+            <tr><td>reducestats</td> <td id="reducestats_version"> ? </td><td id="reducestats_path">?</td></tr>
+        </table>
+    </div>
+
+    <p>
+    </p>
+    <script type="text/javascript">
+        var previousTranches = [0,0,0];
+        pawsHost = "rt-84003"; // window.location.hostname;
+        ppadHost = ""; // window.location.hostname;
+        platform = "UNKNOWN";
+        $.urlParam = function(name){
+            var results = new RegExp('[\?&]' + name + '=([^&#]*)').exec(window.location.href);
+            if (results==null){
+                return null;
+            }
+            else{
+                return results[1] || 0;
+            }
+        }
+
+        $(function () {
+
+            var baseport=$.urlParam("baseport");
+            if (baseport == null)
+            {
+                baseport = location.port.substring(0,location.port.length - 2);
+                baseport = parseInt(baseport)*100; // take current and round down to nearest block of 100
+            } else
+            {
+                baseport = parseInt(baseport);
+            }
+            var hostname=$.urlParam("hostname");
+            if (hostname == null)
+            {
+                hostname = window.location.hostname
+            }
+            pawsHost = hostname
+            console.log("hostname=%s baseport=%d ",hostname, baseport)
+            pawsUrl = "http://" + pawsHost + ":" + (baseport+32) + "/dashboard"
+            $('#paws_url')[0].innerText = pawsUrl;
+            $('#paws_url')[0].href = pawsUrl;
+            wxdaemonUrl = "http://" + pawsHost + ":" + (baseport+2) + "/dashboard"
+            $('#wxdaemon_url')[0].innerText = wxdaemonUrl;
+            $('#wxdaemon_url')[0].href = wxdaemonUrl;
+            
+            function timeStatus(field,t) {
+                tt = new Date(t * 1000);
+                now = Date.now();
+                diff = now.valueOf() - tt.valueOf();
+                if (diff > 15000) {
+                    $(field)[0].style.backgroundColor = "red";
+                }
+                else {
+                    $(field)[0].style.backgroundColor = "white"; // $('#mybody').style.backgroundColor
+                }
+                return tt.toString().match(" [0-9]+:[0-9]{2}:[0-9]{2} ");
+            }
+            function convertTime(time) {
+                var seconds = parseInt(time % 60);
+                time = parseInt(time/60);
+                var minutes = time % 60;
+                time = parseInt(time/60);
+                var hours = time % 24;
+                time = parseInt(time/24);
+                var days = time % 24;
+                var out = "";
+                if(days > 0) out += days + "d ";
+                if(hours > 0) out += hours + "h ";
+                if(minutes > 0) out += minutes + "m "
+                if(seconds > 0) out += seconds + "s ";
+                return out.trim();
+            }
+
+            function colorState(field,state)
+            {
+                if (state == null || state == "error" || state == "Error" || state.includes("Failed")) {
+                    $(field)[0].style.backgroundColor = "red";
+                }
+                else if(state == "boot")
+                {
+                    $(field)[0].style.backgroundColor = "yellow";
+                }
+                else if(state == "offline")
+                {
+                    $(field)[0].style.backgroundColor = "gray";
+                }
+                else {
+                    $(field)[0].style.backgroundColor = "lightgreen";
+                }
+
+            }
+            function onDataReceivedSocket(json1, socket) {
+                darkcal = json1.darkcal;
+                tag = '#darkcal'+socket
+                $(tag + '_executionStatus')[0].innerText = darkcal.processStatus.executionStatus;
+                $(tag+'_completionStatus')[0].innerText = darkcal.processStatus.completionStatus;
+                $(tag+'_timestamp')[0].innerText = darkcal.processStatus.timestamp;
+                $(tag+'_mid')[0].innerText = darkcal.mid;
+                $(tag+'_armed')[0].innerText = darkcal.processStatus.armed;
+                $(tag+'_netProgress')[0].innerText =darkcal.processStatus.Progress.netProgress;
+                $(tag+'_stageName')[0].innerText =darkcal.processStatus.Progress.stageName;
+                $(tag+'_movieMaxFrames')[0].innerText = darkcal.movieMaxFrames;
+                colorState(tag+'_executionStatus', darkcal.processStatus.executionStatus);
+
+                basecaller = json1.basecaller
+                tag = '#basecaller'+socket
+                $(tag+'_executionStatus')[0].innerText = basecaller.processStatus.executionStatus;
+                $(tag+'_completionStatus')[0].innerText = basecaller.processStatus.completionStatus;
+                $(tag+'_timestamp')[0].innerText = basecaller.processStatus.timestamp;
+                $(tag+'_mid')[0].innerText = basecaller.mid;
+                $(tag+'_armed')[0].innerText = basecaller.processStatus.armed;
+                $(tag+'_netProgress')[0].innerText =basecaller.processStatus.Progress.netProgress;
+                $(tag+'_stageName')[0].innerText =basecaller.processStatus.Progress.stageName;
+
+                colorState(tag+'_executionStatus', basecaller.processStatus.executionStatus);
+            }
+
+            function onDataReceivedPpad(json) {
+                $('#ppadAcqId')[0].innerText    = json.acqId ;
+                $('#ppadVersion')[0].innerText = json.version;
+                $('#ppadTimeStatus')[0].innerText = timeStatus('#ppadTimeStatus',parseFloat(json.time));
+                $('#ppadUptime')[0].innerText = convertTime(json.uptime);
+                $('#ppadMessage')[0].innerText  = json.message ;
+                $('#ppadProgress')[0].innerText = json.progress ;
+                $('#ppadState')[0].innerText    = json.state;
+                colorState('#ppadState',json.state);
+                //"acqId": "eab96191-427c-4edb-8932-ceb70e146966","message": "","progress": "70","state": "busy","version": "4.1.0.0"}
+                // "message": "Status Service are up and running for 250871 seconds.",
+            }
+            function onDataReceivedPawsStatus(json) {
+                //$('#pawsState')[0].innerText = json.state;
+                //colorState('#pawsState',json.state);
+                $('#pawsVersion')[0].innerText = json.version;
+                $('#pawsTimeStatus')[0].innerText = timeStatus('#pawsTimeStatus',parseFloat(json.time));
+                $('#pawsUptime')[0].innerText = convertTime(json.uptime);
+            }
+            function onDataFailure(jqXHR, textStatus, errorThrown) {
+                console.warn(jqXHR);
+                var fp = $('#errorMessages')[0];
+                fp.innerText = jqXHR.responseText
+                //r = jQuery.parseJSON(jqXHR.responseText);
+                //fp.innerText = r.Message + r.StackTrace + r.ExceptionType;
+            }
+
+            function onSockets(sockets) {
+                sockets.forEach( function(socket) {
+                    $.ajax({
+                        url: "http://"+ pawsHost + ":" + (baseport +32) + "/sockets/" + socket,
+                        method: 'GET',
+                        dataType: 'json',
+                        contentType: "application/json",
+                        success: function(json) { onDataReceivedSocket(json,socket) },
+                        error: function(a,b,c) {
+                            onDataFailure(a, b, c);
+                            $('#acqTimeStatus')[0].style.backgroundColor = "red";
+                        }
+                    });
+                })
+            }
+
+            setInterval(function () {
+                $.ajax({
+                    url: "http://"+ pawsHost + ":" + (baseport +32) + "/sockets",
+                    method: 'GET',
+                    dataType: 'json',
+                    contentType: "application/json",
+                    success: onSockets
+                });
+            }, 1000);
+
+
+            function onDataReceivedStatus(json1) {
+                $('#uptimeMessage')[0].innerText = json1.uptimeMessage;
+                $('#timestamp')[0].innerText = json1.timestamp;
+
+                $('#basecaller_version')[0].innerText = json1.Binaries.basecaller.Version;
+                $('#basecaller_path')[0].innerText = json1.Binaries.basecaller.Path;
+
+                $('#baz2bam_version')[0].innerText = json1.Binaries.baz2bam.Version;
+                $('#baz2bam_path')[0].innerText = json1.Binaries.baz2bam.Path;
+
+                $('#pa-cal_version')[0].innerText = json1.Binaries["pa-cal"].Version;
+                $('#pa-cal_path')[0].innerText = json1.Binaries["pa-cal"].Path;
+
+                $('#pa-wsgo_version')[0].innerText = json1.Binaries["pa-wsgo"].Version;
+                $('#pa-wsgo_path')[0].innerText = json1.Binaries["pa-wsgo"].Path;
+
+                $('#reducestats_version')[0].innerText = json1.Binaries.reducestats.Version;
+                $('#reducestats_path')[0].innerText = json1.Binaries.reducestats.Path;
+            }
+            setInterval(function () {
+                $.ajax({
+                    url: "http://"+ pawsHost + ":" + (baseport +32) + "/status",
+                    method: 'GET',
+                    dataType: 'json',
+                    contentType: "application/json",
+                    success: onDataReceivedStatus
+                });
+            }, 1000);
+
+/*             setInterval(function () {
+                if (ppadHost !== "") {
+                    $.ajax({
+                        url: "http://" + ppadHost + ":" + (baseport + 62) + "/",
+                        method: 'GET',
+                        dataType: 'json',
+                        contentType: "application/json",
+                        success: onDataReceivedPpad,
+                        error: onDataFailure
+                    });
+                }
+            }, 1000);
+
+            setInterval(function () {
+                if (pawsHost !== "") {
+                    $.ajax({
+                        url: "http://" + pawsHost + ":8091/status",
+                        method: 'GET',
+                        dataType: 'json',
+                        contentType: "application/json",
+                        success: onDataReceivedPawsStatus,
+                        error: onDataFailure
+                    });
+                }
+            }, 1000); */
+
+        });
+
+
+    </script>
+</body>
+</html>
