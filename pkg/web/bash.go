@@ -48,11 +48,7 @@ func WriteDarkcalBash(wr io.Writer, tc config.TopStruct, obj *SocketDarkcalObjec
 	t := CreateTemplate(Template_darkcal, "")
 	kv := make(map[string]string)
 
-	socketIdInt, err := strconv.Atoi(SocketId)
-	if err != nil {
-		return err
-	}
-	sra := socketIdInt - 1 // for now
+	sra := SocketId2Sra(SocketId)
 	kv["sra"] = strconv.Itoa(sra)
 
 	if tc.Values.MovieNumberAlwaysZero || obj.MovieNumber < 0 {
@@ -220,11 +216,6 @@ func WriteBasecallerBash(wr io.Writer, tc config.TopStruct, obj *SocketBasecalle
 	t := CreateTemplate(Template_basecaller, "")
 	kv := make(map[string]string)
 
-	socketIdInt, err := strconv.Atoi(SocketId)
-	if err != nil {
-		return err
-	}
-
 	var config_json_fn string
 	{
 		var outdir string
@@ -285,7 +276,7 @@ func WriteBasecallerBash(wr io.Writer, tc config.TopStruct, obj *SocketBasecalle
 
 	// Note: This file will be over-written on each call.
 
-	sra := socketIdInt - 1 // for now
+	sra := SocketId2Sra(SocketId)
 	kv["sra"] = strconv.Itoa(sra)
 	numNumaNodes := 2 // FIXME This works for rt-8400* machines, but doesn't work for kos-dev01 for example.
 	numGpuNodes := 2  // FIXME
@@ -694,4 +685,15 @@ func CheckBaz2bam(tc config.TopStruct) {
 	captured := CaptureBash(call)
 	log.Printf("Captured:%s\n", captured)
 	os.Exit(0)
+}
+
+// TODO: reimplement
+func SocketId2Sra(socketId string) int {
+	socketIdInt, err := strconv.Atoi(socketId)
+	if err != nil {
+		msg := fmt.Sprintf("Must provide a valid socketId, not %q: %v", socketId, err)
+		panic(msg)
+	}
+	sra := socketIdInt - 1
+	return sra
 }
