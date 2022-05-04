@@ -49,7 +49,7 @@ func listen(port int, lw io.Writer) {
 	gin.DefaultWriter = lw
 	//gin.ForceConsoleColor() // needed for colors w/ MultiWriter
 	router.Use(
-		gin.Logger(),
+		SkipGETLogger(), //gin.Logger(),
 		//gin.LoggerWithWriter(gin.DefaultWriter, "/pathsNotToLog/"), // useful!
 		gin.CustomRecovery(PanicHandleRecovery),
 		//gin.Recovery(),

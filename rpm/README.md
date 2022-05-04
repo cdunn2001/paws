@@ -18,4 +18,8 @@ Release Notes
 1.0.17 - changed baz2bam threading parameters to -j 128 -b 32
 1.0.24 - added crosstalkFilter support
 1.0.25 - add support for photoelectronSensitivity, refSnr and analogs
+1.0.28 - fix reducestats (w/ 1.0.27)
+1.0.29 - send ChipLayout to basecaller
 1.0.30 - added support for NUMA node and GPU node settings
+1.0.31 - /dashboard endpoint
+1.0.32 - skip GET logging

@@ -1,8 +1,8 @@
 package web
 
 import (
-	"encoding/json"
 	_ "embed"
+	"encoding/json"
 	"fmt"
 	"github.com/coreos/go-systemd/v22/daemon"
 	"github.com/gin-gonic/gin"
@@ -18,6 +18,7 @@ import (
 
 //go:embed dashboard.html
 var dashboardString []byte
+
 //go:embed js/jquery.js
 var jquery_js []byte
 
@@ -129,8 +130,8 @@ func AddRoutes(router *gin.Engine) {
 	router.DELETE("/postprimaries/:mid", SafeState(deletePostprimaryByMid))
 	router.POST("/postprimaries/:mid/stop", SafeState(stopPostprimaryByMid))
 
-	router.GET("/dashboard", func(c *gin.Context) { 
-		c.Data(http.StatusOK, "text/html", dashboardString) 
+	router.GET("/dashboard", func(c *gin.Context) {
+		c.Data(http.StatusOK, "text/html", dashboardString)
 	})
 	router.GET("/js/jquery.js", func(c *gin.Context) {
 		c.Data(http.StatusOK, "application/javascript", jquery_js)
