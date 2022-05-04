@@ -36,6 +36,13 @@ func CreatePathIfNeeded(path string) {
 		panic(msg)
 	}
 }
+func DeletePathIfExists(path string) {
+	log.Printf("DeletePathIfNeeded(%q)\n", path)
+	err := os.RemoveAll(path)
+	if err != nil {
+		log.Printf("WARNING: Failed to remove directory %q: %v", path, err)
+	}
+}
 
 var DefaultStorageRootNrta string = "/data/nrta"
 var DefaultStorageRootNrtb string = "/data/nrtb"
@@ -129,6 +136,10 @@ func (self *MultiDirStore) AcquireStorageObject(mid string) *StorageObject {
 		LinuxNrtPath: filepath.Join(nrtDir, partition, mid),
 		UrlPath2Item: make(map[string]*StorageItemObject),
 	}
+	// To start fresh. Also, we can allow debug logs to linger. But we can also drop this.
+	DeletePathIfExists(obj.LinuxIccPath)
+	DeletePathIfExists(obj.LinuxNrtPath)
+
 	CreatePathIfNeeded(obj.LinuxIccPath)
 	CreatePathIfNeeded(obj.LinuxNrtPath)
 	os.MkdirAll(obj.LinuxIccPath, 0777)
@@ -148,6 +159,8 @@ func (self *MultiDirStore) Free(obj *StorageObject) {
 		}
 	}
 	obj.UrlPath2Item = nil // len() is still valid.
+	DeletePathIfExists(obj.LinuxIccPath)
+	DeletePathIfExists(obj.LinuxNrtPath)
 }
 
 // Currently only used for tests.
