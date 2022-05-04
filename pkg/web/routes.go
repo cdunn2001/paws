@@ -30,7 +30,7 @@ type State struct {
 	Loadingcals   map[string]*SocketLoadingcalObject
 	Postprimaries map[string]*PostprimaryObject
 	AllProcesses  map[int]*ControlledProcess
-	store         Store
+	Store         IStore
 }
 
 // Someday, move this to separate package, for privacy.
@@ -64,13 +64,19 @@ func InitFixtures() {
 		Loadingcals:   make(map[string]*SocketLoadingcalObject),
 		Postprimaries: make(map[string]*PostprimaryObject),
 		AllProcesses:  make(map[int]*ControlledProcess),
-		store:         Store{},
 	}
+	// Note: top.state.Store still needs to be initialized.
+
 	for k := range top.state.Sockets {
 		top.state.Basecallers[k] = CreateSocketBasecallerObject()
 		top.state.Darkcals[k] = CreateSocketDarkcalObject()
 		top.state.Loadingcals[k] = CreateSocketLoadingcalObject()
 	}
+}
+
+// Register in "top.state" global.
+func RegisterStore(s IStore) {
+	top.state.Store = s
 }
 
 type StateHandlerFunc func(*gin.Context, *State)
@@ -291,7 +297,10 @@ func startBasecallerBySocketId(c *gin.Context, state *State) {
 	obj.ProcessStatus.Armed = false
 	obj.ProcessStatus.Timestamp = TimestampNow()
 	state.Basecallers[sid] = obj // TODO: Error if already running?
-	so := GetStorageObjectForMid(obj.Mid, state)
+	so := GetStorageObjectForMid(state.Store, obj.Mid, state)
+	if so == nil {
+		log.Printf("Could not find SO for mid %q", obj.Mid)
+	}
 	setup := DumpBasecallerScript(config.Top(), obj, sid, so)
 	setup.Stall = c.DefaultQuery("stall", "0")
 	cp := StartControlledShellProcess(setup, &obj.ProcessStatus)
@@ -370,7 +379,10 @@ func startDarkcalBySocketId(c *gin.Context, state *State) {
 	obj.ProcessStatus.Armed = false
 	obj.ProcessStatus.Timestamp = TimestampNow()
 	state.Darkcals[sid] = obj // TODO: Error if already running?
-	so := GetStorageObjectForMid(obj.Mid, state)
+	so := GetStorageObjectForMid(state.Store, obj.Mid, state)
+	if so == nil {
+		log.Printf("Could not find SO for mid %q", obj.Mid)
+	}
 	setup := DumpDarkcalScript(config.Top(), obj, sid, so)
 	setup.Stall = c.DefaultQuery("stall", "0")
 	cp := StartControlledShellProcess(setup, &obj.ProcessStatus)
@@ -451,7 +463,10 @@ func startLoadingcalBySocketId(c *gin.Context, state *State) {
 	obj.ProcessStatus.Armed = false
 	obj.ProcessStatus.Timestamp = TimestampNow()
 	state.Loadingcals[sid] = obj // TODO: Error if already running?
-	so := GetStorageObjectForMid(obj.Mid, state)
+	so := GetStorageObjectForMid(state.Store, obj.Mid, state)
+	if so == nil {
+		log.Printf("Could not find SO for mid %q", obj.Mid)
+	}
 	setup := DumpLoadingcalScript(config.Top(), obj, sid, so)
 	setup.Stall = c.DefaultQuery("stall", "0")
 	cp := StartControlledShellProcess(setup, &obj.ProcessStatus)
@@ -537,7 +552,10 @@ func startPostprimary(c *gin.Context, state *State) {
 	obj.ProcessStatus.Armed = false // always false for Postprimary
 	obj.ProcessStatus.Timestamp = TimestampNow()
 	state.Postprimaries[mid] = obj // TODO: Error if already running?
-	so := GetStorageObjectForMid(mid, state)
+	so := GetStorageObjectForMid(state.Store, mid, state)
+	if so == nil {
+		log.Printf("Could not find SO for mid %q", mid)
+	}
 	setup := DumpPostprimaryScript(config.Top(), obj, so)
 	setup.Stall = c.DefaultQuery("stall", "0")
 	cp := StartControlledShellProcess(setup, &obj.ProcessStatus)

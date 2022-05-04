@@ -343,11 +343,27 @@ type PostprimaryObject struct {
 
 	ProcessStatus ProcessStatusObject `json:"processStatus"`
 }
+type StoragePathEnum string
+
+const (
+	StoragePathUnknown StoragePathEnum = "UNKNOWN"
+	StoragePathIcc     StoragePathEnum = "ICC"
+	StoragePathNrt     StoragePathEnum = "NRT"
+)
+
 type StorageItemObject struct {
 
 	// URL of this object
 	// Example: http://localhost:23632/storages/m123456_987654/foobar1.bam
 	Url string `json:"url"`
+
+	// UrlPath is the "path" part, as described here:
+	//   https://pkg.go.dev/net/url#URL
+	// For us, the path always includes a leading slash.
+	UrlPath string `json:"urlPath"`
+
+	// Not sure yet when there are split baz-files.
+	LinuxPath string `json:"linuxPath"`
 
 	// ISO8601 timestamp (with milliseconds) of file write time
 	// Example: 2017-01-31T01:59:49.103998Z
@@ -365,6 +381,9 @@ type StorageItemObject struct {
 	// information about the source of this file
 	// Example: null
 	SourceInfo string `json:"sourceInfo"`
+
+	// For debugging only. Was used to select LinuxPath
+	Loc StoragePathEnum
 }
 type StorageDiskReportObject struct {
 
@@ -386,9 +405,14 @@ type StorageObject struct {
 	// Example: http://localhost:23632/storages/m123456_987654
 	RootUrl string `json:"rootUrl"`
 
+	// Internal use. UrlPath is Url after hostport (and before query-string if any).
+	RootUrlPath string `json:"rootUrlPath"`
+
 	// physical path to storage directory (should only be used for debugging and logging)
 	// Example: file:/data/pa/m123456_987654
-	LinuxPath string `json:"linuxPath"`
+	LinuxIccPath  string
+	LinuxNrtaPath string
+	LinuxNrtbPath string
 
 	// Destination URL for the log file. Logging happens during construction and freeing.
 	// Example: http://localhost:23632/storages/m123456_987654/storage.log
@@ -398,7 +422,11 @@ type StorageObject struct {
 	// Example: "INFO"
 	LogLevel LogLevelEnum `json:"logLevel"`
 
-	Files         []StorageItemObject       `json:"files"`
+	Counter int
+
+	Files        []*StorageItemObject          `json:"files"`
+	UrlPath2Item map[string]*StorageItemObject `json:"urlPath2Item"`
+	//LinuxPath2Item map[string]*StorageItemObject `json:"linuxPath2Item"`
 	Space         []StorageDiskReportObject `json:"space"`
 	ProcessStatus ProcessStatusObject       `json:"processStatus"`
 }

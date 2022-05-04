@@ -7,6 +7,7 @@ import (
 	"github.com/pkg/errors"
 	"io"
 	"log"
+	"net/url"
 	"os"
 	"pacb.com/seq/paws/pkg/config"
 	"path/filepath"
@@ -15,8 +16,8 @@ import (
 	"text/template"
 )
 
-// TODO: Move this somewhere better.
-var DataDir = "/tmp" // Should be /var/run, but owned by root.
+// This is used only for tests. Ignored when "".
+var DataDir = ""
 
 func CreateTemplate(source string, name string) *template.Template {
 	result := template.Must(template.
@@ -47,11 +48,7 @@ func WriteDarkcalBash(wr io.Writer, tc config.TopStruct, obj *SocketDarkcalObjec
 	t := CreateTemplate(Template_darkcal, "")
 	kv := make(map[string]string)
 
-	socketIdInt, err := strconv.Atoi(SocketId)
-	if err != nil {
-		return err
-	}
-	sra := socketIdInt - 1 // for now
+	sra := SocketId2Sra(SocketId)
 	kv["sra"] = strconv.Itoa(sra)
 
 	if tc.Values.MovieNumberAlwaysZero || obj.MovieNumber < 0 {
@@ -64,8 +61,8 @@ func WriteDarkcalBash(wr io.Writer, tc config.TopStruct, obj *SocketDarkcalObjec
 	kv["numFrames"] = strconv.Itoa(numFrames)
 	// --numFrames # gets overridden w/ 128 or 512 for now, but setting prevents warning
 
-	kv["outputFile"] = obj.CalibFileUrl // TODO: Convert from URL!
-	kv["logoutput"] = obj.LogUrl        // TODO: Convert from URL!
+	kv["outputFile"] = TranslateUrl(so, obj.CalibFileUrl)
+	kv["logoutput"] = TranslateUrl(so, obj.LogUrl)
 
 	timeout := float64(numFrames) * 1.1 / tc.Values.DefaultFrameRate // default
 	if obj.MovieMaxSeconds > 0 {
@@ -115,9 +112,9 @@ func WriteLoadingcalBash(wr io.Writer, tc config.TopStruct, obj *SocketLoadingca
 	kv["numFrames"] = strconv.Itoa(numFrames)
 	// --numFrames # gets overridden w/ 128 or 512 for now, but setting prevents warning
 
-	kv["outputFile"] = obj.CalibFileUrl           // TODO: Convert from URL!
-	kv["logoutput"] = obj.LogUrl                  // TODO: Convert from URL!
-	kv["inputDarkCalFile"] = obj.DarkFrameFileUrl // TODO: Convert from URL!
+	kv["outputFile"] = TranslateUrl(so, obj.CalibFileUrl)
+	kv["logoutput"] = TranslateUrl(so, obj.LogUrl)
+	kv["inputDarkCalFile"] = TranslateUrl(so, obj.DarkFrameFileUrl)
 
 	timeout := float64(numFrames) * 1.1 / tc.Values.DefaultFrameRate // default
 	if obj.MovieMaxSeconds > 0 {
@@ -140,32 +137,48 @@ func WriteLoadingcalBash(wr io.Writer, tc config.TopStruct, obj *SocketLoadingca
 // eventually will support
 //  file://host/path  <- returns /path assuming the path is NFS mounted, otherwise panics
 //  http://host:port/storages/mid  <- will convert to a Linux path after being processed by the storages framework
-func TranslateUrl(url string) string {
-	if strings.HasPrefix(url, "/") {
-		return url
-	} else if strings.HasPrefix(url, "file://") {
-		// TODO skip the hostname field (i.e. file://hostname/path0/path1/path2 to /path0/path1/path2 )
-		panic("file:// not supported")
-	} else if strings.HasPrefix(url, "file:/") {
-		return url[5:]
-	} else if url == "discard:" {
-		return "" // or "/dev/null" ? not sure
-	} else if !strings.Contains(url, ":") {
-		return url
-	} else {
-		// TODO support http:/storages
-		msg := fmt.Sprintf("Unable to translate URL (%s) into linux path", url)
+func TranslateUrl(so *StorageObject, Url string) string {
+	if strings.HasPrefix(Url, "/") {
+		return Url
+	}
+	parsed, err := url.Parse(Url)
+	if err != nil {
+		msg := fmt.Sprintf("URL parsing error: %v", err)
+		panic(msg)
+	}
+	if parsed.Scheme == "file" {
+		return parsed.Path
+	} else if parsed.Scheme == "discard" {
+		return "" // TODO: or "/dev/null" ? not sure
+	} else if parsed.Scheme == "" {
+		return parsed.Path
+	}
+
+	// Must be storages endpoint.
+	if !strings.HasPrefix(parsed.Path, "/storages/") {
+		msg := fmt.Sprintf("Unable to translate URL %q w/ path %q into linux path. Expected 'http://host:port/storages/path...'", Url, parsed.Path)
 		log.Printf(msg)
 		panic(msg)
 	}
+	if so == nil {
+		msg := fmt.Sprintf("Nil StorageObject for URL %q", Url)
+		panic(msg)
+	}
+	result, err := StorageObjectUrlToLinuxPath(so, Url)
+	if err != nil {
+		msg := fmt.Sprintf("Unable to translate URL %q into linux path via StorageObject %+v: %v", Url, so, err)
+		log.Printf(msg)
+		panic(msg)
+	}
+	return result
 }
 
 // Translates the arguments into a command line option, or empty string if the URL is discardable.
 //  ex. Translate("--outputtrcfile", "discard:", ) returns ""
 //  ex. Translate("--foo","file:/bar") returns "--foo /bar"
 // Otherwise return the flag with the translated path.
-func TranslateDiscardableUrl(option string, url string) string {
-	path := TranslateUrl(url)
+func TranslateDiscardableUrl(so *StorageObject, option string, url string) string {
+	path := TranslateUrl(so, url)
 	if path == "" {
 		return ""
 	} else if strings.Contains(option, "=") {
@@ -203,16 +216,18 @@ func WriteBasecallerBash(wr io.Writer, tc config.TopStruct, obj *SocketBasecalle
 	t := CreateTemplate(Template_basecaller, "")
 	kv := make(map[string]string)
 
-	socketIdInt, err := strconv.Atoi(SocketId)
-	if err != nil {
-		return err
+	var config_json_fn string
+	{
+		var outdir string
+		if DataDir != "" {
+			outdir = filepath.Join(DataDir, obj.Mid)
+		} else {
+			bazpath := TranslateUrl(so, obj.BazUrl)
+			outdir = filepath.Dir(bazpath)
+		}
+		os.MkdirAll(outdir, 0777)
+		config_json_fn = filepath.Join(outdir, obj.Mid+".basecaller.config.json")
 	}
-	sra := socketIdInt - 1 // for now
-	sraName := strconv.Itoa(sra)
-
-	outdir := filepath.Join(DataDir, sraName)
-	os.MkdirAll(outdir, 0777)
-	config_json_fn := filepath.Join(outdir, obj.Mid+".basecaller.config.json")
 
 	// translate PAWS API to smrt-basecaller API JSON. UGH.
 	var basecallerConfig SmrtBasecallerConfigObject
@@ -261,6 +276,7 @@ func WriteBasecallerBash(wr io.Writer, tc config.TopStruct, obj *SocketBasecalle
 
 	// Note: This file will be over-written on each call.
 
+	sra := SocketId2Sra(SocketId)
 	kv["sra"] = strconv.Itoa(sra)
 	numNumaNodes := 2 // FIXME This works for rt-8400* machines, but doesn't work for kos-dev01 for example.
 	numGpuNodes := 2  // FIXME
@@ -269,7 +285,6 @@ func WriteBasecallerBash(wr io.Writer, tc config.TopStruct, obj *SocketBasecalle
 	kv["gpu"] = strconv.Itoa(sra % numGpuNodes)
 	kv["config_json_fn"] = config_json_fn
 	kv["maxFrames"] = strconv.Itoa(int(obj.MovieMaxFrames))
-	kv["optDarkCalFileName"] = TranslateDiscardableUrl("--config dataSource.darkCalFileName=", obj.DarkCalFileUrl)
 
 	raw, err := json.Marshal(obj.PixelSpreadFunction)
 	if err != nil {
@@ -297,8 +312,10 @@ func WriteBasecallerBash(wr io.Writer, tc config.TopStruct, obj *SocketBasecalle
 		kv["optCrosstalkFilterKernel"] = ""
 	}
 	if !tc.Values.ApplyDarkCal {
-		log.Printf("WARNING: darkCallFileName is suppressed for basecaller.")
+		log.Printf("WARNING: darkCalFileName is suppressed for basecaller.")
 		kv["optDarkCalFileName"] = ""
+	} else {
+		kv["optDarkCalFileName"] = TranslateDiscardableUrl(so, "--config dataSource.darkCalFileName=", obj.DarkCalFileUrl)
 	}
 
 	// TODO: Fill these from tc.Values first?
@@ -306,7 +323,7 @@ func WriteBasecallerBash(wr io.Writer, tc config.TopStruct, obj *SocketBasecalle
 		kv["optTraceFile"] = ""
 		kv["optTraceFileRoi"] = ""
 	} else {
-		optTraceFile := TranslateDiscardableUrl("--outputtrcfile", obj.TraceFileUrl)
+		optTraceFile := TranslateDiscardableUrl(so, "--outputtrcfile", obj.TraceFileUrl)
 		kv["optTraceFile"] = optTraceFile
 
 		raw, err := json.Marshal(obj.TraceFileRoi)
@@ -318,12 +335,12 @@ func WriteBasecallerBash(wr io.Writer, tc config.TopStruct, obj *SocketBasecalle
 	if len(obj.BazUrl) == 0 {
 		kv["optOutputBazFile"] = ""
 	} else {
-		kv["optOutputBazFile"] = TranslateDiscardableUrl("--outputbazfile", obj.BazUrl)
+		kv["optOutputBazFile"] = TranslateDiscardableUrl(so, "--outputbazfile", obj.BazUrl)
 	}
 	if len(obj.LogUrl) == 0 {
 		kv["optLogOutput"] = ""
 	} else {
-		kv["optLogOutput"] = TranslateDiscardableUrl("--logoutput", obj.LogUrl)
+		kv["optLogOutput"] = TranslateDiscardableUrl(so, "--logoutput", obj.LogUrl)
 	}
 	if !strings.HasSuffix(kv["optLogOutput"], ".log") {
 		msg := fmt.Sprintf("ERROR! For smrt-basecaller, log output is %q but must end w/ '.log' (for now).",
@@ -403,19 +420,14 @@ func HasFullDataModel(content string) bool {
 	// https://jira.pacificbiosciences.com/browse/ICS-1079
 	return strings.Contains(content, "PacBioDataModel")
 }
-func HandleMetadata(content string, outputPrefix string) string {
-	var metadata_xml, arg string
+func HandleMetadata(fn string, content string) {
 	gotFullDataModel := HasFullDataModel(content)
 	if !gotFullDataModel {
-		metadata_xml = outputPrefix + ".metadata.subreadset.xml"
-		arg = "--subreadset " + metadata_xml
-	} else {
-		metadata_xml = outputPrefix + ".metadata.xml"
-		arg = "--metadata " + metadata_xml
+		msg := fmt.Sprintf("We no longer support the partial datamodel for metadata. We require 'PacBioDataModel', not just a subreadset.\n%s", content)
+		panic(msg)
 	}
-	log.Printf("Metadatafile:'%s'", metadata_xml)
-	WriteMetadata(metadata_xml, content)
-	return arg
+	log.Printf("Metadatafile: %q", fn)
+	WriteMetadata(fn, content)
 }
 func GetPostprimaryHostname(hostname string, rundir string) string {
 	if strings.HasPrefix(hostname, "rt") {
@@ -449,13 +461,21 @@ func DumpBasecallerScript(tc config.TopStruct, obj *SocketBasecallerObject, sid 
 	setup := ProcessSetupObject{
 		Tool: "smrt-basecaller",
 	}
+
+	// Choose and register any output paths first.
+	mid := obj.Mid
+	obj.BazUrl = ChooseUrlThenRegister(so, obj.BazUrl, StoragePathNrt, mid+".baz")
+	obj.LogUrl = ChooseUrlThenRegister(so, obj.LogUrl, StoragePathNrt, mid+".basecaller.log")
+	obj.TraceFileUrl = ChooseUrlThenRegister(so, obj.TraceFileUrl, StoragePathNrt, mid+".trc.h5")
+
+	// Now we can use the output Urls.
 	var rundir string
-	if obj.BazUrl != "discard:" && obj.BazUrl != "" {
-		rundir = filepath.Dir(TranslateUrl(obj.BazUrl))
-	} else if obj.TraceFileUrl != "discard:" && obj.TraceFileUrl != "" {
-		rundir = filepath.Dir(TranslateUrl(obj.TraceFileUrl))
+	if obj.BazUrl != "discard:" && obj.BazUrl != "/dev/null" {
+		rundir = filepath.Dir(TranslateUrl(so, obj.BazUrl))
+	} else if obj.TraceFileUrl != "discard:" && obj.TraceFileUrl != "/dev/null" {
+		rundir = filepath.Dir(TranslateUrl(so, obj.TraceFileUrl))
 	} else {
-		rundir = "/tmp"
+		rundir = filepath.Join("/tmp", "pawsgo", sid, obj.Mid)
 	}
 	setup.RunDir = rundir
 	setup.ScriptFn = filepath.Join(setup.RunDir, "run.basecaller.sh")
@@ -472,7 +492,17 @@ func DumpDarkcalScript(tc config.TopStruct, obj *SocketDarkcalObject, sid string
 	setup := ProcessSetupObject{
 		Tool: "darkcal",
 	}
-	rundir := filepath.Dir(TranslateUrl(obj.CalibFileUrl))
+	if so == nil {
+		panic(obj.CalibFileUrl)
+	}
+
+	// Choose and register any output paths first.
+	mid := obj.Mid
+	obj.CalibFileUrl = ChooseUrlThenRegister(so, obj.CalibFileUrl, StoragePathIcc, mid+".darkcal.h5")
+	obj.LogUrl = ChooseUrlThenRegister(so, obj.LogUrl, StoragePathIcc, mid+".darkcal.log")
+
+	// Now we can use the output Urls.
+	rundir := filepath.Dir(TranslateUrl(so, obj.CalibFileUrl))
 	setup.RunDir = rundir
 	setup.ScriptFn = filepath.Join(setup.RunDir, "run.darkcal.sh")
 	setup.Hostname = ""
@@ -484,11 +514,24 @@ func DumpDarkcalScript(tc config.TopStruct, obj *SocketDarkcalObject, sid string
 	DumpBash(setup, wr.String())
 	return setup
 }
+func UniqueLabel(so *StorageObject) string {
+	prev := so.Counter
+	so.Counter++
+	return fmt.Sprintf(".%02d", prev)
+}
 func DumpLoadingcalScript(tc config.TopStruct, obj *SocketLoadingcalObject, sid string, so *StorageObject) ProcessSetupObject {
 	setup := ProcessSetupObject{
 		Tool: "loadingcal",
 	}
-	rundir := filepath.Dir(TranslateUrl(obj.CalibFileUrl))
+
+	// Choose and register any output paths first.
+	mid := obj.Mid
+	ul := UniqueLabel(so)
+	obj.CalibFileUrl = ChooseUrlThenRegister(so, obj.CalibFileUrl, StoragePathIcc, mid+ul+".loadingcal.h5")
+	obj.LogUrl = ChooseUrlThenRegister(so, obj.LogUrl, StoragePathIcc, mid+ul+".loadingcal.log")
+
+	// Now we can use the output Urls.
+	rundir := filepath.Dir(TranslateUrl(so, obj.CalibFileUrl))
 	setup.RunDir = rundir
 	setup.ScriptFn = filepath.Join(setup.RunDir, "run.loadingcal.sh")
 	setup.Hostname = ""
@@ -504,7 +547,32 @@ func DumpPostprimaryScript(tc config.TopStruct, obj *PostprimaryObject, so *Stor
 	setup := ProcessSetupObject{
 		Tool: "ppa(baz2bam)",
 	}
-	rundir := filepath.Dir(TranslateUrl(obj.OutputPrefixUrl))
+
+	// Choose and register any output paths first.
+	mid := obj.Mid
+	obj.OutputPrefixUrl = ChooseUrlThenRegister(so, obj.OutputPrefixUrl, StoragePathIcc, mid)
+	obj.LogUrl = ChooseUrlThenRegister(so, obj.LogUrl, StoragePathIcc, mid+".baz2bam.log")
+	//log.Printf("OutputPrefixUrl: %q", obj.OutputPrefixUrl)
+
+	//obj.LogReducdStatsUrl = ChooseUrlThenRegister(so, obj.LogReduceStatsUrl, StoragePathIcc, mid+".reducestats.log")
+	//logoutput := TranslateUrl(so, obj.LogReduceStatsUrl)
+
+	OutputStatsH5Url := obj.OutputStatsH5Url
+	if OutputStatsH5Url == "" {
+		OutputStatsH5Url = obj.OutputPrefixUrl + ".sts.h5"
+	}
+	OutputStatsH5Url = ChooseUrlThenRegister(so, OutputStatsH5Url, StoragePathIcc, mid+".sts.h5")
+	obj.OutputStatsH5Url = OutputStatsH5Url
+	OutputReduceStatsH5Url := obj.OutputReduceStatsH5Url
+	if OutputReduceStatsH5Url == "" {
+		OutputReduceStatsH5Url = obj.OutputPrefixUrl + ".rsts.h5"
+	}
+	OutputReduceStatsH5Url = ChooseUrlThenRegister(so, OutputReduceStatsH5Url, StoragePathIcc, mid+".rsts.h5")
+	//log.Printf("OutputReduceStatsH5Url: %q", OutputReduceStatsH5Url)
+	obj.OutputReduceStatsH5Url = OutputReduceStatsH5Url
+
+	// Now we can use the output Urls.
+	rundir := filepath.Dir(TranslateUrl(so, obj.OutputPrefixUrl))
 	setup.RunDir = rundir
 	setup.ScriptFn = filepath.Join(setup.RunDir, "run.ppa.sh")
 	setup.Hostname = GetPostprimaryHostname(tc.Hostname, obj.BazFileUrl)
@@ -523,26 +591,24 @@ func DumpPostprimaryScript(tc config.TopStruct, obj *PostprimaryObject, so *Stor
 func WriteBaz2bamBash(wr io.Writer, tc config.TopStruct, obj *PostprimaryObject, so *StorageObject) error {
 	t := CreateTemplate(Template_baz2bam, "")
 	kv := make(map[string]string)
-	outputPrefix := obj.OutputPrefixUrl // TODO: Translate URL
+
+	// Now we can use the output Urls.
+	outputPrefix := TranslateUrl(so, obj.OutputPrefixUrl)
 	kv["outputPrefix"] = outputPrefix
-	outdir := filepath.Dir(outputPrefix)
-	if outdir == "" {
-		return errors.Errorf("Got empty dir for OutputPrefixUrl '%s'", outputPrefix)
+	{
+		outdir := filepath.Dir(outputPrefix)
+		if outdir == "" {
+			return errors.Errorf("Got empty dir for OutputPrefixUrl '%s'", outputPrefix)
+		}
+		os.MkdirAll(outdir, 0777)
 	}
-	os.MkdirAll(outdir, 0777)
-	kv["metadata"] = HandleMetadata(obj.SubreadsetMetadataXml, outputPrefix)
+	metadata_xml := outputPrefix + ".metadata.xml"
+	HandleMetadata(metadata_xml, obj.SubreadsetMetadataXml)
+	kv["metadata"] = "--metadata " + metadata_xml
 	kv["acqId"] = obj.Uuid
-	kv["bazFile"] = obj.BazFileUrl // TODO
+	kv["bazFile"] = TranslateUrl(so, obj.BazFileUrl)
 	loglevel := obj.LogLevel
-	logoutput := ""
-	if obj.LogUrl == "" {
-		logoutput = outputPrefix + ".baz2bam.log"
-	} else if obj.LogUrl == "discard:" {
-		logoutput = "/dev/null"
-		loglevel = Error
-	} else {
-		logoutput = obj.LogUrl // TODO
-	}
+	logoutput := TranslateUrl(so, obj.LogUrl)
 	if loglevel == "" {
 		kv["logfilter"] = ""
 	} else {
@@ -590,26 +656,18 @@ echo 'PA_PPA_STATUS {"counter":0,"counterMax":1,"stageName":"Bash","stageNumber"
 func WriteReduceStatsBash(wr io.Writer, tc config.TopStruct, obj *PostprimaryObject, so *StorageObject) error {
 	t := CreateTemplate(Template_reducestats, "")
 	kv := make(map[string]string)
-	// TODO: Urls
 
-	OutputStatsH5 := obj.OutputStatsH5Url
-	if OutputStatsH5 == "" {
-		OutputStatsH5 = obj.OutputPrefixUrl + ".sts.h5"
-	}
-	if OutputStatsH5 == "discard:" {
+	if obj.OutputStatsH5Url == "discard:" {
 		kv["OutputStatsH5"] = ""
 	} else {
-		kv["OutputStatsH5"] = "--input " + OutputStatsH5
+		kv["OutputStatsH5"] = "--input " + TranslateUrl(so, obj.OutputStatsH5Url)
+		// Output from baz2bam; Input for reducestats. But Output of PPA.
 	}
 
-	OutputReduceStatsH5 := obj.OutputReduceStatsH5Url
-	if OutputReduceStatsH5 == "" {
-		OutputReduceStatsH5 = obj.OutputPrefixUrl + ".rsts.h5"
-	}
-	if OutputReduceStatsH5 == "discard:" {
+	if obj.OutputReduceStatsH5Url == "discard:" {
 		kv["OutputReduceStatsH5"] = ""
 	} else {
-		kv["OutputReduceStatsH5"] = "--output " + OutputReduceStatsH5
+		kv["OutputReduceStatsH5"] = "--output " + TranslateUrl(so, obj.OutputReduceStatsH5Url)
 	}
 
 	ts := TemplateSub{
@@ -627,4 +685,15 @@ func CheckBaz2bam(tc config.TopStruct) {
 	captured := CaptureBash(call)
 	log.Printf("Captured:%s\n", captured)
 	os.Exit(0)
+}
+
+// TODO: reimplement
+func SocketId2Sra(socketId string) int {
+	socketIdInt, err := strconv.Atoi(socketId)
+	if err != nil {
+		msg := fmt.Sprintf("Must provide a valid socketId, not %q: %v", socketId, err)
+		panic(msg)
+	}
+	sra := socketIdInt - 1
+	return sra
 }

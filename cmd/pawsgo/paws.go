@@ -7,7 +7,6 @@ import (
 	"github.com/jessevdk/go-flags"
 	"io"
 	"io/fs"
-	"io/ioutil"
 	"log" // log.Fatal()
 	"net/http"
 	"path/filepath"
@@ -188,7 +187,8 @@ func ShowVersionAndExit() {
 type Opts struct {
 	CallVersion func()            `long:"version" description:"Show version"`
 	Port        int               `long:"port" default:"23632" description:"Port for REST calls"`
-	DataDir     string            `long:"data-dir" default:"" description:"(DEPRECATED) Directory for some outputs (usually under SRA subdir)"`
+	DataDir     string            `long:"data-dir" default:"" description:"(For testing) Directory for some temporary files. When '', use tool output dirs."`
+	Storage     string            `long:"storage" default:"" description:"Directory for storages, or '' to designate our standard combination of /data/nrta/SRA/, /data/nrtb/SRA/, and /data/icc/."`
 	Config      string            `long:"config" default:"" description:"Read paws config (JSON) from this file, to update default config."`
 	Set         map[string]string `long:"set" description:"Each '--set key:value' specifies a key/value override, applied after any '--config file'. (Note the colon ':'.) E.g. '--set PawsTimeoutMultiplier:100'"`
 	LogOutput   string            `long:"logoutput" default:"/var/log/pacbio/pa-wsgo/pa-wsgo.log" description:"Logfile output. We actually choose a unique name (maybe based on timestamp and pid), and symlink the named path to it. We avoid over-writing the pre-existing named path."`
@@ -251,12 +251,14 @@ func main() {
 	// Final config overrides.
 	config.UpdateTopFromMap(opts.Set)
 
-	if opts.DataDir == "" {
-		var err error
-		opts.DataDir, err = ioutil.TempDir("", "pawsgo.*.datadir")
-		check(err)
-		//defer os.RemoveAll(opts.DataDir)
+	if opts.Storage == "" {
+		log.Printf("Using nrts/icc for storage.")
+		web.RegisterStore(web.CreateDefaultStore())
+	} else {
+		log.Printf("Using specifc directory %q for storage.", opts.Storage)
+		web.RegisterStore(web.CreateMultiDirStoreFromOne(opts.Storage))
 	}
+
 	web.DataDir = opts.DataDir
 	log.Printf("DataDir='%s'\n", web.DataDir)
 

@@ -6,17 +6,20 @@ import (
 
 func TestStorageObjectUrlToLinuxPath(t *testing.T) {
 	m1234 := &StorageObject{
-		Mid:       "m1234",
-		RootUrl:   "http://localhost:23632/storages/m1234/files",
-		LinuxPath: "/data/nrta/0/m1234",
+		Mid:           "m1234",
+		RootUrl:       "http://localhost:23632/storages/m1234/files",
+		RootUrlPath:   "/storages/m1234/files",
+		LinuxNrtaPath: "/data/nrta/0/m1234",
+		UrlPath2Item:  make(map[string]*StorageItemObject),
 	}
 	{
-		url := "http://localhost:23632/storages/m1234/files/somefile.txt"
+		url := ChooseUrlThenRegister(m1234, "", StoragePathNrt, "somefile.txt")
+		//url := "http://localhost:23632/storages/m1234/files/somefile.txt"
 		actual, err := StorageObjectUrlToLinuxPath(m1234, url)
 		check(err)
 		expected := "/data/nrta/0/m1234/somefile.txt"
 		if actual != expected {
-			t.Errorf("Expected the linux path of %s to be %s but got %s!", url, expected, actual)
+			t.Errorf("Expected the linux path of %q to be %q but got %q!", url, expected, actual)
 		}
 	}
 	{
@@ -46,9 +49,11 @@ func TestStorageUrlToLinuxPath(t *testing.T) {
 	var state State
 	state.Storages = make(map[string]*StorageObject)
 	m1234 := &StorageObject{
-		Mid:       "m1234",
-		RootUrl:   "http://localhost:23632/storages/m1234/files",
-		LinuxPath: "/data/nrta/0/m1234",
+		Mid:           "m1234",
+		RootUrl:       "http://localhost:23632/storages/m1234/files",
+		RootUrlPath:   "/storages/m1234/files",
+		LinuxNrtaPath: "/data/nrta/0/m1234",
+		UrlPath2Item:  make(map[string]*StorageItemObject),
 	}
 	state.Storages["m1234"] = m1234
 	{
@@ -59,27 +64,37 @@ func TestStorageUrlToLinuxPath(t *testing.T) {
 		}
 	}
 	m5678 := &StorageObject{
-		Mid:       "m5678",
-		RootUrl:   "http://localhost:23632/storages/m5678/files",
-		LinuxPath: "/data/nrta/1/m5678",
+		Mid:           "m5678",
+		RootUrl:       "http://localhost:23632/storages/m5678/files",
+		RootUrlPath:   "/storages/m5678/files",
+		LinuxNrtaPath: "/data/nrta/1/m5678",
+		UrlPath2Item:  make(map[string]*StorageItemObject),
 	}
 	state.Storages["m5678"] = m5678
 	{
-		url := "http://localhost:23632/storages/m1234/files/somefile.txt"
+		url := ChooseUrlThenRegister(m1234, "", StoragePathNrt, "somefile.txt")
+		expectedUrl := "http://localhost:23632/storages/m1234/files/somefile.txt"
+		if url != expectedUrl {
+			t.Errorf("URL:\nGot %q\nNot %q", url, expectedUrl)
+		}
 		actual, err := StorageUrlToLinuxPath(url, &state)
 		check(err)
 		expected := "/data/nrta/0/m1234/somefile.txt"
 		if actual != expected {
-			t.Errorf("Expected the linux path of %s to be %s but got %s!", url, expected, actual)
+			t.Errorf("Expected the linux path of %q to be %q but got %q!", url, expected, actual)
 		}
 	}
 	{
-		url := "http://localhost:23632/storages/m5678/files/otherfile.txt"
+		url := ChooseUrlThenRegister(m5678, "", StoragePathNrt, "otherfile.txt")
+		expectedUrl := "http://localhost:23632/storages/m5678/files/otherfile.txt"
+		if url != expectedUrl {
+			t.Errorf("URL:\nGot %q\nNot %q", url, expectedUrl)
+		}
 		actual, err := StorageUrlToLinuxPath(url, &state)
 		check(err)
 		expected := "/data/nrta/1/m5678/otherfile.txt"
 		if actual != expected {
-			t.Errorf("Expected the linux path of %s to be %s but got %s!", url, expected, actual)
+			t.Errorf("Expected the linux path of %q to be %q but got %q!", url, expected, actual)
 		}
 	}
 	{

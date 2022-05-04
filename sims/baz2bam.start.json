@@ -1,9 +1,9 @@
 {
     "mid": "m123",
     "uuid": "MyUuid",
-    "bazFileUrl": "tmp/foo.baz",
-    "outputPrefixUrl": "tmp/out",
-    "logUrl": "tmp/log.baz2bam.txt",
-    "subreadsetMetadataXml": "<SubreadSet></SubreadSet>",
+    "bazFileUrl": "http://hostname/storages/m123/files/foo.baz",
+    "outputPrefixUrl": "http://hostname/storages/m123/files/m123",
+    "logUrl": "http://hostname/storages/m123/files/m123.baz2bam.log",
+    "subreadsetMetadataXml": "<PacBioDataModel></PacBioDataModel>",
     "logLevel": "INFO"
 }

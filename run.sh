@@ -11,13 +11,11 @@ F="-i -f"
 # This gives: "Nothing sent to systemd watchdog. dial unixgram /tmp/kpaws.sock: connect: protocol wrong type for socket"
 
 curl -i -X PUT $E/feed-watchdog
-curl $f -X GET $E/status
-curl $f -X GET $E/sockets
+curl -i -X GET $E/status
+curl -i -X GET $E/sockets
 # Should print [1,2,3,4] quoted.
 
-curl $F -X POST -d @sims/storages.simple.json $E/storages
-# No-op for now.
-
+curl -i -X POST -d @sims/storages.simple.json $E/storages
 
 # darkcalFileUrl=file:/data/nrta/0/darkcal.h5
 #curl $F -X POST -d '{"calibFileUrl": ""}' $E/sockets/1/darkcal/start
@@ -42,7 +40,7 @@ curl $F -X POST $E/sockets/1/loadingcal/reset
 curl $F -X GET $E/sockets/1/loadingcal
 
 curl $F -X GET $E/sockets/1/basecaller
-curl $F -X POST -d @sims/basecaller.start.json $E/sockets/1/basecaller/start
+curl -i -X POST -d @sims/basecaller.start.json $E/sockets/1/basecaller/start
 curl $F -X GET $E/sockets/1/basecaller
 sleep 0.1
 curl $F -X GET $E/sockets/1/basecaller
