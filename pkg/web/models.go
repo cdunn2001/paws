@@ -430,7 +430,7 @@ type StorageObject struct {
 
 	Counter int
 
-	Files        []*StorageItemObject          `json:"files"`
+	//Files        []*StorageItemObject          `json:"files"`
 	UrlPath2Item map[string]*StorageItemObject `json:"urlPath2Item"`
 	//LinuxPath2Item map[string]*StorageItemObject `json:"linuxPath2Item"`
 	Space         []StorageDiskReportObject `json:"space"`

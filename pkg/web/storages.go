@@ -36,6 +36,18 @@ func CreatePathIfNeeded(path string) {
 		panic(msg)
 	}
 }
+func DeletePathIfExists(path string) {
+	log.Printf("DeletePathIfNeeded(%q)\n", path)
+	base := filepath.Base(path)
+	if !strings.HasPrefix(base, "m") {
+		log.Printf("For safety, we do not RemoveAll for a directory that does not start with 'm'. (%q)\n", path)
+		return
+	}
+	err := os.RemoveAll(path)
+	if err != nil {
+		log.Printf("WARNING: Failed to remove directory %q: %v", path, err)
+	}
+}
 
 var DefaultStorageRootNrta string = "/data/nrta"
 var DefaultStorageRootNrtb string = "/data/nrtb"
@@ -129,6 +141,10 @@ func (self *MultiDirStore) AcquireStorageObject(mid string) *StorageObject {
 		LinuxNrtPath: filepath.Join(nrtDir, partition, mid),
 		UrlPath2Item: make(map[string]*StorageItemObject),
 	}
+	// To start fresh. Also, we can allow debug logs to linger. But we can also drop this.
+	DeletePathIfExists(obj.LinuxIccPath)
+	DeletePathIfExists(obj.LinuxNrtPath)
+
 	CreatePathIfNeeded(obj.LinuxIccPath)
 	CreatePathIfNeeded(obj.LinuxNrtPath)
 	os.MkdirAll(obj.LinuxIccPath, 0777)
@@ -138,20 +154,18 @@ func (self *MultiDirStore) AcquireStorageObject(mid string) *StorageObject {
 	return obj
 }
 func (self *MultiDirStore) Free(obj *StorageObject) {
-	for _, sio := range obj.Files {
+	for _, sio := range obj.UrlPath2Item {
 		url := sio.Url
-		fn, err := StorageObjectUrlToLinuxPath(obj, url)
-		if err != nil {
-			log.Printf("WARNING: Failed to convert URL %q to LinuxPath: %v.\n  Cannot remove from disk.", url, err)
-			continue
-		}
+		fn := sio.LinuxPath
 		log.Printf("Removing %q (%s)", fn, url)
-		err = os.Remove(fn)
+		err := os.Remove(fn)
 		if err != nil {
 			log.Printf("WARNING: Failed to remove %q: %v", fn, err)
 		}
 	}
-	obj.Files = obj.Files[:0]
+	obj.UrlPath2Item = nil // len() is still valid.
+	DeletePathIfExists(obj.LinuxIccPath)
+	DeletePathIfExists(obj.LinuxNrtPath)
 }
 
 // Currently only used for tests.
@@ -215,8 +229,8 @@ func deleteStorageByMid(c *gin.Context, state *State) {
 		c.String(http.StatusOK, "The storage for mid '%s' was not found. Must have been deleted already, which is fine.\n", mid)
 		return
 	}
-	if len(obj.Files) != 0 {
-		c.String(http.StatusConflict, "For mid '%s', %d files have not been freed.\n", mid, len(obj.Files))
+	if len(obj.UrlPath2Item) != 0 {
+		c.String(http.StatusConflict, "For mid '%s', %d files have not been freed.\n", mid, len(obj.UrlPath2Item))
 		return
 	}
 	delete(state.Storages, mid)

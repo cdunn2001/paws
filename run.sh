@@ -56,6 +56,9 @@ curl $F -X GET $E/postprimaries
 
 curl $f -X GET $E/sockets/1
 
+curl -i -X POST $E/storages/m123/free
+curl -i -X DELETE $E/storages/m123
+
 exit 0
 ###
 # Stall the processes so we have time to stop them while RUNNING.
