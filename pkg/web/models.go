@@ -401,6 +401,10 @@ type StorageObject struct {
 	// Example: m123456_987654
 	Mid string `json:"mid"`
 
+	// The socket identifier, typically "1" thru "4". Used to created this object.
+	// Example: 2
+	SocketId string `json:"socketId"`
+
 	// symbolic link to storage directory which points back to this StorageObject
 	// Example: http://localhost:23632/storages/m123456_987654
 	RootUrl string `json:"rootUrl"`
@@ -410,9 +414,10 @@ type StorageObject struct {
 
 	// physical path to storage directory (should only be used for debugging and logging)
 	// Example: file:/data/pa/m123456_987654
-	LinuxIccPath  string
-	LinuxNrtaPath string
-	LinuxNrtbPath string
+	LinuxIccPath string
+	LinuxNrtPath string
+	//LinuxNrtaPath string
+	//LinuxNrtbPath string
 
 	// Destination URL for the log file. Logging happens during construction and freeing.
 	// Example: http://localhost:23632/storages/m123456_987654/storage.log

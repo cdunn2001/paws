@@ -1,16 +1,17 @@
 package web
 
 import (
+	"path/filepath"
 	"testing"
 )
 
 func TestStorageObjectUrlToLinuxPath(t *testing.T) {
 	m1234 := &StorageObject{
-		Mid:           "m1234",
-		RootUrl:       "http://localhost:23632/storages/m1234/files",
-		RootUrlPath:   "/storages/m1234/files",
-		LinuxNrtaPath: "/data/nrta/0/m1234",
-		UrlPath2Item:  make(map[string]*StorageItemObject),
+		Mid:          "m1234",
+		RootUrl:      "http://localhost:23632/storages/m1234/files",
+		RootUrlPath:  "/storages/m1234/files",
+		LinuxNrtPath: "/data/nrta/0/m1234",
+		UrlPath2Item: make(map[string]*StorageItemObject),
 	}
 	{
 		url := ChooseUrlThenRegister(m1234, "", StoragePathNrt, "somefile.txt")
@@ -49,11 +50,11 @@ func TestStorageUrlToLinuxPath(t *testing.T) {
 	var state State
 	state.Storages = make(map[string]*StorageObject)
 	m1234 := &StorageObject{
-		Mid:           "m1234",
-		RootUrl:       "http://localhost:23632/storages/m1234/files",
-		RootUrlPath:   "/storages/m1234/files",
-		LinuxNrtaPath: "/data/nrta/0/m1234",
-		UrlPath2Item:  make(map[string]*StorageItemObject),
+		Mid:          "m1234",
+		RootUrl:      "http://localhost:23632/storages/m1234/files",
+		RootUrlPath:  "/storages/m1234/files",
+		LinuxNrtPath: "/data/nrta/0/m1234",
+		UrlPath2Item: make(map[string]*StorageItemObject),
 	}
 	state.Storages["m1234"] = m1234
 	{
@@ -64,11 +65,11 @@ func TestStorageUrlToLinuxPath(t *testing.T) {
 		}
 	}
 	m5678 := &StorageObject{
-		Mid:           "m5678",
-		RootUrl:       "http://localhost:23632/storages/m5678/files",
-		RootUrlPath:   "/storages/m5678/files",
-		LinuxNrtaPath: "/data/nrta/1/m5678",
-		UrlPath2Item:  make(map[string]*StorageItemObject),
+		Mid:          "m5678",
+		RootUrl:      "http://localhost:23632/storages/m5678/files",
+		RootUrlPath:  "/storages/m5678/files",
+		LinuxNrtPath: "/data/nrta/1/m5678",
+		UrlPath2Item: make(map[string]*StorageItemObject),
 	}
 	state.Storages["m5678"] = m5678
 	{
@@ -115,4 +116,50 @@ func TestStorageUrlToLinuxPath(t *testing.T) {
 			t.Errorf("Expected the linux path of %s to be %s but got %s!", url, expected, actual)
 		}
 	}
+}
+func TestNextPartition(t *testing.T) {
+	try := func(arg, expected string) {
+		got := NextPartition(arg)
+		if got != expected {
+			t.Errorf("\nGot: %q\nNot: %q", got, expected)
+		}
+	}
+	try("0", "1")
+	try("1", "2")
+	try("2", "3")
+	try("3", "0")
+	try("", "0")
+}
+func TestAcquireStorageObject(t *testing.T) {
+	// This call creates directories, so we need to use testtmpdir.
+
+	store := &MultiDirStore{
+		NrtaDir:       filepath.Join(testtmpdir, "nrta"),
+		NrtbDir:       filepath.Join(testtmpdir, "nrtb"),
+		IccDir:        filepath.Join(testtmpdir, "icc"),
+		LastPartition: "",
+		LastNrt:       "",
+	}
+	try := func(expectedNrtDir, expectedPartition, mid string) {
+		so := store.AcquireStorageObject(mid)
+		expectedNrtPath := filepath.Join(expectedNrtDir, expectedPartition, mid)
+		actualNrtPath := so.LinuxNrtPath
+		if actualNrtPath != expectedNrtPath {
+			t.Errorf("Actual %q != %q expected", actualNrtPath, expectedNrtPath)
+		}
+		expectedIccPath := filepath.Join(store.IccDir, mid)
+		actualIccPath := so.LinuxIccPath
+		if actualIccPath != expectedIccPath {
+			t.Errorf("Actual %q != %q expected", actualIccPath, expectedIccPath)
+		}
+	}
+	try(store.NrtaDir, "0", "m123")
+	try(store.NrtbDir, "0", "m123")
+	try(store.NrtaDir, "1", "m123")
+	try(store.NrtbDir, "1", "m123")
+	try(store.NrtaDir, "2", "m123")
+	try(store.NrtbDir, "2", "m123")
+	try(store.NrtaDir, "3", "m123")
+	try(store.NrtbDir, "3", "m123")
+	try(store.NrtaDir, "0", "m123")
 }
