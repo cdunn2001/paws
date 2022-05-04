@@ -204,6 +204,7 @@ type SocketBasecallerObject struct {
 
 	// Source URL for the file to use for transmission of simulated data. Only local files are supported currently.
 	// Example: file://localhost/data/pa/sample_file.trc.h5
+	// TODO: We do not use or assign this at all yet.
 	SimulationFileUrl string `json:"simulationFileUrl"`
 
 	// SmrtBasecallerConfig. Passed to smrt_basecaller --config. TODO: This will be a JSON object, but is a string here as a placeholder.

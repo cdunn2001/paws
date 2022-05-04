@@ -132,6 +132,9 @@ const (
 {"uuid":"eea6a94e-8e8b-4203-9844-8540d49662a8",
 "bazUrl":"/data/nrta/3/m123/m123.baz",
 "traceFileUrl":"file:/data/nrta/3/m123/m123.trc.h5",
+"RtMetrics": {
+  "Url":"file:/data/nrta/3/m123/m123.rtmetrics.json"
+ },
 "darkcalFileUrl":"file:/data/nrta/3/m123/m123.darkcal_220325_032954.h5",
 "chiplayout":"Spider_1p0_NTO",
 "pixelSpreadFunction":[[0.0009999999,0.00390000013,0.00735,0.0044,0.00195000006],[0.00199999986,0.0201000012,0.05845,0.02015,0.0049],[0.0055,0.0528,0.634799957,0.04755,0.0088],[0.00445,0.021949999,0.0569000021,0.02155,0.0035],
@@ -186,6 +189,7 @@ smrt-basecaller-launch.sh \
   --outputtrcfile /data/nrta/3/m123/m123.trc.h5 \
   --config traceSaver.roi='[[135,288,1,32],[135,768,1,32],[135,1248,1,32],[135,1728,1,32],[405,288,1,32],[405,768,1,32],[405,1248,1,32],[405,1728,1,32],[675,288,1,32],[675,768,1,32],[675,1248,1,32],[675,1728,1,32],[945,288,1,32],[945,768,1,32],[945,1248,1,32],[945,1728,1,32]]' \
   --outputbazfile /data/nrta/3/m123/m123.baz \
+  --config realTimeMetrics.rtMetricsFile=/data/nrta/3/m123/m123.rtmetrics.json \
   --config /tmp/pawsgo/TestWriteBasecallerBash/m123/m123.basecaller.config.json \
   --config source.WXIPCDataSourceConfig.sraIndex=3 \
   --config dataSource.darkCalFileName=/data/nrta/3/m123/m123.darkcal_220325_032954.h5 \
@@ -281,6 +285,7 @@ smrt-basecaller-launch.sh \
    \
    \
   --outputbazfile /data/nrta/3/m123/m123.baz \
+  --config realTimeMetrics.rtMetricsFile=/data/nrta/3/m123/m123.rtmetrics.json \
   --config /tmp/pawsgo/TestWriteBasecallerBash/m123/m123.basecaller.config.json \
   --config source.WXIPCDataSourceConfig.sraIndex=2 \
   --config dataSource.darkCalFileName=/data/nrta/3/m123/m123.darkcal_220325_032954.h5 \
