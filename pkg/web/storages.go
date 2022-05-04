@@ -38,6 +38,11 @@ func CreatePathIfNeeded(path string) {
 }
 func DeletePathIfExists(path string) {
 	log.Printf("DeletePathIfNeeded(%q)\n", path)
+	base := filepath.Base(path)
+	if !strings.HasPrefix(base, "m") {
+		log.Printf("For safety, we do not RemoveAll for a directory that does not start with 'm'. (%q)\n", path)
+		return
+	}
 	err := os.RemoveAll(path)
 	if err != nil {
 		log.Printf("WARNING: Failed to remove directory %q: %v", path, err)
