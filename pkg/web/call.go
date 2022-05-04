@@ -185,6 +185,14 @@ func WriteStringToFile(content string, fn string) {
 	log.Printf("Wrote to %q:\n%s\n", fn, content)
 	check(err)
 }
+func ReadStringFromFile(fn string) string {
+	content, err := ioutil.ReadFile(fn)
+	if err != nil {
+		msg := fmt.Sprintf("Failed to read from file %q.", fn)
+		panic(msg)
+	}
+	return string(content)
+}
 
 // date --utc +%Y%m%dT%TZ
 //TIMESTAMP="20220223T146198.099Z" # arbitrary

@@ -136,6 +136,8 @@ func AddRoutes(router *gin.Engine) {
 	router.DELETE("/postprimaries/:mid", SafeState(deletePostprimaryByMid))
 	router.POST("/postprimaries/:mid/stop", SafeState(stopPostprimaryByMid))
 
+	router.GET("/sockets/:id/rtmetrics", SafeState(getRtmetricsBySocketId))
+
 	router.GET("/dashboard", func(c *gin.Context) {
 		c.Data(http.StatusOK, "text/html", dashboardString)
 	})
@@ -585,6 +587,27 @@ func deletePostprimaries(c *gin.Context, state *State) {
 		delete(state.Postprimaries, mid)
 	}
 	c.String(http.StatusOK, "All postprimary resources were successfully deleted.\n")
+}
+
+// Return exact contents of rtmetrics file.
+// Assume Basecaller is running.
+func getRtmetricsBySocketId(c *gin.Context, state *State) {
+	id := c.Param("id")
+	obj, found := state.Basecallers[id]
+	if !found {
+		c.String(http.StatusNotFound, "RtMetrics not available. The basecaller process for SocketId '%s' was not found.\n", id)
+		return
+	}
+	so := GetStorageObjectForMid(state.Store, obj.Mid, state)
+	if so == nil {
+		msg := fmt.Sprintf("In getRtmetricsByMid(), could not find StorageObject for mid %q", obj.Mid)
+		c.String(http.StatusNotFound, msg) // not sure if this is correct code
+		return
+	}
+	url := obj.RtMetrics.Url
+	fn := TranslateUrl(so, url)
+	content := ReadStringFromFile(fn)
+	c.String(http.StatusOK, content)
 }
 
 // Returns the postprimary object by MID.
