@@ -41,6 +41,8 @@ curl $F -X GET $E/sockets/1/loadingcal
 
 curl $F -X GET $E/sockets/1/basecaller
 curl -i -X POST -d @sims/basecaller.start.json $E/sockets/1/basecaller/start
+echo "SOME RTMETRICS" >| tmp/storage/nrta/0/m123/m123.rtmetrics.json
+curl $F -X GET $E/sockets/1/rtmetrics
 curl $F -X GET $E/sockets/1/basecaller
 sleep 0.1
 curl $F -X GET $E/sockets/1/basecaller
@@ -56,8 +58,8 @@ curl $F -X GET $E/postprimaries
 
 curl $f -X GET $E/sockets/1
 
-curl -i -X POST $E/storages/m123/free
-curl -i -X DELETE $E/storages/m123
+#curl -i -X POST $E/storages/m123/free
+#curl -i -X DELETE $E/storages/m123
 
 exit 0
 ###
