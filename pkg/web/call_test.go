@@ -1,6 +1,7 @@
 package web
 
 import (
+	"github.com/stretchr/testify/assert"
 	"log"
 	"os"
 	"testing"
@@ -24,9 +25,7 @@ func requireFile(fn string) {
 func TestPlus1(t *testing.T) {
 	// Just an example.
 	got := plus1(2)
-	if got != 3 {
-		t.Errorf("Got %d", got)
-	}
+	assert.Equal(t, 3, got)
 }
 func TestRunBash(t *testing.T) {
 	// We might not use this, but it works.
@@ -36,9 +35,7 @@ func TestRunBash(t *testing.T) {
 		"STATUS_DELAY_SECONDS=.1",
 	}
 	got := RunBash(bash, env)
-	if got != nil {
-		t.Errorf("Got %d", got)
-	}
+	assert.Nil(t, got)
 }
 func TestStartControlledShellProcessSsh(t *testing.T) {
 	bash := testdataDir + "/dummy-basic.sh --status-fd 2"
@@ -65,9 +62,7 @@ func TestStartControlledShellProcessSsh(t *testing.T) {
 	}
 	log.Printf("Done '%s'!\n", cp.cmd)
 	code := ps.ExitCode
-	if code != 0 {
-		t.Errorf("Expected 0, got exit-code %d", code)
-	}
+	assert.Equal(t, int32(0), code, "(from timeout)")
 }
 func TestWatchBashStderrSucceed(t *testing.T) {
 	bash := testdataDir + "/dummy-basic.sh --status-fd 2"
@@ -78,21 +73,16 @@ func TestWatchBashStderrSucceed(t *testing.T) {
 	}
 	ps := &ProcessStatusObject{}
 	cp, err := WatchBashStderr(bash, ps, env, "dummy-basic")
-	if err != nil {
-		t.Errorf("Got %d", err)
-	}
+	assert.Nil(t, err)
+
 	log.Printf("Waiting for chanComplete '%s'?", cp.cmd)
 	select {
 	case <-cp.chanComplete:
 	}
 	log.Printf("Done '%s'!\n", cp.cmd)
 	code := ps.ExitCode
-	if code != 0 {
-		t.Errorf("Expected 0, got exit-code %d", code)
-	}
-	if ps.Armed {
-		t.Errorf("ProcessStatus.Armed should be false when the process completes.")
-	}
+	assert.Equal(t, int32(0), code, "(from timeout)")
+	assert.False(t, ps.Armed, "ProcessStatus.Armed should be false when the process completes.")
 }
 func TestWatchBashSucceed(t *testing.T) {
 	bash := testdataDir + "/dummy-basic.sh --status-fd 3"
@@ -103,21 +93,16 @@ func TestWatchBashSucceed(t *testing.T) {
 	}
 	ps := &ProcessStatusObject{}
 	cp, err := WatchBash(bash, ps, env, "dummy-basic")
-	if err != nil {
-		t.Errorf("Got %d", err)
-	}
+	assert.Nil(t, err)
+
 	log.Printf("Waiting for chanComplete '%s'?", cp.cmd)
 	select {
 	case <-cp.chanComplete:
 	}
 	log.Printf("Done '%s'!\n", cp.cmd)
 	code := ps.ExitCode
-	if code != 0 {
-		t.Errorf("Expected 0, got exit-code %d", code)
-	}
-	if ps.Armed {
-		t.Errorf("ProcessStatus.Armed should be false when the process completes.")
-	}
+	assert.Equal(t, int32(0), code, "(from timeout)")
+	assert.False(t, ps.Armed, "ProcessStatus.Armed should be false when the process completes.")
 }
 func TestWatchBashStderrKill(t *testing.T) {
 	bash := testdataDir + "/dummy-basic.sh --status-fd 2"
@@ -128,21 +113,16 @@ func TestWatchBashStderrKill(t *testing.T) {
 	}
 	ps := &ProcessStatusObject{}
 	cp, err := WatchBashStderr(bash, ps, env, "dummy-basic")
-	if err != nil {
-		t.Errorf("Got %d", err)
-	}
+	assert.Nil(t, err)
+
 	log.Printf("Waiting for chanComplete '%s'?", cp.cmd)
 	select {
 	case <-cp.chanComplete:
 	}
 	log.Printf("Done '%s'!\n", cp.cmd)
 	code := ps.ExitCode
-	if code != -1 {
-		t.Errorf("Expected -1 (from timeout), got exit-code %d", code)
-	}
-	if ps.Armed {
-		t.Errorf("ProcessStatus.Armed should be false when the process completes.")
-	}
+	assert.Equal(t, int32(-1), code, "(from timeout)")
+	assert.False(t, ps.Armed, "ProcessStatus.Armed should be false when the process completes.")
 }
 func TestWatchBashKill(t *testing.T) {
 	bash := testdataDir + "/dummy-basic.sh --status-fd 3"
@@ -153,61 +133,45 @@ func TestWatchBashKill(t *testing.T) {
 	}
 	ps := &ProcessStatusObject{}
 	cp, err := WatchBash(bash, ps, env, "dummy-basic")
-	if err != nil {
-		t.Errorf("Got %d", err)
-	}
+	assert.Nil(t, err)
+
 	log.Printf("Waiting for chanComplete '%s'?", cp.cmd)
 	select {
 	case <-cp.chanComplete:
 	}
 	log.Printf("Done '%s'!\n", cp.cmd)
 	code := ps.ExitCode
-	if code != -1 {
-		t.Errorf("Expected -1 (from timeout), got exit-code %d", code)
-	}
-	if ps.Armed {
-		t.Errorf("ProcessStatus.Armed should be false when the process completes.")
-	}
+	assert.Equal(t, int32(-1), code, "(from timeout)")
+	assert.False(t, ps.Armed, "ProcessStatus.Armed should be false when the process completes.")
 }
 func TestString2StatusReport(t *testing.T) {
 	{
-		sr, err := String2StatusReport(`BLAH BLAH BLAH`)
-		if err == nil {
-			t.Errorf("Expected err; Got %v", sr)
-		}
+		s := `BLAH BLAH BLAH`
+		sr, err := String2StatusReport(s)
+		assert.NotNil(t, err, "Expected err for %q from %v", s, sr)
 	}
 	{
-		sr, err := String2StatusReport(`+ X_STATUS {"counter": 123}`)
-		if err == nil {
-			t.Errorf("Expected err; Got %v", sr)
-		}
+		s := `+ X_STATUS {"counter": 123}`
+		sr, err := String2StatusReport(s)
+		assert.NotNil(t, err, "Expected err for %q from %v", s, sr)
 	}
 	{
 		sr, err := String2StatusReport(`X_STATUS {"counter": 123}`)
-		check(err)
-		if sr.State == "exception" {
-			t.Errorf("Got %v", sr)
-		} else if sr.Counter != 123 {
-			t.Errorf("Got %d", sr.Counter)
-		}
+		assert.Nil(t, err)
+		assert.NotEqual(t, "exception", sr.State)
+		assert.Equal(t, uint64(123), sr.Counter, "Counter")
 	}
 	{
 		sr, err := String2StatusReport(`X_STATUS {"state": "exception", "message": "HELLO"}`)
-		check(err)
-		if sr.State != "exception" {
-			t.Errorf("Got %v", sr)
-		} else if sr.Message != "HELLO" {
-			t.Errorf("Got %s", sr.Message)
-		}
+		assert.Nil(t, err)
+		assert.Equal(t, "exception", sr.State)
+		assert.Equal(t, "HELLO", sr.Message, "Message")
 	}
 	{
 		sr, err := String2StatusReport(`PA_BASECALLER_STATUS {"counter":0,"counterMax":1,"ready":false,"stageName":"StartUp","stageNumber":0,"stageWeights":[10, 80, 10],"state":"progress","timeStamp":"2022-03-21T23:27:40Z","timeoutForNextStatus":300}`)
-		check(err)
-		if sr.State == "exception" {
-			t.Errorf("Got %v", sr)
-		} else if sr.TimeoutForNextStatus != 300 {
-			t.Errorf("Got TimeoutForNextStatus=%f", sr.TimeoutForNextStatus)
-		}
+		assert.Nil(t, err)
+		assert.NotEqual(t, "exception", sr.State)
+		assert.Equal(t, 300.0, sr.TimeoutForNextStatus, "TimeoutForNextStatus")
 	}
 }
 func TestTimestamp(t *testing.T) {
@@ -215,33 +179,25 @@ func TestTimestamp(t *testing.T) {
 	sample := "Fri Sep 23 2017 15:38:22 GMT+0630"
 	expected := "2017-09-23T09:08:22Z"
 	tt, err := time.Parse(layout, sample)
-	check(err)
+	assert.Nil(t, err)
 	ts := Timestamp(tt)
-	if ts != expected {
-		t.Errorf("Got %v", ts)
-	}
+	assert.Equal(t, expected, ts)
 }
 func TestFirstWord(t *testing.T) {
 	{
 		got := FirstWord("hello world")
 		expected := "hello"
-		if got != expected {
-			t.Errorf("Got '%v', expected '%v'", got, expected)
-		}
+		assert.Equal(t, expected, got)
 	}
 	{
 		got := FirstWord(" after space ")
 		expected := "after"
-		if got != expected {
-			t.Errorf("Got '%v', expected '%v'", got, expected)
-		}
+		assert.Equal(t, expected, got)
 	}
 	{
 		got := FirstWord("")
 		expected := ""
-		if got != expected {
-			t.Errorf("Got '%v', expected '%v'", got, expected)
-		}
+		assert.Equal(t, expected, got)
 	}
 }
 func TestProgressMetricsObjectFromStatusReport(t *testing.T) {
@@ -253,12 +209,8 @@ func TestProgressMetricsObjectFromStatusReport(t *testing.T) {
 		}
 		expected := ProgressMetricsObject{}
 		got := ProgressMetricsObjectFromStatusReport(sr)
-		if got.StageProgress != expected.StageProgress {
-			t.Errorf("Got StageProgress '%v', expected '%v'", got.StageProgress, expected.StageProgress)
-		}
-		if got.NetProgress != expected.NetProgress {
-			t.Errorf("Got NetProgress '%v', expected '%v'", got.NetProgress, expected.NetProgress)
-		}
+		assert.Equal(t, expected.StageProgress, got.StageProgress, "StageProgress from %v", sr)
+		assert.Equal(t, expected.NetProgress, got.NetProgress, "NetProgress from %v", sr)
 	}
 	{
 		sr := StatusReport{
@@ -272,12 +224,8 @@ func TestProgressMetricsObjectFromStatusReport(t *testing.T) {
 			NetProgress:   0.995,
 		}
 		got := ProgressMetricsObjectFromStatusReport(sr)
-		if got.StageProgress != expected.StageProgress {
-			t.Errorf("Got StageProgress '%v', expected '%v'", got.StageProgress, expected.StageProgress)
-		}
-		if got.NetProgress != expected.NetProgress {
-			t.Errorf("Got NetProgress '%v', expected '%v'", got.NetProgress, expected.NetProgress)
-		}
+		assert.Equal(t, expected.StageProgress, got.StageProgress, "StageProgress from %v", sr)
+		assert.Equal(t, expected.NetProgress, got.NetProgress, "NetProgress from %v", sr)
 	}
 }
 func TestSplitExt(t *testing.T) {
@@ -285,55 +233,39 @@ func TestSplitExt(t *testing.T) {
 		gotBase, gotExt := SplitExt("foo.bar.baz")
 		expectedBase := "foo.bar"
 		expectedExt := ".baz"
-		if gotBase != expectedBase {
-			t.Errorf("Got Base '%v', expected '%v'", gotBase, expectedBase)
-		}
-		if gotExt != expectedExt {
-			t.Errorf("Got Ext '%v', expected '%v'", gotExt, expectedExt)
-		}
+		assert.Equal(t, expectedBase, gotBase)
+		assert.Equal(t, expectedExt, gotExt)
 	}
 	{
 		gotBase, gotExt := SplitExt("fubar")
 		expectedBase := "fubar"
 		expectedExt := ""
-		if gotBase != expectedBase {
-			t.Errorf("Got Base '%v', expected '%v'", gotBase, expectedBase)
-		}
-		if gotExt != expectedExt {
-			t.Errorf("Got Ext '%v', expected '%v'", gotExt, expectedExt)
-		}
+		assert.Equal(t, expectedBase, gotBase)
+		assert.Equal(t, expectedExt, gotExt)
 	}
 	{
 		gotBase, gotExt := SplitExt(".snafu")
 		expectedBase := ""
 		expectedExt := ".snafu"
-		if gotBase != expectedBase {
-			t.Errorf("Got Base '%v', expected '%v'", gotBase, expectedBase)
-		}
-		if gotExt != expectedExt {
-			t.Errorf("Got Ext '%v', expected '%v'", gotExt, expectedExt)
-		}
+		assert.Equal(t, expectedBase, gotBase)
+		assert.Equal(t, expectedExt, gotExt)
 	}
 }
 func TestChooseLoggerFilenameTestable(t *testing.T) {
 	{
 		mytime, err := time.Parse("Jan 2 15:04:05 2006 MST", "Jan 2 15:04:05 2006 MST")
-		check(err)
+		assert.Nil(t, err)
 		got := chooseLoggerFilenameTestable("foo.log", mytime, 123)
 		expected := "foo.06-01-02.123.log"
-		if got != expected {
-			t.Errorf("Got '%v', expected '%v'", got, expected)
-		}
+		assert.Equal(t, expected, got)
 	}
 }
 func TestChooseLoggerFilenameLegacyTestable(t *testing.T) {
 	{
 		mytime, err := time.Parse("Jan 2 15:04:05 2006 MST", "Jan 2 15:04:05 2006 MST")
-		check(err)
+		assert.Nil(t, err)
 		got := chooseLoggerFilenameLegacyTestable("foo.log", mytime)
 		expected := "foo.06-01-02.log"
-		if got != expected {
-			t.Errorf("Got '%v', expected '%v'", got, expected)
-		}
+		assert.Equal(t, expected, got)
 	}
 }

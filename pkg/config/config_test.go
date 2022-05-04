@@ -3,13 +3,12 @@ package config
 import (
 	//"bytes"
 	//"strings"
+	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
 func Expect(t *testing.T, expected string, got string) {
-	if got != expected {
-		t.Errorf("Expected:\n%#v\nGot:\n%#v", expected, got)
-	}
+	assert.Equal(t, expected, got)
 }
 
 var sample_json string = `
@@ -76,9 +75,7 @@ func TestString2Bool(t *testing.T) {
 	}
 	CheckString2Bool := func(k string, expected bool, t *testing.T) {
 		got := String2Bool(k)
-		if got != expected {
-			t.Errorf("For key:%s\n Expected:\n%#v\n Got:\n%#v", k, expected, got)
-		}
+		assert.Equal(t, expected, got, "For key:%q", k)
 	}
 	for k, v := range cases {
 		CheckString2Bool(k, v, t)

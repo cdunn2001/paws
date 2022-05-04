@@ -1,6 +1,7 @@
 package web
 
 import (
+	"github.com/stretchr/testify/assert"
 	"path/filepath"
 	"testing"
 )
@@ -17,32 +18,24 @@ func TestStorageObjectUrlToLinuxPath(t *testing.T) {
 		url := ChooseUrlThenRegister(m1234, "", StoragePathNrt, "somefile.txt")
 		//url := "http://localhost:23632/storages/m1234/files/somefile.txt"
 		actual, err := StorageObjectUrlToLinuxPath(m1234, url)
-		check(err)
+		assert.Nil(t, err)
 		expected := "/data/nrta/0/m1234/somefile.txt"
-		if actual != expected {
-			t.Errorf("Expected the linux path of %q to be %q but got %q!", url, expected, actual)
-		}
+		assert.Equal(t, expected, actual, "From linux path %q", url)
 	}
 	{
 		url := "http://localhost:23632/storages/m5678/files/otherfile.txt"
 		_, err := StorageObjectUrlToLinuxPath(m1234, url)
-		if err == nil {
-			t.Errorf("Expected the linux path of %s for %v to cause an error!", url, m1234)
-		}
+		assert.NotNil(t, err, "Expected the linux path of %s for %v to cause an error!", url, m1234)
 	}
 	{
 		url := "file:/data/nrta/0/justafile.txt"
 		_, err := StorageObjectUrlToLinuxPath(m1234, url)
-		if err == nil {
-			t.Errorf("Expected the linux path of %s for %v to cause an error!", url, m1234)
-		}
+		assert.NotNil(t, err, "Expected the linux path of %s for %v to cause an error!", url, m1234)
 	}
 	{
 		url := "/data/nrta/0/justafile.txt"
 		_, err := StorageObjectUrlToLinuxPath(m1234, url)
-		if err == nil {
-			t.Errorf("Expected the linux path of %s for %v to cause an error!", url, m1234)
-		}
+		assert.NotNil(t, err, "Expected the linux path of %s for %v to cause an error!", url, m1234)
 	}
 }
 
@@ -60,9 +53,7 @@ func TestStorageUrlToLinuxPath(t *testing.T) {
 	{
 		url := "http://localhost:23632/storages/m5678/files/otherfile.txt"
 		_, err := StorageUrlToLinuxPath(url, &state)
-		if err == nil {
-			t.Errorf("Expected err for url %q, as we did not register that StorageObject yet!", url)
-		}
+		assert.NotNil(t, err, "Expected err for url %q, as we did not register that StorageObject yet!", url)
 	}
 	m5678 := &StorageObject{
 		Mid:          "m5678",
@@ -75,54 +66,40 @@ func TestStorageUrlToLinuxPath(t *testing.T) {
 	{
 		url := ChooseUrlThenRegister(m1234, "", StoragePathNrt, "somefile.txt")
 		expectedUrl := "http://localhost:23632/storages/m1234/files/somefile.txt"
-		if url != expectedUrl {
-			t.Errorf("URL:\nGot %q\nNot %q", url, expectedUrl)
-		}
+		assert.Equal(t, expectedUrl, url)
 		actual, err := StorageUrlToLinuxPath(url, &state)
-		check(err)
+		assert.Nil(t, err)
 		expected := "/data/nrta/0/m1234/somefile.txt"
-		if actual != expected {
-			t.Errorf("Expected the linux path of %q to be %q but got %q!", url, expected, actual)
-		}
+		assert.Equal(t, expected, actual, "From linux path %q", url)
 	}
 	{
 		url := ChooseUrlThenRegister(m5678, "", StoragePathNrt, "otherfile.txt")
 		expectedUrl := "http://localhost:23632/storages/m5678/files/otherfile.txt"
-		if url != expectedUrl {
-			t.Errorf("URL:\nGot %q\nNot %q", url, expectedUrl)
-		}
+		assert.Equal(t, expectedUrl, url)
 		actual, err := StorageUrlToLinuxPath(url, &state)
-		check(err)
+		assert.Nil(t, err)
 		expected := "/data/nrta/1/m5678/otherfile.txt"
-		if actual != expected {
-			t.Errorf("Expected the linux path of %q to be %q but got %q!", url, expected, actual)
-		}
+		assert.Equal(t, expected, actual, "From linux path %q", url)
 	}
 	{
 		url := "file:/data/nrta/0/justafile.txt"
 		actual, err := StorageUrlToLinuxPath(url, &state)
-		check(err)
+		assert.Nil(t, err)
 		expected := "/data/nrta/0/justafile.txt"
-		if actual != expected {
-			t.Errorf("Expected the linux path of %s to be %s but got %s!", url, expected, actual)
-		}
+		assert.Equal(t, expected, actual, "From linux path %q", url)
 	}
 	{
 		url := "/data/nrta/0/justafile.txt"
 		actual, err := StorageUrlToLinuxPath(url, &state)
-		check(err)
+		assert.Nil(t, err)
 		expected := "/data/nrta/0/justafile.txt"
-		if actual != expected {
-			t.Errorf("Expected the linux path of %s to be %s but got %s!", url, expected, actual)
-		}
+		assert.Equal(t, expected, actual, "From linux path %q", url)
 	}
 }
 func TestNextPartition(t *testing.T) {
 	try := func(arg, expected string) {
 		got := NextPartition(arg)
-		if got != expected {
-			t.Errorf("\nGot: %q\nNot: %q", got, expected)
-		}
+		assert.Equal(t, expected, got)
 	}
 	try("0", "1")
 	try("1", "2")
@@ -142,16 +119,14 @@ func TestAcquireStorageObject(t *testing.T) {
 	}
 	try := func(expectedNrtDir, expectedPartition, mid string) {
 		so := store.AcquireStorageObject(mid)
+
 		expectedNrtPath := filepath.Join(expectedNrtDir, expectedPartition, mid)
 		actualNrtPath := so.LinuxNrtPath
-		if actualNrtPath != expectedNrtPath {
-			t.Errorf("Actual %q != %q expected", actualNrtPath, expectedNrtPath)
-		}
+		assert.Equal(t, expectedNrtPath, actualNrtPath)
+
 		expectedIccPath := filepath.Join(store.IccDir, mid)
 		actualIccPath := so.LinuxIccPath
-		if actualIccPath != expectedIccPath {
-			t.Errorf("Actual %q != %q expected", actualIccPath, expectedIccPath)
-		}
+		assert.Equal(t, expectedIccPath, actualIccPath)
 	}
 	try(store.NrtaDir, "0", "m123")
 	try(store.NrtbDir, "0", "m123")
