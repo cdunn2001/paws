@@ -333,7 +333,7 @@ func WriteBasecallerBash(wr io.Writer, tc config.TopStruct, obj *SocketBasecalle
 		}
 		kv["optTraceFileRoi"] = "--config traceSaver.roi='" + string(raw) + "'"
 	}
-	kv["optOutputRtMetricsFile"] = "--config realTimeMetrics.rtMetricsFile=" + TranslateUrl(so, obj.RtMetricsUrl)
+	kv["optOutputRtMetricsFile"] = "--config realTimeMetrics.rtMetricsFile=" + TranslateUrl(so, obj.RtMetrics.Url)
 	if len(obj.BazUrl) == 0 {
 		kv["optOutputBazFile"] = ""
 	} else {
@@ -469,7 +469,7 @@ func DumpBasecallerScript(tc config.TopStruct, obj *SocketBasecallerObject, sid 
 	obj.BazUrl = ChooseUrlThenRegister(so, obj.BazUrl, StoragePathNrt, mid+".baz")
 	obj.LogUrl = ChooseUrlThenRegister(so, obj.LogUrl, StoragePathNrt, mid+".basecaller.log")
 	obj.TraceFileUrl = ChooseUrlThenRegister(so, obj.TraceFileUrl, StoragePathNrt, mid+".trc.h5")
-	obj.RtMetricsUrl = ChooseUrlThenRegister(so, obj.RtMetricsUrl, StoragePathNrt, mid+".rtmetrics.json")
+	obj.RtMetrics.Url = ChooseUrlThenRegister(so, obj.RtMetrics.Url, StoragePathNrt, mid+".rtmetrics.json")
 
 	// Now we can use the output Urls.
 	var rundir string

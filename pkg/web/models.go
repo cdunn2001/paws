@@ -211,10 +211,6 @@ type SocketBasecallerObject struct {
 	// Example: null
 	SmrtBasecallerConfig string `json:"smrtBasecallerConfig"`
 
-	// Destination URL for the rtmetrics file
-	// This is for internal use, but may be useful for debugging.
-	RtMetricsUrl string
-
 	RtMetrics SocketBasecallerRTMetricsObject
 
 	socketCommonObject
