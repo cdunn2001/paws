@@ -138,20 +138,16 @@ func (self *MultiDirStore) AcquireStorageObject(mid string) *StorageObject {
 	return obj
 }
 func (self *MultiDirStore) Free(obj *StorageObject) {
-	for _, sio := range obj.Files {
+	for _, sio := range obj.UrlPath2Item {
 		url := sio.Url
-		fn, err := StorageObjectUrlToLinuxPath(obj, url)
-		if err != nil {
-			log.Printf("WARNING: Failed to convert URL %q to LinuxPath: %v.\n  Cannot remove from disk.", url, err)
-			continue
-		}
+		fn := sio.LinuxPath
 		log.Printf("Removing %q (%s)", fn, url)
-		err = os.Remove(fn)
+		err := os.Remove(fn)
 		if err != nil {
 			log.Printf("WARNING: Failed to remove %q: %v", fn, err)
 		}
 	}
-	obj.Files = obj.Files[:0]
+	obj.UrlPath2Item = nil // len() is still valid.
 }
 
 // Currently only used for tests.
@@ -215,8 +211,8 @@ func deleteStorageByMid(c *gin.Context, state *State) {
 		c.String(http.StatusOK, "The storage for mid '%s' was not found. Must have been deleted already, which is fine.\n", mid)
 		return
 	}
-	if len(obj.Files) != 0 {
-		c.String(http.StatusConflict, "For mid '%s', %d files have not been freed.\n", mid, len(obj.Files))
+	if len(obj.UrlPath2Item) != 0 {
+		c.String(http.StatusConflict, "For mid '%s', %d files have not been freed.\n", mid, len(obj.UrlPath2Item))
 		return
 	}
 	delete(state.Storages, mid)
