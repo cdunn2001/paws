@@ -4,46 +4,42 @@ import (
 	"bytes"
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
+	"github.com/stretchr/testify/assert"
 	"os"
 	"pacb.com/seq/paws/pkg/config"
 	"testing"
 )
 
+func hexComp(expected, got string) string {
+	return fmt.Sprintf("\nGot\n%s Expected\n%s", hex.Dump([]byte(got)), hex.Dump([]byte(expected)))
+}
+
 func TestTranslateDiscardableUrl(t *testing.T) {
 	{
 		got := TranslateDiscardableUrl(nil, "--foo", "discard:")
 		expected := ""
-		if got != expected {
-			t.Errorf("Got %q\nNot %q", got, expected)
-		}
+		assert.Equal(t, expected, got)
 	}
 	{
 		got := TranslateDiscardableUrl(nil, "--foo", "/bar")
 		expected := "--foo /bar"
-		if got != expected {
-			t.Errorf("Got %q\nNot %q", got, expected)
-		}
+		assert.Equal(t, expected, got)
 	}
 	{
 		got := TranslateUrl(nil, "file:/bar")
 		expected := "/bar"
-		if got != expected {
-			t.Errorf("Got %q\nNot %q", got, expected)
-		}
+		assert.Equal(t, expected, got)
 	}
 	{
 		got := TranslateUrl(nil, "file://hostname/bar")
 		expected := "/bar"
-		if got != expected {
-			t.Errorf("Got %q\nNot %q", got, expected)
-		}
+		assert.Equal(t, expected, got)
 	}
 	{
 		got := TranslateUrl(nil, "local")
 		expected := "local"
-		if got != expected {
-			t.Errorf("Got %q\nNot %q", got, expected)
-		}
+		assert.Equal(t, expected, got)
 	}
 	{
 		so := &StorageObject{
@@ -54,14 +50,11 @@ func TestTranslateDiscardableUrl(t *testing.T) {
 		}
 		url := ChooseUrlThenRegister(so, "", StoragePathIcc, "foo/bar")
 		expectedUrl := "http://hostname:9999/storages/MID/files/foo/bar"
-		if url != expectedUrl {
-			t.Errorf("URL:\nGot %q\nNot %q", url, expectedUrl)
-		}
+		assert.Equal(t, expectedUrl, url)
+
 		got := TranslateUrl(so, url)
 		expected := "/var/foo/bar"
-		if got != expected {
-			t.Errorf("Got %q\nNot %q", got, expected)
-		}
+		assert.Equal(t, expected, got)
 	}
 }
 func TestWriteReduceStatsBash(t *testing.T) {
@@ -82,11 +75,9 @@ ppa-reducestats \
 		tc := config.Top()
 		so := GetLocalStorageObject("", "", "", mid)
 		err := WriteReduceStatsBash(&b, tc, obj, so)
-		check(err)
+		assert.Nil(t, err)
 		got := b.String()
-		if got != expected {
-			t.Errorf("\nGot %q\nNot %q", got, expected)
-		}
+		assert.Equal(t, expected, got)
 	}
 	{
 		expected := `
@@ -119,11 +110,9 @@ ppa-reducestats \
 		//log.Printf("OutputReduceStatsH5Url: %q", OutputReduceStatsH5Url)
 
 		err := WriteReduceStatsBash(&b, tc, obj, so)
-		check(err)
+		assert.Nil(t, err)
 		got := b.String()
-		if got != expected {
-			t.Errorf("\nGot %q\nNot %q", got, expected)
-		}
+		assert.Equal(t, expected, got)
 	}
 }
 
@@ -174,7 +163,7 @@ func TestWriteBasecallerBash(t *testing.T) {
 	}()
 	obj := &SocketBasecallerObject{}
 	err := json.Unmarshal([]byte(basecallerObjJson), &obj)
-	check(err)
+	assert.Nil(t, err)
 
 	{
 		// NUMA_NODE and GPU_ID are currently implemented as (sraIndex % 2) which may change in the future.
@@ -204,15 +193,13 @@ smrt-basecaller-launch.sh \
 		mid := "m123"
 		so := GetLocalStorageObject("/data/nrta", "/data/icc", "3", mid)
 		err = WriteBasecallerBash(&b, tc, obj, "4", so)
-		check(err)
+		assert.Nil(t, err)
 		got := b.String()
-		if got != expected {
-			t.Errorf("\nGot %q\nNot %q\nGot\n%s Expected\n%s", got, expected, hex.Dump([]byte(got)), hex.Dump([]byte(expected)))
-		}
+		assert.Equal(t, expected, got)
 	}
 	{
 		dat, err := os.ReadFile("/tmp/pawsgo/TestWriteBasecallerBash/m123/m123.basecaller.config.json")
-		check(err)
+		assert.Nil(t, err)
 		// fmt.Print(got)
 		got := string(dat)
 
@@ -263,10 +250,7 @@ smrt-basecaller-launch.sh \
         }
     }
 }`
-		if got != expected {
-			t.Errorf("basecaller.config.json[1] Got\n%s Expected\n%s", hex.Dump([]byte(got)), hex.Dump([]byte(expected)))
-			//t.Errorf("basecaller.config.json[1] Got\n%v, Expected\n%v", got, expected)
-		}
+		assert.Equal(t, expected, got, "basecaller.config.json[1]")
 	}
 
 	obj.TraceFileRoi = obj.TraceFileRoi[:0] // or nil; both have len()==0
@@ -299,18 +283,15 @@ smrt-basecaller-launch.sh \
 		mid := "m123"
 		so := GetLocalStorageObject("/data/nrta", "/data/icc", "2", mid)
 		err = WriteBasecallerBash(&b, tc, obj, "3", so)
-		check(err)
+		assert.Nil(t, err)
 		got := b.String()
-		if got != expected {
-			t.Errorf("\nGot %q\nNot %q\nGot\n%s Expected\n%s", got, expected, hex.Dump([]byte(got)), hex.Dump([]byte(expected)))
-		}
+		assert.Equal(t, expected, got)
 	}
 	{
 		dat, err := os.ReadFile("/tmp/pawsgo/TestWriteBasecallerBash/m123/m123.basecaller.config.json")
-		check(err)
+		assert.Nil(t, err)
 		// fmt.Print(got)
 		got := string(dat)
-
 		expected := `{
     "source": {
         "WXIPCDataSourceConfig": {
@@ -358,33 +339,25 @@ smrt-basecaller-launch.sh \
         }
     }
 }`
-		if got != expected {
-			t.Errorf("basecaller.config.json[2] Got\n%v, Expected\n%v", got, expected)
-		}
+		assert.Equal(t, expected, got, "basecaller.config.json[2]")
 	}
 }
 func TestGetPostprimaryHostname(t *testing.T) {
 	{
 		got := GetPostprimaryHostname("snafu", "/data/nrta/5")
 		expected := ""
-		if got != expected {
-			t.Errorf("Got %q\nNot %q", got, expected)
-		}
+		assert.Equal(t, expected, got)
 	}
 	{
 		got := GetPostprimaryHostname("rt-84006.fubar.com", "/data/nrta/5")
 		expected := "nrta"
-		if got != expected {
-			t.Errorf("Got %q\nNot %q", got, expected)
-		}
+		assert.Equal(t, expected, got)
 	}
 }
 func TestUniqueLabel(t *testing.T) {
 	try := func(so *StorageObject, expected string) {
 		got := UniqueLabel(so)
-		if got != expected {
-			t.Errorf("Got %q\nNot %q", got, expected)
-		}
+		assert.Equal(t, expected, got)
 	}
 	so := &StorageObject{}
 	try(so, ".00")
