@@ -16,7 +16,9 @@ func TestStorageObjectUrlToLinuxPath(t *testing.T) {
 	}
 	{
 		url := ChooseUrlThenRegister(m1234, "", StoragePathNrt, "somefile.txt")
-		//url := "http://localhost:23632/storages/m1234/files/somefile.txt"
+		urlExpected := "http://localhost:23632/storages/m1234/files/somefile.txt"
+		assert.Equal(t, urlExpected, url) // can change, so not a great test
+
 		actual, err := StorageObjectUrlToLinuxPath(m1234, url)
 		assert.Nil(t, err)
 		expected := "/data/nrta/0/m1234/somefile.txt"
@@ -25,7 +27,7 @@ func TestStorageObjectUrlToLinuxPath(t *testing.T) {
 	{
 		url := "http://localhost:23632/storages/m5678/files/otherfile.txt"
 		_, err := StorageObjectUrlToLinuxPath(m1234, url)
-		assert.NotNil(t, err, "Expected the linux path of %s for %v to cause an error!", url, m1234)
+		assert.NotNil(t, err, "Expected the linux path of %s for %v to cause an error, because the url was not registered.", url, m1234)
 	}
 	{
 		url := "file:/data/nrta/0/justafile.txt"
@@ -39,61 +41,36 @@ func TestStorageObjectUrlToLinuxPath(t *testing.T) {
 	}
 }
 
-func TestStorageUrlToLinuxPath(t *testing.T) {
-	var state State
-	state.Storages = make(map[string]*StorageObject)
-	m1234 := &StorageObject{
-		Mid:          "m1234",
-		RootUrl:      "http://localhost:23632/storages/m1234/files",
-		RootUrlPath:  "/storages/m1234/files",
-		LinuxNrtPath: "/data/nrta/0/m1234",
-		UrlPath2Item: make(map[string]*StorageItemObject),
-	}
-	state.Storages["m1234"] = m1234
+func TestTranslateUrl(t *testing.T) {
 	{
-		url := "http://localhost:23632/storages/m5678/files/otherfile.txt"
-		_, err := StorageUrlToLinuxPath(url, &state)
-		assert.NotNil(t, err, "Expected err for url %q, as we did not register that StorageObject yet!", url)
+		got := TranslateUrl(nil, "file:/bar")
+		expected := "/bar"
+		assert.Equal(t, expected, got)
 	}
-	m5678 := &StorageObject{
-		Mid:          "m5678",
-		RootUrl:      "http://localhost:23632/storages/m5678/files",
-		RootUrlPath:  "/storages/m5678/files",
-		LinuxNrtPath: "/data/nrta/1/m5678",
-		UrlPath2Item: make(map[string]*StorageItemObject),
-	}
-	state.Storages["m5678"] = m5678
 	{
-		url := ChooseUrlThenRegister(m1234, "", StoragePathNrt, "somefile.txt")
-		expectedUrl := "http://localhost:23632/storages/m1234/files/somefile.txt"
+		got := TranslateUrl(nil, "file://hostname/bar")
+		expected := "/bar"
+		assert.Equal(t, expected, got)
+	}
+	{
+		got := TranslateUrl(nil, "local")
+		expected := "local"
+		assert.Equal(t, expected, got)
+	}
+	{
+		so := &StorageObject{
+			RootUrl:      "http://hostname:9999/storages/MID/files",
+			RootUrlPath:  "/storages/MID/files",
+			LinuxIccPath: "/var",
+			UrlPath2Item: make(map[string]*StorageItemObject),
+		}
+		url := ChooseUrlThenRegister(so, "", StoragePathIcc, "foo/bar")
+		expectedUrl := "http://hostname:9999/storages/MID/files/foo/bar"
 		assert.Equal(t, expectedUrl, url)
-		actual, err := StorageUrlToLinuxPath(url, &state)
-		assert.Nil(t, err)
-		expected := "/data/nrta/0/m1234/somefile.txt"
-		assert.Equal(t, expected, actual, "From linux path %q", url)
-	}
-	{
-		url := ChooseUrlThenRegister(m5678, "", StoragePathNrt, "otherfile.txt")
-		expectedUrl := "http://localhost:23632/storages/m5678/files/otherfile.txt"
-		assert.Equal(t, expectedUrl, url)
-		actual, err := StorageUrlToLinuxPath(url, &state)
-		assert.Nil(t, err)
-		expected := "/data/nrta/1/m5678/otherfile.txt"
-		assert.Equal(t, expected, actual, "From linux path %q", url)
-	}
-	{
-		url := "file:/data/nrta/0/justafile.txt"
-		actual, err := StorageUrlToLinuxPath(url, &state)
-		assert.Nil(t, err)
-		expected := "/data/nrta/0/justafile.txt"
-		assert.Equal(t, expected, actual, "From linux path %q", url)
-	}
-	{
-		url := "/data/nrta/0/justafile.txt"
-		actual, err := StorageUrlToLinuxPath(url, &state)
-		assert.Nil(t, err)
-		expected := "/data/nrta/0/justafile.txt"
-		assert.Equal(t, expected, actual, "From linux path %q", url)
+
+		got := TranslateUrl(so, url)
+		expected := "/var/foo/bar"
+		assert.Equal(t, expected, got)
 	}
 }
 func TestNextPartition(t *testing.T) {

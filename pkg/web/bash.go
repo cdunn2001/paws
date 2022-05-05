@@ -7,7 +7,6 @@ import (
 	"github.com/pkg/errors"
 	"io"
 	"log"
-	"net/url"
 	"os"
 	"pacb.com/seq/paws/pkg/config"
 	"path/filepath"
@@ -127,50 +126,6 @@ func WriteLoadingcalBash(wr io.Writer, tc config.TopStruct, obj *SocketLoadingca
 		Global: tc,
 	}
 	return t.Execute(wr, &ts)
-}
-
-// Supports:
-//  file:/path   <- strips off file: and returns /path
-//  /path        <- returns /path
-//  localfile    <- I would like to drop support for this, but I don't want to break anything (MTL) I want all paths to be absolute.
-//  discard:     <- returns ""
-// eventually will support
-//  file://host/path  <- returns /path assuming the path is NFS mounted, otherwise panics
-//  http://host:port/storages/mid  <- will convert to a Linux path after being processed by the storages framework
-func TranslateUrl(so *StorageObject, Url string) string {
-	if strings.HasPrefix(Url, "/") {
-		return Url
-	}
-	parsed, err := url.Parse(Url)
-	if err != nil {
-		msg := fmt.Sprintf("URL parsing error: %v", err)
-		panic(msg)
-	}
-	if parsed.Scheme == "file" {
-		return parsed.Path
-	} else if parsed.Scheme == "discard" {
-		return "" // TODO: or "/dev/null" ? not sure
-	} else if parsed.Scheme == "" {
-		return parsed.Path
-	}
-
-	// Must be storages endpoint.
-	if !strings.HasPrefix(parsed.Path, "/storages/") {
-		msg := fmt.Sprintf("Unable to translate URL %q w/ path %q into linux path. Expected 'http://host:port/storages/path...'", Url, parsed.Path)
-		log.Printf(msg)
-		panic(msg)
-	}
-	if so == nil {
-		msg := fmt.Sprintf("Nil StorageObject for URL %q", Url)
-		panic(msg)
-	}
-	result, err := StorageObjectUrlToLinuxPath(so, Url)
-	if err != nil {
-		msg := fmt.Sprintf("Unable to translate URL %q into linux path via StorageObject %+v: %v", Url, so, err)
-		log.Printf(msg)
-		panic(msg)
-	}
-	return result
 }
 
 // Translates the arguments into a command line option, or empty string if the URL is discardable.

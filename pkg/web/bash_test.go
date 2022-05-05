@@ -26,36 +26,6 @@ func TestTranslateDiscardableUrl(t *testing.T) {
 		expected := "--foo /bar"
 		assert.Equal(t, expected, got)
 	}
-	{
-		got := TranslateUrl(nil, "file:/bar")
-		expected := "/bar"
-		assert.Equal(t, expected, got)
-	}
-	{
-		got := TranslateUrl(nil, "file://hostname/bar")
-		expected := "/bar"
-		assert.Equal(t, expected, got)
-	}
-	{
-		got := TranslateUrl(nil, "local")
-		expected := "local"
-		assert.Equal(t, expected, got)
-	}
-	{
-		so := &StorageObject{
-			RootUrl:      "http://hostname:9999/storages/MID/files",
-			RootUrlPath:  "/storages/MID/files",
-			LinuxIccPath: "/var",
-			UrlPath2Item: make(map[string]*StorageItemObject),
-		}
-		url := ChooseUrlThenRegister(so, "", StoragePathIcc, "foo/bar")
-		expectedUrl := "http://hostname:9999/storages/MID/files/foo/bar"
-		assert.Equal(t, expectedUrl, url)
-
-		got := TranslateUrl(so, url)
-		expected := "/var/foo/bar"
-		assert.Equal(t, expected, got)
-	}
 }
 func TestWriteReduceStatsBash(t *testing.T) {
 	if false {

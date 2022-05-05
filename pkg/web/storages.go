@@ -268,36 +268,58 @@ func StorageObjectUrlToLinuxPath(so *StorageObject, Url string) (string, error) 
 	}
 	return sio.LinuxPath, nil
 }
-func StorageUrlToLinuxPath(url string, state *State) (string, error) {
-	log.Println("Converting:", url)
-	if strings.HasPrefix(url, "/") {
-		//log.Println("Already linuxed: ",url)
-		return url, nil
-	}
-	if strings.HasPrefix(url, "file:") {
-		//log.Println("Removing file: prefix from ",url)
-		return url[5:], nil
-	}
-	for _, so := range state.Storages {
-		//log.Printf("StorageUrlToLinuxPath so:%v\n", *so)
-		// r, _ := regexp.Compile("^" + so.RootUrl)
-		if strings.HasPrefix(url, so.RootUrl) {
-			//log.Println("url[0:l]:",url[0:l])
-			//log.Println("Found match, linux path:", linuxPath)
-			return StorageObjectUrlToLinuxPath(so, url)
-		}
-	}
-	return "/dev/null", errors.New("Could not convert " + url)
-	// symbolic link to storage directory which points back to this StorageObject
-	// Example: http://localhost:23632/storages/m123456_987654
-	//RootUrl string `json:"rootUrl"`
 
-	// physical path to storage directory (should only be used for debugging and logging)
-	// Example: file:/data/pa/m123456_987654
-	//LinuxPath string `json:"linuxPath"`
+// A URL can be:
+//
+// 1) symbolic, via this StorageObject
+// Example: http://localhost:23632/storages/m123456_987654
+//
+// 2) physical path to storage directory (should only be used for debugging and logging)
+// Example: file:/data/pa/m123456_987654
+// Example: /data/pa/m123456_987654
+//
+// Supports:
+//  file:/path   <- strips off file: and returns /path
+//  /path        <- returns /path
+//  localfile    <- I would like to drop support for this, but I don't want to break anything (MTL) I want all paths to be absolute.
+//  discard:     <- returns ""
+// eventually will support
+//  file://host/path  <- returns /path assuming the path is NFS mounted, otherwise panics
+//  http://host:port/storages/mid  <- will convert to a Linux path after being processed by the storages framework
+func TranslateUrl(so *StorageObject, Url string) string {
+	if strings.HasPrefix(Url, "/") {
+		return Url
+	}
+	parsed, err := url.Parse(Url)
+	if err != nil {
+		msg := fmt.Sprintf("URL parsing error: %v", err)
+		panic(msg)
+	}
+	if parsed.Scheme == "file" {
+		return parsed.Path
+	} else if parsed.Scheme == "discard" {
+		return "" // TODO: or "/dev/null" ? not sure
+	} else if parsed.Scheme == "" {
+		return parsed.Path
+	}
 
-	// Destination URL for the log file. Logging happens during construction and freeing.
-	// Example: http://localhost:23632/storages/m123456_987654/storage.log
+	// Must be storages endpoint.
+	if !strings.HasPrefix(parsed.Path, "/storages/") {
+		msg := fmt.Sprintf("Unable to translate URL %q w/ path %q into linux path. Expected 'http://host:port/storages/path...'", Url, parsed.Path)
+		log.Printf(msg)
+		panic(msg)
+	}
+	if so == nil {
+		msg := fmt.Sprintf("Nil StorageObject for URL %q", Url)
+		panic(msg)
+	}
+	result, err := StorageObjectUrlToLinuxPath(so, Url)
+	if err != nil {
+		msg := fmt.Sprintf("Unable to translate URL %q into linux path via StorageObject %+v: %v", Url, so, err)
+		log.Printf(msg)
+		panic(msg)
+	}
+	return result
 }
 
 func ChooseUrl(so *StorageObject, linuxtail string) string {
