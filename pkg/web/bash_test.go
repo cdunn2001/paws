@@ -4,10 +4,15 @@ import (
 	"bytes"
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"os"
 	"pacb.com/seq/paws/pkg/config"
 	"testing"
 )
+
+func hexComp(expected, got string) string {
+	return fmt.Sprintf("\nGot\n%s Expected\n%s", hex.Dump([]byte(got)), hex.Dump([]byte(expected)))
+}
 
 func TestTranslateDiscardableUrl(t *testing.T) {
 	{
