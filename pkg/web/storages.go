@@ -301,6 +301,9 @@ func TranslateUrl(so *StorageObject, Url string) string {
 		return "" // TODO: or "/dev/null" ? not sure
 	} else if parsed.Scheme == "" {
 		return parsed.Path
+	} else if parsed.Scheme != "http" {
+		msg := fmt.Sprintf("Unsupported scheme %q in URL %q", parsed.Scheme, Url)
+		panic(msg)
 	}
 
 	// Must be storages endpoint.
