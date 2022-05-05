@@ -24,12 +24,6 @@ func TestStorageObjectUrlToLinuxPath(t *testing.T) {
 		assert.Nil(t, err)
 		expected := "/data/nrta/0/m1234/somefile.txt"
 		assert.Equal(t, expected, actual, "From linux path %q", url)
-
-		// Change scheme.
-		url2 := strings.Replace(url, "http:", "https:", 1)
-		assert.NotEqual(t, url, url2)
-		_, err = StorageObjectUrlToLinuxPath(m1234, url2)
-		assert.NotNil(t, err, "Unsupported scheme")
 	}
 	{
 		url := "http://localhost:23632/storages/m5678/files/otherfile.txt"
@@ -78,6 +72,18 @@ func TestTranslateUrl(t *testing.T) {
 		got := TranslateUrl(so, url)
 		expected := "/var/foo/bar"
 		assert.Equal(t, expected, got)
+
+		// Change port. Should not matter.
+		url1 := strings.Replace(url, "9999", "8888", 1)
+		assert.NotEqual(t, url, url1)
+		got1 := TranslateUrl(so, url)
+		expected1 := "/var/foo/bar"
+		assert.Equal(t, expected1, got1)
+
+		// Change scheme.
+		url2 := strings.Replace(url, "http:", "https:", 1)
+		assert.NotEqual(t, url, url2)
+		assert.Panics(t, func() { TranslateUrl(so, url2) })
 	}
 }
 func TestNextPartition(t *testing.T) {
