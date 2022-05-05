@@ -182,6 +182,15 @@ func GetLocalStorageObject(nrtbasedir string, iccbasedir string, partition strin
 	return obj
 }
 
+func RequireStorageObjectForMid(mid string, state *State) *StorageObject {
+	obj, _ := state.Storages[mid]
+	if obj == nil {
+		msg := fmt.Sprintf("Must first call /storages endpoint for mid %q.", mid)
+		panic(msg)
+	}
+	return obj
+}
+
 // Creates a storages resource for a movie.
 func createStorage(c *gin.Context, state *State) {
 	obj := new(StorageObject)
