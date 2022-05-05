@@ -3,6 +3,7 @@ package web
 import (
 	"github.com/stretchr/testify/assert"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -23,6 +24,12 @@ func TestStorageObjectUrlToLinuxPath(t *testing.T) {
 		assert.Nil(t, err)
 		expected := "/data/nrta/0/m1234/somefile.txt"
 		assert.Equal(t, expected, actual, "From linux path %q", url)
+
+		// Change scheme.
+		url2 := strings.Replace(url, "http:", "https:", 1)
+		assert.NotEqual(t, url, url2)
+		_, err = StorageObjectUrlToLinuxPath(m1234, url2)
+		assert.NotNil(t, err, "Unsupported scheme")
 	}
 	{
 		url := "http://localhost:23632/storages/m5678/files/otherfile.txt"

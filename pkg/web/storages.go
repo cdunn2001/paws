@@ -266,6 +266,10 @@ func StorageObjectUrlToLinuxPath(so *StorageObject, Url string) (string, error) 
 		msg := fmt.Sprintf("Failed to find urlpath %q (from URL %q) among registered paths. Someone forget to call ChooseUrlThenRegister()", urlpath.Path, Url)
 		return "/dev/null", errors.New(msg)
 	}
+	if urlpath.Scheme != "http" {
+		msg := fmt.Sprintf("Unsupported scheme %q in URL %q", urlpath.Scheme, Url)
+		return "/dev/null", errors.New(msg)
+	}
 	return sio.LinuxPath, nil
 }
 
