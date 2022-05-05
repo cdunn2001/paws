@@ -182,14 +182,6 @@ func GetLocalStorageObject(nrtbasedir string, iccbasedir string, partition strin
 	return obj
 }
 
-// TODO: Stop passing store.
-func GetStorageObjectForMid(store IStore, mid string, state *State) *StorageObject {
-	obj, _ := state.Storages[mid]
-	// If not found, return nil. Storage URLs need a StorageObject only if they are
-	//   http://host:port/storage/...
-	return obj
-}
-
 // Creates a storages resource for a movie.
 func createStorage(c *gin.Context, state *State) {
 	obj := new(StorageObject)

@@ -299,9 +299,11 @@ func startBasecallerBySocketId(c *gin.Context, state *State) {
 	obj.ProcessStatus.Armed = false
 	obj.ProcessStatus.Timestamp = TimestampNow()
 	state.Basecallers[sid] = obj // TODO: Error if already running?
-	so := GetStorageObjectForMid(state.Store, obj.Mid, state)
+	so, _ := state.Storages[obj.Mid]
 	if so == nil {
-		log.Printf("Could not find SO for mid %q", obj.Mid)
+		msg := fmt.Sprintf("In startBasecallerBySocketId(), could not find StorageObject for mid %q", obj.Mid)
+		c.String(http.StatusNotFound, msg)
+		return
 	}
 	setup := DumpBasecallerScript(config.Top(), obj, sid, so)
 	setup.Stall = c.DefaultQuery("stall", "0")
@@ -381,9 +383,11 @@ func startDarkcalBySocketId(c *gin.Context, state *State) {
 	obj.ProcessStatus.Armed = false
 	obj.ProcessStatus.Timestamp = TimestampNow()
 	state.Darkcals[sid] = obj // TODO: Error if already running?
-	so := GetStorageObjectForMid(state.Store, obj.Mid, state)
+	so, _ := state.Storages[obj.Mid]
 	if so == nil {
-		log.Printf("Could not find SO for mid %q", obj.Mid)
+		msg := fmt.Sprintf("In startDarkcalBySocketId(), could not find StorageObject for mid %q", obj.Mid)
+		c.String(http.StatusNotFound, msg)
+		return
 	}
 	setup := DumpDarkcalScript(config.Top(), obj, sid, so)
 	setup.Stall = c.DefaultQuery("stall", "0")
@@ -465,9 +469,11 @@ func startLoadingcalBySocketId(c *gin.Context, state *State) {
 	obj.ProcessStatus.Armed = false
 	obj.ProcessStatus.Timestamp = TimestampNow()
 	state.Loadingcals[sid] = obj // TODO: Error if already running?
-	so := GetStorageObjectForMid(state.Store, obj.Mid, state)
+	so, _ := state.Storages[obj.Mid]
 	if so == nil {
-		log.Printf("Could not find SO for mid %q", obj.Mid)
+		msg := fmt.Sprintf("In startLoadingcalBySocketId(), could not find StorageObject for mid %q", obj.Mid)
+		c.String(http.StatusNotFound, msg)
+		return
 	}
 	setup := DumpLoadingcalScript(config.Top(), obj, sid, so)
 	setup.Stall = c.DefaultQuery("stall", "0")
@@ -554,9 +560,11 @@ func startPostprimary(c *gin.Context, state *State) {
 	obj.ProcessStatus.Armed = false // always false for Postprimary
 	obj.ProcessStatus.Timestamp = TimestampNow()
 	state.Postprimaries[mid] = obj // TODO: Error if already running?
-	so := GetStorageObjectForMid(state.Store, mid, state)
+	so, _ := state.Storages[mid]
 	if so == nil {
-		log.Printf("Could not find SO for mid %q", mid)
+		msg := fmt.Sprintf("In startPostprimary(), could not find StorageObject for mid %q", mid)
+		c.String(http.StatusNotFound, msg)
+		return
 	}
 	setup := DumpPostprimaryScript(config.Top(), obj, so)
 	setup.Stall = c.DefaultQuery("stall", "0")
@@ -598,7 +606,7 @@ func getRtmetricsBySocketId(c *gin.Context, state *State) {
 		c.String(http.StatusNotFound, "RtMetrics not available. The basecaller process for SocketId '%s' was not found.\n", id)
 		return
 	}
-	so := GetStorageObjectForMid(state.Store, obj.Mid, state)
+	so, _ := state.Storages[obj.Mid]
 	if so == nil {
 		msg := fmt.Sprintf("In getRtmetricsByMid(), could not find StorageObject for mid %q", obj.Mid)
 		c.String(http.StatusNotFound, msg) // not sure if this is correct code
