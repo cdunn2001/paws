@@ -185,7 +185,7 @@ func getPawsStatusObject(state *State) PawsStatusObject {
 	status.Time = float64(utc.UnixMilli()) * 0.001
 
 	// ISO8601 timestamp (with milliseconds) of time field
-	status.Timestamp = Timestamp(now)
+	status.Timestamp = Timestamp(utc)
 
 	// Version of software, including git hash of last commit
 	status.Version = config.Version
