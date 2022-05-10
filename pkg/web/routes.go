@@ -280,6 +280,14 @@ func getBasecallerBySocketId(c *gin.Context, state *State) {
 		c.String(http.StatusNotFound, "The basecaller process for socket '%s' was not found.\n", id)
 		return
 	}
+
+	// TODO: Get the timestamp of the file.
+	now := time.Now()
+	utc := now.UTC()
+
+	// ISO8601 timestamp (with milliseconds) of time field
+	obj.RtMetrics.Timestamp = Timestamp(utc)
+
 	c.IndentedJSON(http.StatusOK, obj)
 }
 

@@ -220,6 +220,10 @@ type SocketBasecallerRTMetricsObject struct {
 	// Source URL of the most recent RT Metrics file. When the file is updated, the URL will change with the embedded timestamp
 	// Example: http://localhost:23632/storages/m123456_987654/rtmetrics_20210625_123456.xml
 	Url string `json:"url"`
+
+	// ISO8601 timestamp (with milliseconds) of file write time
+	// Example: 2017-01-31T01:59:49.103998Z
+	Timestamp string `json:"timestamp"`
 }
 type AnalogObject struct {
 
