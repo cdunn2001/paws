@@ -281,12 +281,29 @@ func getBasecallerBySocketId(c *gin.Context, state *State) {
 		return
 	}
 
-	// TODO: Get the timestamp of the file.
-	now := time.Now()
-	utc := now.UTC()
+	if obj.Mid != "" {
+		obj.RtMetrics.Timestamp = ""
+		so := GetStorageObjectForMid(state.Store, obj.Mid, state)
+		if so == nil {
+			log.Printf("Could not find StorageObject for mid %q", obj.Mid)
+		} else {
+			Url := obj.RtMetrics.Url
+			if Url != "" && so != nil {
+				fn := TranslateUrl(so, Url)
+				log.Printf("For RtMetrics, TranslateUrl: %q -> %q", Url, fn)
 
-	// ISO8601 timestamp (with milliseconds) of time field
-	obj.RtMetrics.Timestamp = Timestamp(utc)
+				modtime, err := config.GetModificationTime(fn)
+				if err != nil {
+					log.Printf("WARNING: Got err: %v", err)
+				} else {
+					utc := modtime.UTC()
+
+					// ISO8601 timestamp (with milliseconds) of time field
+					obj.RtMetrics.Timestamp = Timestamp(utc)
+				}
+			}
+		}
+	}
 
 	c.IndentedJSON(http.StatusOK, obj)
 }
