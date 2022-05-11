@@ -288,7 +288,7 @@ func WriteBasecallerBash(wr io.Writer, tc config.TopStruct, obj *SocketBasecalle
 		}
 		kv["optTraceFileRoi"] = "--config traceSaver.roi='" + string(raw) + "'"
 	}
-	kv["optOutputRtMetricsFile"] = "--config realTimeMetrics.rtMetricsFile=" + TranslateUrl(so, obj.RtMetrics.Url)
+	kv["optOutputRtMetricsFile"] = "--config realTimeMetrics.jsonOutputFile=" + TranslateUrl(so, obj.RtMetrics.Url)
 	if len(obj.BazUrl) == 0 {
 		kv["optOutputBazFile"] = ""
 	} else {
