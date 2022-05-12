@@ -128,3 +128,14 @@ func TestAcquireStorageObject(t *testing.T) {
 	try(store.NrtbDir, "3", "m123")
 	try(store.NrtaDir, "0", "m123")
 }
+func TestCheckIllegalPathToCreate(t *testing.T) {
+	assert.Panics(t, func() { CheckIllegalPathToCreate("/data/icc") })
+	assert.Panics(t, func() { CheckIllegalPathToCreate("/data/icc/foo") })
+	CheckIllegalPathToCreate("/tmp")
+	was := BadPath
+	defer func() {
+		BadPath = was
+	}()
+	BadPath = "/tmp/foo"
+	assert.Panics(t, func() { CheckIllegalPathToCreate("/tmp/foo") })
+}
