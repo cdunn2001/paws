@@ -98,10 +98,17 @@ func SkipGETLogger() gin.HandlerFunc {
 
 			param.Path = path
 
+			donotlog := false
+
 			if c.Request.Method == "GET" {
-				return
+				donotlog = true
 			}
-			fmt.Fprint(out, formatter(param))
+			if param.StatusCode >= 400 {
+				donotlog = false
+			}
+			if !donotlog {
+				fmt.Fprint(out, formatter(param))
+			}
 		}
 	}
 }

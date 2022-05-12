@@ -182,11 +182,12 @@ func GetLocalStorageObject(nrtbasedir string, iccbasedir string, partition strin
 	return obj
 }
 
-// TODO: Stop passing store.
-func GetStorageObjectForMid(store IStore, mid string, state *State) *StorageObject {
+func RequireStorageObjectForMid(mid string, state *State) *StorageObject {
 	obj, _ := state.Storages[mid]
-	// If not found, return nil. Storage URLs need a StorageObject only if they are
-	//   http://host:port/storage/...
+	if obj == nil {
+		msg := fmt.Sprintf("Must first call /storages endpoint for mid %q.", mid)
+		panic(msg)
+	}
 	return obj
 }
 

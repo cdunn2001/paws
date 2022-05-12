@@ -450,9 +450,6 @@ func DumpDarkcalScript(tc config.TopStruct, obj *SocketDarkcalObject, sid string
 	setup := ProcessSetupObject{
 		Tool: "darkcal",
 	}
-	if so == nil {
-		panic(obj.CalibFileUrl)
-	}
 
 	// Choose and register any output paths first.
 	mid := obj.Mid
