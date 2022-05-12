@@ -28,8 +28,15 @@ type IStore interface {
 	AcquireStorageObject(mid string) *StorageObject
 }
 
+func Exists(path string) bool {
+	_, err := os.Stat("temp")
+	return !os.IsNotExist(err)
+}
+
 func CreatePathIfNeeded(path string) {
-	log.Printf("CreatePathIfNeeded(%q)\n", path)
+	if !Exists(path) {
+		log.Printf("CreatePathIfNeeded(%q)\n", path)
+	}
 	err := os.MkdirAll(path, 0777) // Does not guarantee 0777 if already exists.
 	if err != nil {
 		msg := fmt.Sprintf("Could not create directory %q: %v", path, err)
