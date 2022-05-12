@@ -147,8 +147,6 @@ func (self *MultiDirStore) AcquireStorageObject(mid string) *StorageObject {
 
 	CreatePathIfNeeded(obj.LinuxIccPath)
 	CreatePathIfNeeded(obj.LinuxNrtPath)
-	os.MkdirAll(obj.LinuxIccPath, 0777)
-	os.MkdirAll(obj.LinuxNrtPath, 0777)
 	self.LastPartition = partition
 	self.LastNrt = nrt
 	return obj
