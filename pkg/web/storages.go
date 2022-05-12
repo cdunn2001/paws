@@ -30,7 +30,7 @@ type IStore interface {
 
 func Exists(path string) bool {
 	_, err := os.Stat("temp")
-	return !os.IsNotExist(err)
+	return err == nil // || !errors.Is(err, fs.ErrNotExist)
 }
 
 var BadPath = "/data/icc"
