@@ -282,25 +282,21 @@ func getBasecallerBySocketId(c *gin.Context, state *State) {
 	}
 
 	if obj.Mid != "" {
-		obj.RtMetrics.Timestamp = ""
-		so := GetStorageObjectForMid(state.Store, obj.Mid, state)
-		if so == nil {
-			log.Printf("Could not find StorageObject for mid %q", obj.Mid)
-		} else {
-			Url := obj.RtMetrics.Url
-			if Url != "" && so != nil {
-				fn := TranslateUrl(so, Url)
-				log.Printf("For RtMetrics, TranslateUrl: %q -> %q", Url, fn)
+		obj.RtMetricsTimestamp = ""
+		so := RequireStorageObjectForMid(obj.Mid, state)
+		Url := obj.RtMetricsUrl
+		if Url != "" && so != nil {
+			fn := TranslateUrl(so, Url)
+			log.Printf("For RtMetrics, TranslateUrl: %q -> %q", Url, fn)
 
-				modtime, err := config.GetModificationTime(fn)
-				if err != nil {
-					log.Printf("WARNING: Got err: %v", err)
-				} else {
-					utc := modtime.UTC()
+			modtime, err := config.GetModificationTime(fn)
+			if err != nil {
+				log.Printf("WARNING: Got err: %v", err)
+			} else {
+				utc := modtime.UTC()
 
-					// ISO8601 timestamp (with milliseconds) of time field
-					obj.RtMetrics.Timestamp = Timestamp(utc)
-				}
+				// ISO8601 timestamp (with milliseconds) of time field
+				obj.RtMetricsTimestamp = Timestamp(utc)
 			}
 		}
 	}
@@ -612,7 +608,7 @@ func getRtmetricsBySocketId(c *gin.Context, state *State) {
 		return
 	}
 	so := RequireStorageObjectForMid(obj.Mid, state)
-	url := obj.RtMetrics.Url
+	url := obj.RtMetricsUrl
 	fn := TranslateUrl(so, url)
 	content := ReadStringFromFile(fn)
 	c.String(http.StatusOK, content)
