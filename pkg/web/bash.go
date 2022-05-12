@@ -533,7 +533,7 @@ func DumpPostprimaryScript(tc config.TopStruct, obj *PostprimaryObject, so *Stor
 	rundir := filepath.Dir(TranslateUrl(so, obj.OutputPrefixUrl))
 	setup.RunDir = rundir
 	setup.ScriptFn = filepath.Join(setup.RunDir, "run.ppa.sh")
-	setup.Hostname = GetPostprimaryHostname(tc.Hostname, obj.BazFileUrl)
+	setup.Hostname = GetPostprimaryHostname(tc.Hostname, TranslateUrl(so, obj.BazFileUrl))
 	wr := new(bytes.Buffer)
 	if err := WriteBaz2bamBash(wr, config.Top(), obj, so); err != nil {
 		err = errors.Wrapf(err, "Error in WriteBaz2BamBash(%v, %v, %v)", wr, config.Top(), obj)
