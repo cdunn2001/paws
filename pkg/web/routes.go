@@ -609,6 +609,7 @@ func getRtmetricsBySocketId(c *gin.Context, state *State) {
 	url := obj.RtMetricsUrl
 	fn := TranslateUrl(so, url)
 	content := ReadStringFromFile(fn)
+	c.Writer.Header().Set("Content-Type", "application/json; charset=utf-8")
 	c.String(http.StatusOK, content)
 }
 
