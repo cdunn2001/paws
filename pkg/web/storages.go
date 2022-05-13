@@ -29,7 +29,8 @@ type IStore interface {
 }
 
 func Exists(path string) bool {
-	_, err := os.Stat(path)
+	st, err := os.Stat(path)
+	log.Printf("Exists(%q) -> %+v\n%+v\n", path, st, err)
 	return err == nil // || !errors.Is(err, fs.ErrNotExist)
 }
 
