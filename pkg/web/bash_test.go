@@ -147,6 +147,7 @@ smrt-basecaller-launch.sh \
   --config traceSaver.roi='[[135,288,1,32],[135,768,1,32],[135,1248,1,32],[135,1728,1,32],[405,288,1,32],[405,768,1,32],[405,1248,1,32],[405,1728,1,32],[675,288,1,32],[675,768,1,32],[675,1248,1,32],[675,1728,1,32],[945,288,1,32],[945,768,1,32],[945,1248,1,32],[945,1728,1,32]]' \
   --outputbazfile /data/nrta/3/m123/m123.baz \
   --config realTimeMetrics.jsonOutputFile=/data/nrta/3/m123/m123.rtmetrics.json \
+  --config algorithm.modelEstimationMode=FixedEstimations \
   --config /tmp/pawsgo/TestWriteBasecallerBash/m123/m123.basecaller.config.json \
   --config source.WXIPCDataSourceConfig.sraIndex=3 \
   --config dataSource.darkCalFileName=/data/nrta/3/m123/m123.darkcal_220325_032954.h5 \
@@ -238,6 +239,7 @@ smrt-basecaller-launch.sh \
    \
   --outputbazfile /data/nrta/3/m123/m123.baz \
   --config realTimeMetrics.jsonOutputFile=/data/nrta/3/m123/m123.rtmetrics.json \
+  --config algorithm.modelEstimationMode=FixedEstimations \
   --config /tmp/pawsgo/TestWriteBasecallerBash/m123/m123.basecaller.config.json \
   --config source.WXIPCDataSourceConfig.sraIndex=2 \
   --config dataSource.darkCalFileName=/data/nrta/3/m123/m123.darkcal_220325_032954.h5 \

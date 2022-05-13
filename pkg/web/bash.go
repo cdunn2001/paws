@@ -155,6 +155,7 @@ export GPU_ID={{.Local.gpu}}
   {{.Local.optTraceFileRoi}} \
   {{.Local.optOutputBazFile}} \
   {{.Local.optOutputRtMetricsFile}} \
+  --config algorithm.modelEstimationMode=FixedEstimations \
   --config {{.Local.config_json_fn}} \
   --config source.WXIPCDataSourceConfig.sraIndex={{.Local.sra}} \
   {{.Local.optDarkCalFileName}} \
