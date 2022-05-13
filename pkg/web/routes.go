@@ -345,7 +345,7 @@ func stopBasecallerBySocketId(c *gin.Context, state *State) {
 	obj.ProcessStatus.CompletionStatus = Aborted
 	obj.ProcessStatus.Timestamp = TimestampNow()
 	state.Basecallers[id] = obj
-	c.Status(http.StatusOK)
+	c.IndentedJSON(http.StatusOK, obj)
 }
 
 // Resets the basecaller resource on socket {id}.
@@ -425,7 +425,7 @@ func stopDarkcalBySocketId(c *gin.Context, state *State) {
 	obj.ProcessStatus.CompletionStatus = Aborted
 	obj.ProcessStatus.Timestamp = TimestampNow()
 	state.Darkcals[id] = obj // TODO: Invalidates ProcessStatus pointer?
-	c.Status(http.StatusOK)
+	c.IndentedJSON(http.StatusOK, obj)
 }
 
 // Resets the darkcal resource on socket {id}.
@@ -505,7 +505,7 @@ func stopLoadingcalBySocketId(c *gin.Context, state *State) {
 	obj.ProcessStatus.CompletionStatus = Aborted
 	obj.ProcessStatus.Timestamp = TimestampNow()
 	state.Loadingcals[id] = obj // TODO: not thread-safe!!!
-	c.Status(http.StatusOK)
+	c.IndentedJSON(http.StatusOK, obj)
 }
 
 // Resets the loadingcal resource on socket {id}.
@@ -658,5 +658,5 @@ func stopPostprimaryByMid(c *gin.Context, state *State) {
 	obj.ProcessStatus.CompletionStatus = Aborted
 	obj.ProcessStatus.Timestamp = TimestampNow()
 	state.Postprimaries[mid] = obj
-	c.String(http.StatusOK, "The process for mid '%s' was stopped, and now the resource can be DELETEd.\n", mid)
+	c.IndentedJSON(http.StatusOK, obj)
 }
