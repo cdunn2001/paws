@@ -279,7 +279,7 @@ func WatchBashStderr(bash string, ps *ProcessStatusObject, envExtra []string, to
 		temp_dn = "very.tempdir"
 		log.Printf("ERROR Weirdly unable to create TempDir(): %#v\nTrying '%s' instead.\n",
 			err, temp_dn)
-		err = os.MkdirAll(temp_dn, 0777)
+		CreatePathIfNeeded(temp_dn)
 		check(err)
 	}
 	//stdout_fn := filepath.Join(temp_dn, "stdout.txt")
@@ -476,7 +476,7 @@ func WatchBash(bash string, ps *ProcessStatusObject, envExtra []string, tool str
 		temp_dn = "very.tempdir"
 		log.Printf("ERROR Weirdly unable to create TempDir(): %#v\nTrying '%s' instead.\n",
 			err, temp_dn)
-		err = os.MkdirAll(temp_dn, 0777)
+		CreatePathIfNeeded(temp_dn)
 		check(err)
 	}
 	stdout_fn := filepath.Join(temp_dn, "stdout.txt")

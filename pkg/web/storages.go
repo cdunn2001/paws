@@ -28,8 +28,27 @@ type IStore interface {
 	AcquireStorageObject(mid string) *StorageObject
 }
 
+func Exists(path string) bool {
+	_, err := os.Stat("temp")
+	return err == nil // || !errors.Is(err, fs.ErrNotExist)
+}
+
+var BadPaths = []string{"/data/icc", "/data/nrta", "/data/nrtb"}
+
+func CheckIllegalPathToCreate(path string) {
+	for _, BadPath := range BadPaths {
+		if strings.HasPrefix(filepath.Clean(path), BadPath) && !Exists(BadPath) {
+			msg := fmt.Sprintf("Trying to create %q, which must already exist. (for %q)", BadPath, path)
+			panic(msg)
+		}
+	}
+}
+
 func CreatePathIfNeeded(path string) {
-	log.Printf("CreatePathIfNeeded(%q)\n", path)
+	if !Exists(path) {
+		log.Printf("CreatePathIfNeeded(%q)\n", path)
+	}
+	CheckIllegalPathToCreate(path)
 	err := os.MkdirAll(path, 0777) // Does not guarantee 0777 if already exists.
 	if err != nil {
 		msg := fmt.Sprintf("Could not create directory %q: %v", path, err)
@@ -147,8 +166,6 @@ func (self *MultiDirStore) AcquireStorageObject(mid string) *StorageObject {
 
 	CreatePathIfNeeded(obj.LinuxIccPath)
 	CreatePathIfNeeded(obj.LinuxNrtPath)
-	os.MkdirAll(obj.LinuxIccPath, 0777)
-	os.MkdirAll(obj.LinuxNrtPath, 0777)
 	self.LastPartition = partition
 	self.LastNrt = nrt
 	return obj
