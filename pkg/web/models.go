@@ -211,15 +211,20 @@ type SocketBasecallerObject struct {
 	// Example: null
 	SmrtBasecallerConfig string `json:"smrtBasecallerConfig"`
 
-	RtMetrics SocketBasecallerRTMetricsObject
+	// Source URL of the most recent RT Metrics file.
+	// Example: http://localhost:23632/storages/m123/m123.rtmetrics.json
+	// For paws use only.
+	RtMetricsUrl string `json:"rtMetricsUrl"`
+
+	// ISO8601 timestamp (with milliseconds) of rtmetrics file write time.
+	// Example: 2017-01-31T01:59:49.103998Z
+	// This is only to tell ICS when it has been updated. It does not guarantee
+	// that the file received via "/rtmetrics" will be this one.
+	RtMetricsTimestamp string `json:"rtMetricsTimestamp"`
 
 	socketCommonObject
 }
 type SocketBasecallerRTMetricsObject struct {
-
-	// Source URL of the most recent RT Metrics file. When the file is updated, the URL will change with the embedded timestamp
-	// Example: http://localhost:23632/storages/m123456_987654/rtmetrics_20210625_123456.xml
-	Url string `json:"url"`
 }
 type AnalogObject struct {
 

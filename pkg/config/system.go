@@ -2,10 +2,12 @@ package config
 
 import (
 	"fmt"
+	"github.com/pkg/errors"
 	"log"
 	"os"
 	"os/exec"
 	"strings"
+	"time"
 )
 
 func check(e error) {
@@ -129,4 +131,12 @@ func VerifyBinaries(tc BinaryPaths) {
 	VerifyBinary("Binary_pa_cal", tc.Binary_pa_cal)
 	VerifyBinary("Binary_smrt_basecaller", tc.Binary_smrt_basecaller)
 	//VerifyBinary("Binary_reducestats", tc.Binary_reducestats)
+}
+
+func GetModificationTime(fn string) (time.Time, error) {
+	file, err := os.Stat(fn)
+	if err != nil {
+		return time.Time{}, errors.Wrapf(err, "Failed to stat %q", fn)
+	}
+	return file.ModTime(), nil
 }

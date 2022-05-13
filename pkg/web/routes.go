@@ -185,7 +185,7 @@ func getPawsStatusObject(state *State) PawsStatusObject {
 	status.Time = float64(utc.UnixMilli()) * 0.001
 
 	// ISO8601 timestamp (with milliseconds) of time field
-	status.Timestamp = Timestamp(now)
+	status.Timestamp = Timestamp(utc)
 
 	// Version of software, including git hash of last commit
 	status.Version = config.Version
@@ -280,6 +280,27 @@ func getBasecallerBySocketId(c *gin.Context, state *State) {
 		c.String(http.StatusNotFound, "The basecaller process for socket '%s' was not found.\n", id)
 		return
 	}
+
+	if obj.Mid != "" {
+		obj.RtMetricsTimestamp = ""
+		so := RequireStorageObjectForMid(obj.Mid, state)
+		Url := obj.RtMetricsUrl
+		if Url != "" && so != nil {
+			fn := TranslateUrl(so, Url)
+			log.Printf("For RtMetrics, TranslateUrl: %q -> %q", Url, fn)
+
+			modtime, err := config.GetModificationTime(fn)
+			if err != nil {
+				log.Printf("WARNING: Got err: %v", err)
+			} else {
+				utc := modtime.UTC()
+
+				// ISO8601 timestamp (with milliseconds) of time field
+				obj.RtMetricsTimestamp = Timestamp(utc)
+			}
+		}
+	}
+
 	c.IndentedJSON(http.StatusOK, obj)
 }
 
@@ -587,7 +608,7 @@ func getRtmetricsBySocketId(c *gin.Context, state *State) {
 		return
 	}
 	so := RequireStorageObjectForMid(obj.Mid, state)
-	url := obj.RtMetrics.Url
+	url := obj.RtMetricsUrl
 	fn := TranslateUrl(so, url)
 	content := ReadStringFromFile(fn)
 	c.String(http.StatusOK, content)
