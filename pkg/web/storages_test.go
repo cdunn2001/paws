@@ -139,3 +139,7 @@ func TestCheckIllegalPathToCreate(t *testing.T) {
 	BadPaths = append(BadPaths, "/tmp/foo")
 	assert.Panics(t, func() { CheckIllegalPathToCreate("/tmp/foo") })
 }
+func TestExists(t *testing.T) {
+	assert.False(t, Exists("/data/nrta"), "/data/nrta")
+	assert.True(t, Exists("/tmp"), "/tmp")
+}

@@ -29,7 +29,7 @@ type IStore interface {
 }
 
 func Exists(path string) bool {
-	_, err := os.Stat("temp")
+	_, err := os.Stat(path)
 	return err == nil // || !errors.Is(err, fs.ErrNotExist)
 }
 
