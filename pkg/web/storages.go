@@ -33,12 +33,14 @@ func Exists(path string) bool {
 	return err == nil // || !errors.Is(err, fs.ErrNotExist)
 }
 
-var BadPath = "/data/icc"
+var BadPaths = []string{"/data/icc", "/data/nrta", "/data/nrtb"}
 
 func CheckIllegalPathToCreate(path string) {
-	if strings.HasPrefix(filepath.Clean(path), BadPath) && !Exists(BadPath) {
-		msg := fmt.Sprintf("Trying to create %q, which must already exist. (for %q)", BadPath, path)
-		panic(msg)
+	for _, BadPath := range BadPaths {
+		if strings.HasPrefix(filepath.Clean(path), BadPath) && !Exists(BadPath) {
+			msg := fmt.Sprintf("Trying to create %q, which must already exist. (for %q)", BadPath, path)
+			panic(msg)
+		}
 	}
 }
 

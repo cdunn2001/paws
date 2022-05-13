@@ -132,10 +132,10 @@ func TestCheckIllegalPathToCreate(t *testing.T) {
 	assert.Panics(t, func() { CheckIllegalPathToCreate("/data/icc") })
 	assert.Panics(t, func() { CheckIllegalPathToCreate("/data/icc/foo") })
 	CheckIllegalPathToCreate("/tmp")
-	was := BadPath
+	was := BadPaths
 	defer func() {
-		BadPath = was
+		BadPaths = was
 	}()
-	BadPath = "/tmp/foo"
+	BadPaths = append(BadPaths, "/tmp/foo")
 	assert.Panics(t, func() { CheckIllegalPathToCreate("/tmp/foo") })
 }
