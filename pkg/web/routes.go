@@ -285,19 +285,17 @@ func getBasecallerBySocketId(c *gin.Context, state *State) {
 		obj.RtMetricsTimestamp = ""
 		so := RequireStorageObjectForMid(obj.Mid, state)
 		Url := obj.RtMetricsUrl
-		if Url != "" && so != nil {
-			fn := TranslateUrl(so, Url)
-			log.Printf("For RtMetrics, TranslateUrl: %q -> %q", Url, fn)
+		fn := TranslateUrl(so, Url)
+		log.Printf("For RtMetrics, TranslateUrl: %q -> %q", Url, fn)
 
-			modtime, err := config.GetModificationTime(fn)
-			if err != nil {
-				log.Printf("WARNING: Got err: %v", err)
-			} else {
-				utc := modtime.UTC()
+		modtime, err := config.GetModificationTime(fn)
+		if err != nil {
+			log.Printf("WARNING: Got err: %v", err)
+		} else {
+			utc := modtime.UTC()
 
-				// ISO8601 timestamp (with milliseconds) of time field
-				obj.RtMetricsTimestamp = Timestamp(utc)
-			}
+			// ISO8601 timestamp (with milliseconds) of time field
+			obj.RtMetricsTimestamp = Timestamp(utc)
 		}
 	}
 
@@ -611,6 +609,7 @@ func getRtmetricsBySocketId(c *gin.Context, state *State) {
 	url := obj.RtMetricsUrl
 	fn := TranslateUrl(so, url)
 	content := ReadStringFromFile(fn)
+	c.Writer.Header().Set("Content-Type", "application/json; charset=utf-8")
 	c.String(http.StatusOK, content)
 }
 
