@@ -140,6 +140,6 @@ func TestCheckIllegalPathToCreate(t *testing.T) {
 	assert.Panics(t, func() { CheckIllegalPathToCreate("/tmp/foo") })
 }
 func TestExists(t *testing.T) {
-	assert.False(t, Exists("/data/nrta"), "/data/nrta")
+	assert.False(t, Exists("/fubar"), "/fubar")
 	assert.True(t, Exists("/tmp"), "/tmp")
 }
