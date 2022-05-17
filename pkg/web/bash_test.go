@@ -139,7 +139,7 @@ func TestWriteBasecallerBash(t *testing.T) {
 export NUMA_NODE=1
 export GPU_ID=1
 smrt-basecaller-launch.sh \
-  --config multipleBazFiles=false \
+   \
   --statusfd 2 \
   --logoutput /data/nrta/3/m123/m123.basecaller.log \
   --logfilter INFO \
@@ -231,7 +231,7 @@ smrt-basecaller-launch.sh \
 export NUMA_NODE=0
 export GPU_ID=0
 smrt-basecaller-launch.sh \
-  --config multipleBazFiles=false \
+   \
   --statusfd 2 \
   --logoutput /data/nrta/3/m123/m123.basecaller.log \
   --logfilter INFO \

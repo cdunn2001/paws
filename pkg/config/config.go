@@ -60,7 +60,7 @@ func init() {
 		Binaries: FindBinaries(),
 		Values: ValuesConfig{
 			DefaultFrameRate:         100.0, // fps
-			JustOneBazFile:           true,
+			JustOneBazFile:           false,
 			ApplyDarkCal:             true,
 			ApplyCrosstalkCorrection: true,
 			MovieNumberAlwaysZero:    true,
