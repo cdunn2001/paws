@@ -335,7 +335,7 @@ const (
 
 var Template_baz2bam = `
 {{.Global.Binaries.Binary_baz2bam}} \
-  {{.Local.bazFile}} \
+  --filelist {{.Local.bazFilelist}} \
   {{.Local.logoutput}} \
   {{.Local.logfilter}} \
   -o {{.Local.outputPrefix}} \
@@ -353,11 +353,6 @@ var Template_baz2bam = `
   {{.Local.moveOutputStatsXml}}
   {{.Local.moveOutputStatsH5}}
 `
-
-// alternatively, replace bazFile(s) w/
-// --filelist ${FILE_LIST}
-
-// --silent //?
 
 func MoveIfDifferent(implicitFn, desiredFn string) string {
 	if desiredFn == "" || implicitFn == desiredFn || desiredFn == "discard:" {
@@ -563,7 +558,9 @@ func WriteBaz2bamBash(wr io.Writer, tc config.TopStruct, obj *PostprimaryObject,
 	HandleMetadata(metadata_xml, obj.SubreadsetMetadataXml)
 	kv["metadata"] = "--metadata " + metadata_xml
 	kv["acqId"] = obj.Uuid
-	kv["bazFile"] = TranslateUrl(so, obj.BazFileUrl)
+	kv["bazFilelist"] = TranslateUrl(so, obj.BazFileUrl) + "filelist.txt"
+	// i.e. "prefix.bazfilelist.txt"
+
 	loglevel := obj.LogLevel
 	logoutput := TranslateUrl(so, obj.LogUrl)
 	if loglevel == "" {
