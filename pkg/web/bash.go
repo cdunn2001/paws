@@ -308,6 +308,7 @@ func WriteBasecallerBash(wr io.Writer, tc config.TopStruct, obj *SocketBasecalle
 	}
 
 	optMultiple := ""
+	//optMultiple = "--config multipleBazFiles=true" // the default
 	if tc.Values.JustOneBazFile {
 		optMultiple = "--config multipleBazFiles=false"
 	}
