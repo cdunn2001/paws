@@ -420,7 +420,7 @@ func DumpBasecallerScript(tc config.TopStruct, obj *SocketBasecallerObject, sid 
 	mid := obj.Mid
 	obj.BazUrl = ChooseUrlThenRegister(so, obj.BazUrl, StoragePathNrt, mid+".baz")
 	obj.LogUrl = ChooseUrlThenRegister(so, obj.LogUrl, StoragePathNrt, mid+".basecaller.log")
-	obj.TraceFileUrl = ChooseUrlThenRegister(so, obj.TraceFileUrl, StoragePathNrt, mid+".trc.h5")
+	obj.TraceFileUrl = ChooseUrlThenRegister(so, obj.TraceFileUrl, StoragePathIcc, mid+".trc.h5")
 	obj.RtMetricsUrl = ChooseUrlThenRegister(so, obj.RtMetricsUrl, StoragePathNrt, mid+".rtmetrics.json")
 
 	// Now we can use the output Urls.

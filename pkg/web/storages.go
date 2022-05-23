@@ -282,7 +282,7 @@ func StorageObjectUrlToLinuxPath(so *StorageObject, Url string) (string, error) 
 	}
 	sio, found := so.UrlPath2Item[urlpath.Path]
 	if !found {
-		msg := fmt.Sprintf("Failed to find urlpath %q (from URL %q) among registered paths. Someone forget to call ChooseUrlThenRegister()", urlpath.Path, Url)
+		msg := fmt.Sprintf("Failed to find urlpath %q (from URL %q) among registered paths. Did someone forget to call ChooseUrlThenRegister()?", urlpath.Path, Url)
 		return "/dev/null", errors.New(msg)
 	}
 	return sio.LinuxPath, nil
