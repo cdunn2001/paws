@@ -519,7 +519,7 @@ func DumpPostprimaryScript(tc config.TopStruct, obj *PostprimaryObject, so *Stor
 	rundir := filepath.Dir(TranslateUrl(so, obj.OutputPrefixUrl))
 	setup.RunDir = rundir
 	setup.ScriptFn = filepath.Join(setup.RunDir, "run.ppa.sh")
-	// TODO: If BazFileUrl can be "discard:", then what host to run on?
+	// TODO: If BazFileUrl is "discard:", then there is no need to run PPA.
 	setup.Hostname = GetPostprimaryHostname(tc.Hostname, TranslateUrl(so, obj.BazFileUrl))
 	wr := new(bytes.Buffer)
 	if err := WriteBaz2bamBash(wr, config.Top(), obj, so); err != nil {
