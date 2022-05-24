@@ -1,9 +1,9 @@
 package web
 
 import (
-	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/pkg/errors"
 	"log"
 	"net/http"
 	"net/url"
@@ -73,12 +73,19 @@ var DefaultStorageRootNrta string = "/data/nrta"
 var DefaultStorageRootNrtb string = "/data/nrtb"
 var DefaultStorageRootIcc string = "/data/icc"
 
+type NrtState struct {
+	UsedPartitions []bool
+}
+type NrtPartition struct {
+	PartitionIndex int    // [0, n)
+	Nrt            string // a|b
+}
 type MultiDirStore struct {
 	NrtaDir       string
 	NrtbDir       string
 	IccDir        string
-	LastPartition string
-	LastNrt       string // a|b
+	NextPreferred NrtPartition // start search here
+	Nrts          map[string]*NrtState
 }
 
 func CreateDefaultStore() *MultiDirStore {
@@ -92,6 +99,34 @@ func CreateMultiDirStoreFromOne(root string) *MultiDirStore {
 	iccroot := filepath.Join(root, "icc")
 	return CreateMultiDirStore(nrtaroot, nrtbroot, iccroot)
 	// TODO: Figure a way to avoid accidentally reversing the args.
+}
+
+var PartitionNames = [4]string{"0", "1", "2", "3"}
+
+// Public for testing. Do not check anything on disk.
+func NewMultiDirStore(nrtaroot, nrtbroot, iccroot string) *MultiDirStore {
+	nrtsa := &NrtState{
+		UsedPartitions: make([]bool, len(PartitionNames)),
+	}
+	nrtsb := &NrtState{
+		UsedPartitions: make([]bool, len(PartitionNames)),
+	}
+	for i := 0; i < len(PartitionNames); i++ {
+		// Not needed, as make() initialized to zero, but explicit.
+		nrtsa.UsedPartitions[i] = false
+		nrtsb.UsedPartitions[i] = false
+	}
+
+	nrts := make(map[string]*NrtState)
+	nrts["a"] = nrtsa
+	nrts["b"] = nrtsb
+	return &MultiDirStore{
+		NrtaDir:       nrtaroot,
+		NrtbDir:       nrtbroot,
+		IccDir:        iccroot,
+		NextPreferred: NrtPartition{Nrt: "a", PartitionIndex: 0},
+		Nrts:          nrts,
+	}
 }
 func CreateMultiDirStore(nrtaroot, nrtbroot, iccroot string) *MultiDirStore {
 	abspath := func(root string) string {
@@ -111,54 +146,73 @@ func CreateMultiDirStore(nrtaroot, nrtbroot, iccroot string) *MultiDirStore {
 	CreatePathIfNeeded(nrtaroot)
 	CreatePathIfNeeded(nrtbroot)
 	CreatePathIfNeeded(iccroot)
-	return &MultiDirStore{
-		NrtaDir:       nrtaroot,
-		NrtbDir:       nrtbroot,
-		IccDir:        iccroot,
-		LastPartition: "",
-		LastNrt:       "",
-	}
+
+	return NewMultiDirStore(nrtaroot, nrtbroot, iccroot)
 }
 
-// Someday, this will have smart logic, to load-balance the partitions.
-// For now, just cycle.
-func NextPartition(last string) string {
-	switch last {
-	case "0":
-		return "1"
-	case "1":
-		return "2"
-	case "2":
-		return "3"
-	case "3":
-		return "0"
-	default:
-		return "0"
+// Return first false index of 'used' starting with 'start', but
+// wrapping back around.
+// 'start' can be any of [0, n)
+func FindFirstFalseIndex(start int, used []bool) int {
+	n := len(used)
+	for i := 0; i < n; i++ {
+		index := (i + start) % n
+		if !used[index] {
+			return index
+		}
 	}
+	return -1
+}
+
+// Given 'preferred', find a partition that is unused.
+func (self *MultiDirStore) FindUnusedNrtPartition(preferred NrtPartition) (NrtPartition, error) {
+	result := preferred
+	index := FindFirstFalseIndex(preferred.PartitionIndex, self.Nrts[preferred.Nrt].UsedPartitions)
+	result.PartitionIndex = index
+	if index != -1 {
+		return result, nil
+	}
+	// We *could* check the other nrt, but this is never expected to fail anyway.
+	msg := fmt.Sprintf("No unused partitions for NRT '%s'", preferred.Nrt)
+	return result, errors.New(msg)
+}
+
+// Oscillate btw/ a|b, and if b then rotate index thru 0,1,2,3.
+// This is independent of what is actually available.
+func ChooseNextNrtPartition(current NrtPartition) NrtPartition {
+	result := current
+	if current.Nrt == "a" {
+		result.Nrt = "b"
+	} else {
+		result.Nrt = "a"
+		result.PartitionIndex = (current.PartitionIndex + 1) % len(PartitionNames)
+	}
+	return result
 }
 func (self *MultiDirStore) AcquireStorageObject(mid string) *StorageObject {
 	var (
-		partition string
-		nrt       string
-		nrtDir    string
+		nrtDir string
 	)
-	// Temporary, until we split BAZ files to both NRTs at the same time.
-	// TODO: Reimplement
-	if self.LastNrt == "a" {
-		nrt = "b"
-		nrtDir = self.NrtbDir
-		partition = self.LastPartition
-	} else {
-		nrt = "a"
-		nrtDir = self.NrtaDir
-		partition = NextPartition(self.LastPartition)
+	current, err := self.FindUnusedNrtPartition(self.NextPreferred)
+	if err != nil {
+		err = errors.Wrapf(err, "Too many storages in use. Try resetting? mid=%s", mid)
+		panic(err)
 	}
+	nrt := current.Nrt
+	if nrt == "a" {
+		nrtDir = self.NrtaDir
+	} else {
+		nrtDir = self.NrtbDir
+	}
+	self.Nrts[nrt].UsedPartitions[current.PartitionIndex] = true
+	partitionName := PartitionNames[current.PartitionIndex]
 	obj := &StorageObject{
 		Mid:          mid,
+		Nrt:          nrt,
 		RootUrl:      filepath.Join("http://storages", mid, "files"),
 		RootUrlPath:  filepath.Join("/storages", mid, "files"),
 		LinuxIccPath: filepath.Join(self.IccDir, mid),
-		LinuxNrtPath: filepath.Join(nrtDir, partition, mid),
+		LinuxNrtPath: filepath.Join(nrtDir, partitionName, mid),
 		UrlPath2Item: make(map[string]*StorageItemObject),
 	}
 	// To start fresh. Also, we can allow debug logs to linger. But we can also drop this.
@@ -167,8 +221,7 @@ func (self *MultiDirStore) AcquireStorageObject(mid string) *StorageObject {
 
 	CreatePathIfNeeded(obj.LinuxIccPath)
 	CreatePathIfNeeded(obj.LinuxNrtPath)
-	self.LastPartition = partition
-	self.LastNrt = nrt
+	self.NextPreferred = ChooseNextNrtPartition(current)
 	return obj
 }
 func (self *MultiDirStore) Free(obj *StorageObject) {
@@ -184,6 +237,8 @@ func (self *MultiDirStore) Free(obj *StorageObject) {
 	obj.UrlPath2Item = nil // len() is still valid.
 	DeletePathIfExists(obj.LinuxIccPath)
 	DeletePathIfExists(obj.LinuxNrtPath)
+	nrt := obj.Nrt
+	self.Nrts[nrt].UsedPartitions[obj.PartitionIndex] = false
 }
 
 // Currently only used for tests.
