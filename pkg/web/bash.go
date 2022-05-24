@@ -290,16 +290,8 @@ func WriteBasecallerBash(wr io.Writer, tc config.TopStruct, obj *SocketBasecalle
 		kv["optTraceFileRoi"] = "--config traceSaver.roi='" + string(raw) + "'"
 	}
 	kv["optOutputRtMetricsFile"] = "--config realTimeMetrics.jsonOutputFile=" + TranslateUrl(so, obj.RtMetricsUrl)
-	if len(obj.BazUrl) == 0 {
-		kv["optOutputBazFile"] = ""
-	} else {
-		kv["optOutputBazFile"] = TranslateDiscardableUrl(so, "--outputbazfile", obj.BazUrl)
-	}
-	if len(obj.LogUrl) == 0 {
-		kv["optLogOutput"] = ""
-	} else {
-		kv["optLogOutput"] = TranslateDiscardableUrl(so, "--logoutput", obj.LogUrl)
-	}
+	kv["optOutputBazFile"] = TranslateDiscardableUrl(so, "--outputbazfile", obj.BazUrl)
+	kv["optLogOutput"] = TranslateDiscardableUrl(so, "--logoutput", obj.LogUrl)
 	if !strings.HasSuffix(kv["optLogOutput"], ".log") {
 		msg := fmt.Sprintf("ERROR! For smrt-basecaller, log output is %q but must end w/ '.log' (for now).",
 			kv["optLogOutput"])
@@ -420,7 +412,7 @@ func DumpBasecallerScript(tc config.TopStruct, obj *SocketBasecallerObject, sid 
 	mid := obj.Mid
 	obj.BazUrl = ChooseUrlThenRegister(so, obj.BazUrl, StoragePathNrt, mid+".baz")
 	obj.LogUrl = ChooseUrlThenRegister(so, obj.LogUrl, StoragePathNrt, mid+".basecaller.log")
-	obj.TraceFileUrl = ChooseUrlThenRegister(so, obj.TraceFileUrl, StoragePathNrt, mid+".trc.h5")
+	obj.TraceFileUrl = ChooseUrlThenRegister(so, obj.TraceFileUrl, StoragePathIcc, mid+".trc.h5")
 	obj.RtMetricsUrl = ChooseUrlThenRegister(so, obj.RtMetricsUrl, StoragePathNrt, mid+".rtmetrics.json")
 
 	// Now we can use the output Urls.
@@ -527,6 +519,7 @@ func DumpPostprimaryScript(tc config.TopStruct, obj *PostprimaryObject, so *Stor
 	rundir := filepath.Dir(TranslateUrl(so, obj.OutputPrefixUrl))
 	setup.RunDir = rundir
 	setup.ScriptFn = filepath.Join(setup.RunDir, "run.ppa.sh")
+	// TODO: If BazFileUrl can be "discard:", then what host to run on?
 	setup.Hostname = GetPostprimaryHostname(tc.Hostname, TranslateUrl(so, obj.BazFileUrl))
 	wr := new(bytes.Buffer)
 	if err := WriteBaz2bamBash(wr, config.Top(), obj, so); err != nil {
@@ -611,18 +604,10 @@ func WriteReduceStatsBash(wr io.Writer, tc config.TopStruct, obj *PostprimaryObj
 	t := CreateTemplate(Template_reducestats, "")
 	kv := make(map[string]string)
 
-	if obj.OutputStatsH5Url == "discard:" {
-		kv["OutputStatsH5"] = ""
-	} else {
-		kv["OutputStatsH5"] = "--input " + TranslateUrl(so, obj.OutputStatsH5Url)
-		// Output from baz2bam; Input for reducestats. But Output of PPA.
-	}
+	// Output from baz2bam; Input for reducestats. But Output of PPA.
+	kv["OutputStatsH5"] = TranslateDiscardableUrl(so, "--input", obj.OutputStatsH5Url)
 
-	if obj.OutputReduceStatsH5Url == "discard:" {
-		kv["OutputReduceStatsH5"] = ""
-	} else {
-		kv["OutputReduceStatsH5"] = "--output " + TranslateUrl(so, obj.OutputReduceStatsH5Url)
-	}
+	kv["OutputReduceStatsH5"] = TranslateDiscardableUrl(so, "--output", obj.OutputReduceStatsH5Url)
 
 	ts := TemplateSub{
 		Local:  kv,
