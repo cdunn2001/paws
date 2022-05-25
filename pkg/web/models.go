@@ -212,8 +212,91 @@ type ProgressMetricsObject struct {
 	NetProgress   float64 `json:"netProgress"`
 }
 
-// For composition in others
-type socketCommonObject struct {
+type SocketDarkcalObject struct {
+	// ---------------
+	// REQUIRED INPUTS
+
+	// Movie context ID used to create this object
+	// Example: m123456_987654
+	Mid string `json:"mid"`
+
+	// ---------------------
+	// OPTIONAL INPUTS
+
+	// Destination URL of the calibration file
+	// Example: http://localhost:23632/storages/m123456_987654/loadingcal.h5
+	CalibFileUrl string `json:"calibFileUrl"`
+
+	// Destination URL of the log file
+	LogUrl string `json:"logUrl"`
+
+	// Log severity threshold
+	// (We currently ignore this, since we are debugging. If needed, let us know.)
+	LogLevel LogLevelEnum `json:"logLevel"`
+
+	// Arbitrary movie number to delimite the start and end
+	// (Ignored for now, and set to 0 always.)
+	MovieNumber int32 `json:"movieNumber"`
+
+	// Movie length in seconds. The values movieMaxFrames and movieMaxSeconds should be similar, but not exactly the same, depending on whether true elapsed time or accurate frame count is desired. One value should be the desired amount and the other value should be an emergency stop amount.
+	// Ignored unless > 0.
+	MovieMaxSeconds float64 `json:"movieMaxSeconds"`
+
+	// Movie length in frames. The values movieMaxFrames and movieMaxSeconds should be similar, but not exactly the same, depending on whether true elapsed time or accurate frame count is desired. One value should be the desired amount and the other value should be an emergency stop amount.
+	// (gets overridden w/ 128 or 512 for now, but setting prevents warning)
+	MovieMaxFrames int32 `json:"movieMaxFrames"`
+
+	// ---------------
+	// OUTPUTS
+
+	ProcessStatus ProcessStatusObject `json:"processStatus"`
+}
+type SocketLoadingcalObject struct {
+	// ---------------
+	// REQUIRED INPUTS
+
+	// Movie context ID used to create this object
+	// Example: m123456_987654
+	Mid string `json:"mid"`
+
+	// Source URL of the dark_frame calibration file
+	// Example: http://localhost:23632/storages/m123456_987654/darkcal.h5
+	DarkFrameFileUrl string `json:"darkFrameFileUrl"`
+
+	// ---------------------
+	// OPTIONAL INPUTS
+
+	// Destination URL of the calibration file
+	// Example: http://localhost:23632/storages/m123456_987654/loadingcal.h5
+	CalibFileUrl string `json:"calibFileUrl"`
+
+	// Destination URL of the log file
+	LogUrl string `json:"logUrl"`
+
+	// Log severity threshold
+	// (We currently ignore this, since we are debugging. If needed, let us know.)
+	LogLevel LogLevelEnum `json:"logLevel"`
+
+	// Arbitrary movie number to delimite the start and end
+	// (Ignored for now, and set to 0 always.)
+	MovieNumber int32 `json:"movieNumber"`
+
+	// Movie length in seconds. The values movieMaxFrames and movieMaxSeconds should be similar, but not exactly the same, depending on whether true elapsed time or accurate frame count is desired. One value should be the desired amount and the other value should be an emergency stop amount.
+	// Ignored unless > 0.
+	MovieMaxSeconds float64 `json:"movieMaxSeconds"`
+
+	// Movie length in frames. The values movieMaxFrames and movieMaxSeconds should be similar, but not exactly the same, depending on whether true elapsed time or accurate frame count is desired. One value should be the desired amount and the other value should be an emergency stop amount.
+	// (gets overridden w/ 128 or 512 for now, but setting prevents warning)
+	MovieMaxFrames int32 `json:"movieMaxFrames"`
+
+	// ---------------
+	// OUTPUTS
+
+	ProcessStatus ProcessStatusObject `json:"processStatus"`
+}
+type SocketBasecallerObject struct {
+	// ---------------------
+	// REQUIRED INPUTS
 
 	// Movie context ID used to create this object
 	// Example: m123456_987654
@@ -222,41 +305,15 @@ type socketCommonObject struct {
 	// Movie length in frames. The values movieMaxFrames and movieMaxSeconds should be similar, but not exactly the same, depending on whether true elapsed time or accurate frame count is desired. One value should be the desired amount and the other value should be an emergency stop amount.
 	MovieMaxFrames int32 `json:"movieMaxFrames"`
 
-	// Movie length in seconds. The values movieMaxFrames and movieMaxSeconds should be similar, but not exactly the same, depending on whether true elapsed time or accurate frame count is desired. One value should be the desired amount and the other value should be an emergency stop amount.
-	MovieMaxSeconds float64 `json:"movieMaxSeconds"`
-
-	// Arbitrary movie number to delimite the start and end
-	MovieNumber int32 `json:"movieNumber"`
+	// ---------------------
+	// OPTIONAL INPUTS
 
 	// Destination URL of the log file
 	LogUrl string `json:"logUrl"`
 
 	// Log severity threshold
+	// (We currently ignore this, since we are debugging. If needed, let us know.)
 	LogLevel LogLevelEnum `json:"logLevel"`
-
-	ProcessStatus ProcessStatusObject `json:"processStatus"`
-}
-type SocketDarkcalObject struct {
-
-	// Destination URL of the calibration file
-	// Example: http://localhost:23632/storages/m123456_987654/loadingcal.h5
-	CalibFileUrl string `json:"calibFileUrl"`
-
-	socketCommonObject
-}
-type SocketLoadingcalObject struct {
-
-	// Source URL of the dark_frame calibration file
-	// Example: http://localhost:23632/storages/m123456_987654/darkcal.h5
-	DarkFrameFileUrl string `json:"darkFrameFileUrl"`
-
-	// Destination URL of the calibration file
-	// Example: http://localhost:23632/storages/m123456_987654/loadingcal.h5
-	CalibFileUrl string `json:"calibFileUrl"`
-
-	socketCommonObject
-}
-type SocketBasecallerObject struct {
 
 	// subreadset UUID
 	// Example: 123e4567-e89b-12d3-a456-426614174000
@@ -322,15 +379,16 @@ type SocketBasecallerObject struct {
 	// For paws use only.
 	RtMetricsUrl string `json:"rtMetricsUrl"`
 
+	// ---------------
+	// OUTPUTS
+
 	// ISO8601 timestamp (with milliseconds) of rtmetrics file write time.
 	// Example: 2017-01-31T01:59:49.103998Z
 	// This is only to tell ICS when it has been updated. It does not guarantee
 	// that the file received via "/rtmetrics" will be this one.
 	RtMetricsTimestamp string `json:"rtMetricsTimestamp"`
 
-	socketCommonObject
-}
-type SocketBasecallerRTMetricsObject struct {
+	ProcessStatus ProcessStatusObject `json:"processStatus"`
 }
 type AnalogObject struct {
 
