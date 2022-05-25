@@ -4,7 +4,113 @@ import (
 	"pacb.com/seq/paws/pkg/config"
 )
 
-// Top level status of the pa-ws process
+/*****************************
+Endpoint input/output payloads
+==============================
+
+GET /status
+  -> PawsStatusObject
+
+GET /sockets
+  -> [SocketIndex]
+GET /sockets/:id
+  -> SocketObject
+POST /sockets/reset
+  <- (ignored)
+  -> (ignore)
+POST /sockets/:id/reset
+  <- (ignored)
+  -> (ignore)
+
+GET /sockets/:id/darkcal
+  -> SocketDarkcalObject
+POST /sockets/:id/darkcal/start
+  <- SocketDarkcalObject(Inputs)
+  -> SocketDarkcalObject
+POST /sockets/:id/darkcal/stop
+  <- (ignored)
+  -> SocketDarkcalObject
+POST /sockets/:id/darkcal/reset
+  <- (ignored)
+  -> SocketDarkcalObject
+
+GET /sockets/:id/loadingcal
+  -> SocketLoadingcalObject
+POST /sockets/:id/loadingcal/start
+  <- SocketLoadingcalObject(Inputs)
+  -> SocketLoadingcalObject
+POST /sockets/:id/loadingcal/stop
+  <- (ignored)
+  -> SocketLoadingcalObject
+POST /sockets/:id/loadingcal/reset
+  <- (ignored)
+  -> SocketLoadingcalObject
+
+GET /sockets/:id/basecaller
+  -> SocketBasecallerObject
+POST /sockets/:id/basecaller/start
+  <- SocketBasecallerObject(Inputs)
+  -> SocketBasecallerObject
+POST /sockets/:id/basecaller/stop
+  <- (ignored)
+  -> SocketBasecallerObject
+POST /sockets/:id/basecaller/reset
+  <- (ignored)
+  -> SocketBasecallerObject
+
+GET /postprimaries
+  -> [PostprimaryObject]
+GET /postprimaries/:mid
+  -> PostprimaryObject
+POST /postprimaries
+  <- PostprimaryObject(Inputs)
+  -> PostprimaryObject
+POST /postprimaries/:mid/stop
+  <- (ignored)
+  -> PostprimaryObject
+DELETE /postprimaries
+  <- (ignored)
+  -> (ignore)
+DELETE /postprimaries/:mid
+  <- (ignored)
+  -> (ignore)
+
+GET /storages
+  -> [StorageObject]
+GET /storages/:mid
+  -> StorageObject
+POST /storages
+  <- StorageObject
+  -> StorageObject
+DELETE /storages/:mid
+  <- (ignored)
+  -> (ignore)
+POST /storages/:mid/free
+  <- (ignored)
+  -> (ignore)
+
+GET /sockets/:id/rtmetrics
+  -> (determined by basecaller)
+
+For web only
+------------
+
+GET /dashboard
+GET /js/jquery.js
+
+For internal use only
+---------------------
+
+PUT /feed-watchdog
+
+Unimplemented
+-------------
+
+GET /sockets/:id/image
+
+***************************/
+
+// Top level status of the pa-ws process.
 type PawsStatusObject struct {
 
 	// Real time seconds that pa-ws has been running
