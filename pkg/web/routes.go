@@ -289,7 +289,7 @@ func getBasecallerBySocketId(c *gin.Context, state *State) {
 
 		modtime, err := config.GetModificationTime(fn)
 		if err != nil {
-			log.Printf("WARNING: (%q -> %q) Got err: %v", Url, fn, err)
+			//log.Printf("WARNING: (%q -> %q) Got err: %v", Url, fn, err) // TODO: Verbose log.
 		} else {
 			utc := modtime.UTC()
 
