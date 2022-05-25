@@ -41,7 +41,11 @@ curl $F -X GET $E/sockets/1/loadingcal
 
 curl $F -X GET $E/sockets/1/basecaller
 curl -i -X POST -d @sims/basecaller.start.json $E/sockets/1/basecaller/start
+
+# Partition 0 is arbitrary, but we assume a sorted order for now.
 echo "SOME RTMETRICS" >| tmp/storage/nrta/0/m123/m123.rtmetrics.json
+# Better: dummy-basecaller should write thism
+
 curl $F -X GET $E/sockets/1/rtmetrics
 curl $F -X GET $E/sockets/1/basecaller
 sleep 0.1

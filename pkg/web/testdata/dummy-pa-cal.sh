@@ -90,7 +90,7 @@ function log {
 }
 
 function report_status {
-    # ARGS: number, name, counter, next
+    # ARGS: number, name, counter, next, ready
     # Not reported: counterMax
     # Do we need "timestamp"?
     cat >&$FD << EOF

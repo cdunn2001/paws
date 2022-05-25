@@ -411,6 +411,14 @@ type StorageObject struct {
 	// Example: 2
 	SocketId string `json:"socketId"`
 
+	// The Nrt that *paws* has chosen to use. Arbitrary and internal.
+	//   "a" or "b".
+	Nrt string
+
+	// The Partition that *paws* has chosen to use. Arbitrary and internal.
+	//   These indices are 0 .. 3, but actual names in LinuxPath could be anything.
+	PartitionIndex int
+
 	// symbolic link to storage directory which points back to this StorageObject
 	// Example: http://localhost:23632/storages/m123456_987654
 	RootUrl string `json:"rootUrl"`

@@ -86,27 +86,31 @@ func TestTranslateUrl(t *testing.T) {
 		assert.Panics(t, func() { TranslateUrl(so, url2) })
 	}
 }
-func TestNextPartition(t *testing.T) {
-	try := func(arg, expected string) {
-		got := NextPartition(arg)
-		assert.Equal(t, expected, got)
+func TestChooseNextNrtPartition(t *testing.T) {
+	try := func(index int, nrt string, expectedIndex int, expectedNrt string) {
+		got := ChooseNextNrtPartition(NrtPartition{index, nrt})
+		assert.Equal(t, expectedIndex, got.PartitionIndex)
+		assert.Equal(t, expectedNrt, got.Nrt) // constant for now
 	}
-	try("0", "1")
-	try("1", "2")
-	try("2", "3")
-	try("3", "0")
-	try("", "0")
+	try(0, "a", 0, "b")
+	try(0, "b", 1, "a")
+	try(1, "a", 1, "b")
+	try(1, "b", 2, "a")
+	try(2, "a", 2, "b")
+	try(2, "b", 3, "a")
+	try(3, "a", 3, "b")
+	try(3, "b", 0, "a")
+	// Note that the function has no side-effects, so these
+	// are stateless tests.
 }
 func TestAcquireStorageObject(t *testing.T) {
-	// This call creates directories, so we need to use testtmpdir.
+	// This test creates directories, so we need to use testtmpdir.
 
-	store := &MultiDirStore{
-		NrtaDir:       filepath.Join(testtmpdir, "nrta"),
-		NrtbDir:       filepath.Join(testtmpdir, "nrtb"),
-		IccDir:        filepath.Join(testtmpdir, "icc"),
-		LastPartition: "",
-		LastNrt:       "",
-	}
+	store := NewMultiDirStore(
+		filepath.Join(testtmpdir, "nrta"),
+		filepath.Join(testtmpdir, "nrtb"),
+		filepath.Join(testtmpdir, "icc"))
+
 	try := func(expectedNrtDir, expectedPartition, mid string) {
 		so := store.AcquireStorageObject(mid)
 
@@ -118,18 +122,24 @@ func TestAcquireStorageObject(t *testing.T) {
 		actualIccPath := so.LinuxIccPath
 		assert.Equal(t, expectedIccPath, actualIccPath)
 	}
-	try(store.NrtaDir, "0", "m123")
-	try(store.NrtbDir, "0", "m123")
-	try(store.NrtaDir, "1", "m123")
-	try(store.NrtbDir, "1", "m123")
-	try(store.NrtaDir, "2", "m123")
-	try(store.NrtbDir, "2", "m123")
-	try(store.NrtaDir, "3", "m123")
-	try(store.NrtbDir, "3", "m123")
-	try(store.NrtaDir, "0", "m123")
+	mid := "m123"
+	so := store.AcquireStorageObject(mid) // Do not panic.
+	// Normally, we would use different mids, but that actually makes no difference.
+	try(store.NrtbDir, "0", mid)
+	try(store.NrtaDir, "1", mid)
+	try(store.NrtbDir, "1", mid)
+	try(store.NrtaDir, "2", mid)
+	try(store.NrtbDir, "2", mid)
+	try(store.NrtaDir, "3", mid)
+	try(store.NrtbDir, "3", mid)
+	// We do not actually care about the order above, but for now we know it.
+
+	assert.Panics(t, func() { store.AcquireStorageObject(mid) })
+	store.Free(so)                      // Free one, so we can aquire another.
+	_ = store.AcquireStorageObject(mid) // Do not panic.
 }
 func TestCheckIllegalPathToCreate(t *testing.T) {
-	assert.Equal(t, BadPaths, []string{"/data/icc", "/data/nrta", "/data/nrtb"})
+	assert.Equal(t, []string{"/data/icc", "/data/nrta", "/data/nrtb"}, BadPaths)
 	CheckIllegalPathToCreate("/tmp")
 	was := BadPaths
 	defer func() {
@@ -141,4 +151,13 @@ func TestCheckIllegalPathToCreate(t *testing.T) {
 func TestExists(t *testing.T) {
 	assert.False(t, Exists("/fubar"), "/fubar")
 	assert.True(t, Exists("/tmp"), "/tmp")
+}
+func TestFindFirstFalseIndex(t *testing.T) {
+	assert.Equal(t, -1, FindFirstFalseIndex(0, []bool{}))
+	assert.Equal(t, 0, FindFirstFalseIndex(0, []bool{false}))
+	assert.Equal(t, 1, FindFirstFalseIndex(1, []bool{false, false, false}))
+	assert.Equal(t, 2, FindFirstFalseIndex(1, []bool{false, true, false}))
+	assert.Equal(t, 0, FindFirstFalseIndex(1, []bool{false, true, true})) // wrap
+	assert.Equal(t, -1, FindFirstFalseIndex(2, []bool{true, true, true, true}))
+	// Usually we have 4 indices, but this function does not care.
 }
