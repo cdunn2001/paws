@@ -212,8 +212,97 @@ type ProgressMetricsObject struct {
 	NetProgress   float64 `json:"netProgress"`
 }
 
-// For composition in others
-type socketCommonObject struct {
+type SocketDarkcalObject struct {
+	// ---------------
+	// REQUIRED INPUTS
+
+	// Movie context ID used to create this object
+	// Example: m123456_987654
+	Mid string `json:"mid"`
+
+	// ---------------------
+	// OPTIONAL INPUTS
+
+	// (This is an output file, but can be specified by user.)
+	// Destination URL of the calibration file
+	// Example: http://localhost:23632/storages/m123456_987654/loadingcal.h5
+	CalibFileUrl string `json:"calibFileUrl"`
+
+	// (This is an output file, but can be specified by user.)
+	// Destination URL of the log file
+	// "discard:" may suppress logging
+	LogUrl string `json:"logUrl"`
+
+	// Log severity threshold
+	// (We currently ignore this, since we are debugging. If needed, let us know.)
+	LogLevel LogLevelEnum `json:"logLevel"`
+
+	// Arbitrary movie number to delimite the start and end
+	// (Ignored for now, and set to 0 always.)
+	MovieNumber int32 `json:"movieNumber"`
+
+	// Movie length in seconds. The values movieMaxFrames and movieMaxSeconds should be similar, but not exactly the same, depending on whether true elapsed time or accurate frame count is desired. One value should be the desired amount and the other value should be an emergency stop amount.
+	// Ignored unless > 0.
+	MovieMaxSeconds float64 `json:"movieMaxSeconds"`
+
+	// Movie length in frames. The values movieMaxFrames and movieMaxSeconds should be similar, but not exactly the same, depending on whether true elapsed time or accurate frame count is desired. One value should be the desired amount and the other value should be an emergency stop amount.
+	// (gets overridden w/ 128 or 512 for now, but setting prevents warning)
+	MovieMaxFrames int32 `json:"movieMaxFrames"`
+
+	// ---------------
+	// OUTPUTS
+
+	ProcessStatus ProcessStatusObject `json:"processStatus"`
+}
+type SocketLoadingcalObject struct {
+	// ---------------
+	// REQUIRED INPUTS
+
+	// Movie context ID used to create this object
+	// Example: m123456_987654
+	Mid string `json:"mid"`
+
+	// Source URL of the dark_frame calibration file
+	// Example: http://localhost:23632/storages/m123456_987654/darkcal.h5
+	DarkFrameFileUrl string `json:"darkFrameFileUrl"`
+
+	// ---------------------
+	// OPTIONAL INPUTS
+
+	// (This is an output file, but can be specified by user.)
+	// Destination URL of the calibration file
+	// Example: http://localhost:23632/storages/m123456_987654/loadingcal.h5
+	CalibFileUrl string `json:"calibFileUrl"`
+
+	// (This is an output file, but can be specified by user.)
+	// Destination URL of the log file.
+	// "discard:" may suppress logging
+	LogUrl string `json:"logUrl"`
+
+	// Log severity threshold
+	// (We currently ignore this, since we are debugging. If needed, let us know.)
+	LogLevel LogLevelEnum `json:"logLevel"`
+
+	// Arbitrary movie number to delimite the start and end
+	// (Ignored for now, and set to 0 always.)
+	MovieNumber int32 `json:"movieNumber"`
+
+	// Movie length in seconds. The values movieMaxFrames and movieMaxSeconds should be similar, but not exactly the same, depending on whether true elapsed time or accurate frame count is desired. One value should be the desired amount and the other value should be an emergency stop amount.
+	// Ignored unless > 0.
+	MovieMaxSeconds float64 `json:"movieMaxSeconds"`
+
+	// Movie length in frames. The values movieMaxFrames and movieMaxSeconds should be similar, but not exactly the same, depending on whether true elapsed time or accurate frame count is desired. One value should be the desired amount and the other value should be an emergency stop amount.
+	// (gets overridden w/ 128 or 512 for now, but setting prevents warning)
+	MovieMaxFrames int32 `json:"movieMaxFrames"`
+
+	// ---------------
+	// OUTPUTS
+
+	ProcessStatus ProcessStatusObject `json:"processStatus"`
+}
+type SocketBasecallerObject struct {
+	// ---------------------
+	// REQUIRED INPUTS
 
 	// Movie context ID used to create this object
 	// Example: m123456_987654
@@ -222,52 +311,31 @@ type socketCommonObject struct {
 	// Movie length in frames. The values movieMaxFrames and movieMaxSeconds should be similar, but not exactly the same, depending on whether true elapsed time or accurate frame count is desired. One value should be the desired amount and the other value should be an emergency stop amount.
 	MovieMaxFrames int32 `json:"movieMaxFrames"`
 
-	// Movie length in seconds. The values movieMaxFrames and movieMaxSeconds should be similar, but not exactly the same, depending on whether true elapsed time or accurate frame count is desired. One value should be the desired amount and the other value should be an emergency stop amount.
-	MovieMaxSeconds float64 `json:"movieMaxSeconds"`
+	// ---------------------
+	// OPTIONAL INPUTS
 
-	// Arbitrary movie number to delimite the start and end
-	MovieNumber int32 `json:"movieNumber"`
-
+	// (This is an output file, but can be specified by user.)
 	// Destination URL of the log file
+	// "discard:" may suppress logging
 	LogUrl string `json:"logUrl"`
 
 	// Log severity threshold
+	// (We currently ignore this, since we are debugging. If needed, let us know.)
 	LogLevel LogLevelEnum `json:"logLevel"`
-
-	ProcessStatus ProcessStatusObject `json:"processStatus"`
-}
-type SocketDarkcalObject struct {
-
-	// Destination URL of the calibration file
-	// Example: http://localhost:23632/storages/m123456_987654/loadingcal.h5
-	CalibFileUrl string `json:"calibFileUrl"`
-
-	socketCommonObject
-}
-type SocketLoadingcalObject struct {
-
-	// Source URL of the dark_frame calibration file
-	// Example: http://localhost:23632/storages/m123456_987654/darkcal.h5
-	DarkFrameFileUrl string `json:"darkFrameFileUrl"`
-
-	// Destination URL of the calibration file
-	// Example: http://localhost:23632/storages/m123456_987654/loadingcal.h5
-	CalibFileUrl string `json:"calibFileUrl"`
-
-	socketCommonObject
-}
-type SocketBasecallerObject struct {
 
 	// subreadset UUID
 	// Example: 123e4567-e89b-12d3-a456-426614174000
 	Uuid string `json:"uuid"`
 
-	// Destination URL for the baz file
+	// (This is an output file, but can be specified by user.)
+	// Destination URL for the baz file.
 	// Example: http://localhost:23632/storages/m123456_987654/thefile.baz
+	// TODO: "discard:" may suppress generation and skip PPA altogether.
 	BazUrl string `json:"bazUrl"`
 
-	// Destination URL for the trace file (optional)
-	// Example: "discard:"
+	// (This is an output file, but can be specified by user.)
+	// Destination URL for the trace file (optional).
+	// "discard:" may suppress generation (as long as BazUrl is generated).
 	TraceFileUrl string `json:"traceFileUrl"`
 
 	// Controlled name of the sensor chip unit cell layout
@@ -308,6 +376,7 @@ type SocketBasecallerObject struct {
 	// Example: 10.0
 	RefSnr float64 `json:"refSnr"`
 
+	// (This is an output file, but can be specified by user.)
 	// Source URL for the file to use for transmission of simulated data. Only local files are supported currently.
 	// Example: file://localhost/data/pa/sample_file.trc.h5
 	// TODO: We do not use or assign this at all yet.
@@ -315,7 +384,11 @@ type SocketBasecallerObject struct {
 
 	// SmrtBasecallerConfig. Passed to smrt_basecaller --config. TODO: This will be a JSON object, but is a string here as a placeholder.
 	// Example: null
+	// (Currently ignored.)
 	SmrtBasecallerConfig string `json:"smrtBasecallerConfig"`
+
+	// ---------------
+	// OUTPUTS
 
 	// Source URL of the most recent RT Metrics file.
 	// Example: http://localhost:23632/storages/m123/m123.rtmetrics.json
@@ -328,9 +401,7 @@ type SocketBasecallerObject struct {
 	// that the file received via "/rtmetrics" will be this one.
 	RtMetricsTimestamp string `json:"rtMetricsTimestamp"`
 
-	socketCommonObject
-}
-type SocketBasecallerRTMetricsObject struct {
+	ProcessStatus ProcessStatusObject `json:"processStatus"`
 }
 type AnalogObject struct {
 
@@ -369,6 +440,8 @@ type SocketObject struct {
 	Loadingcal *SocketLoadingcalObject `json:"loadingcal"`
 	Basecaller *SocketBasecallerObject `json:"basecaller"`
 }
+
+// (Currently unused.)
 type PostprimaryStatusObject struct {
 
 	// A list of all of the URLS of the files generated by postprimary for this object
@@ -400,6 +473,8 @@ type PostprimaryStatusObject struct {
 	Ccs2bamPeakRssGb float64 `json:"ccs2bamPeakRssGb"`
 }
 type PostprimaryObject struct {
+	// ---------------
+	// REQUIRED INPUTS
 
 	// Movie context ID used to create this object
 	// Example: m123456_987654
@@ -413,28 +488,6 @@ type PostprimaryObject struct {
 	// 123e4567-e89b-12d3-a456-426614174000
 	Uuid string `json:"uuid"`
 
-	// Destination URL of the log file
-	LogUrl string `json:"logUrl"`
-
-	// Log severity threshold
-	LogLevel LogLevelEnum `json:"logLevel"`
-
-	// Destination URL for the prefix of all output files from baz2bam and/or ccs
-	// Example: http://localhost:23632/storages/0/m12346
-	OutputPrefixUrl string `json:"outputPrefixUrl"`
-
-	// Destination URL for the stats.xml file
-	// Example: http://localhost:23632/storages/0/m12346.stats.xml
-	OutputStatsXmlUrl string `json:"outputStatsXmlUrl"`
-
-	// Destination URL for the stats.h5 file
-	// Example: http://localhost:23632/storages/0/m12346.sts.h5
-	OutputStatsH5Url string `json:"outputStatsH5Url"`
-
-	// Destination URL for the reduced stats.h5 file
-	// Example: http://localhost:23632/storages/0/m12346.rsts.h5
-	OutputReduceStatsH5Url string `json:"outputReduceStatsH5Url"`
-
 	// Controlled name of the sensor chip unit cell layout
 	// Example: Minesweeper1.0
 	Chiplayout string `json:"chiplayout"`
@@ -443,14 +496,54 @@ type PostprimaryObject struct {
 	// Example: <SubreadSets><SubreadSet xmln= [snip] </SubreadSets>
 	SubreadsetMetadataXml string `json:"subreadsetMetadataXml"`
 
+	// ---------------
+	// OPTIONAL INPUTS
+
+	// (This is an output file, but can be specified by user.)
+	// Destination URL of the log file
+	// "discard:" may suppress logging.
+	LogUrl string `json:"logUrl"`
+
+	// Log severity threshold
+	LogLevel LogLevelEnum `json:"logLevel"`
+
+	// (This is an output file designation, but can be specified by user.)
+	// Destination URL for the prefix of all output files from baz2bam and/or ccs
+	// Example: "http://localhost:23632/storages/0/m12346"
+	OutputPrefixUrl string `json:"outputPrefixUrl"`
+
+	// (This is an output file, but can be specified by user.)
+	// Destination URL for the stats.xml file
+	// Example: "http://localhost:23632/storages/0/m12346.stats.xml"
+	// Example: "discard:"
+	OutputStatsXmlUrl string `json:"outputStatsXmlUrl"`
+
+	// (This is an output file, but can be specified by user.)
+	// Destination URL for the stats.h5 file
+	// Example: "http://localhost:23632/storages/0/m12346.sts.h5"
+	// Example: "discard:"
+	OutputStatsH5Url string `json:"outputStatsH5Url"`
+
+	// (This is an output file, but can be specified by user.)
+	// Destination URL for the reduced stats.h5 file
+	// Example: "http://localhost:23632/storages/0/m12346.rsts.h5"
+	// Example: "discard:"
+	OutputReduceStatsH5Url string `json:"outputReduceStatsH5Url"`
+
 	// Include kinetics in the run if true
 	// Example: true
+	// (Might not be needed, given runmetadata. For Pawnee only.)
 	IncludeKinetics bool `json:"includeKinetics"`
 
 	// Run CCS on instrument if true
 	// Example: false
+	// (Might not be needed, given runmetadata. For Pawnee only.)
 	CcsOnInstrument bool `json:"ccsOnInstrument"`
 
+	// ---------------
+	//  OUTPUTS
+
+	// (Currently unused. Might be deleted. See ProcessStatus instead.)
 	PostprimaryStatus PostprimaryStatusObject `json:"status"`
 
 	ProcessStatus ProcessStatusObject `json:"processStatus"`
