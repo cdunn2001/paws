@@ -286,11 +286,10 @@ func getBasecallerBySocketId(c *gin.Context, state *State) {
 		so := RequireStorageObjectForMid(obj.Mid, state)
 		Url := obj.RtMetricsUrl
 		fn := TranslateUrl(so, Url)
-		log.Printf("For RtMetrics, TranslateUrl: %q -> %q", Url, fn)
 
 		modtime, err := config.GetModificationTime(fn)
 		if err != nil {
-			log.Printf("WARNING: Got err: %v", err)
+			//log.Printf("WARNING: (%q -> %q) Got err: %v", Url, fn, err) // TODO: Verbose log.
 		} else {
 			utc := modtime.UTC()
 

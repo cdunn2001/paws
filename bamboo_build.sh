@@ -6,6 +6,8 @@ ls -larth
 source ./env.sh
 set -vex
 
+echo "USER=$USER"
+echo "HOME=$HOME"
 echo "SHELL=$SHELL"
 echo "BASH_VERSION=$BASH_VERSION"
 
