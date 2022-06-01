@@ -209,27 +209,35 @@ func Parse() ([]string, Opts) {
 	}
 	return args, opts
 }
+
+// Caller must eventually call 'result.Close()'.
+func RotateLogfile(userfn string) (result *os.File) {
+	MoveExistingLogfile(userfn)
+	fn := web.ChooseLoggerFilename(userfn)
+	{
+		err := os.Symlink(filepath.Base(fn), userfn)
+		if err != nil {
+			fmt.Printf("ERROR: Failed to create convenient symlink from %q to %q: %+v\nContinuing.",
+				fn, userfn, err)
+		}
+	}
+	fmt.Printf("Logging to '%s'\n", fn)
+	result, err := os.Create(fn)
+	check(err)
+	return result
+}
 func main() {
 	args, opts := Parse()
 
+	// Basic log-writer and verbose-log-writer.
 	var lw io.Writer
 	if !opts.Console {
-		MoveExistingLogfile(opts.LogOutput)
-		fn := web.ChooseLoggerFilename(opts.LogOutput)
-		{
-			err := os.Symlink(filepath.Base(fn), opts.LogOutput)
-			if err != nil {
-				fmt.Printf("ERROR: Failed to create convenient symlink from %q to %q: %+v\nContinuing.",
-					fn, opts.LogOutput, err)
-			}
-		}
-		fmt.Printf("Logging to '%s'\n", fn)
-		f, err := os.Create(fn)
-		check(err)
+		f := RotateLogfile(opts.LogOutput)
 		defer f.Close()
 		lw = f
 	} else {
 		lw = os.Stdout
+		//vlw = os.Stdout
 		//lw = io.MultiWriter(f, os.Stdout)
 	}
 	log.SetOutput(lw)
