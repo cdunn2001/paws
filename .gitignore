@@ -19,5 +19,6 @@ default.output
 foo.*
 /tmp/
 *.log
+*.log.verbose
 
 myrun.sh

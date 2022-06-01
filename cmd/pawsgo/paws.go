@@ -40,7 +40,7 @@ func PanicHandleRecovery(c *gin.Context, err interface{}) {
 	msg := fmt.Sprintf("Panic:'%+v'\n", err)
 	c.String(http.StatusInternalServerError, msg)
 }
-func listen(port int, lw io.Writer) {
+func listen(port int, lw, vlw io.Writer) {
 	//router := gin.Default()
 	// Or explicitly:
 	router := gin.New()
@@ -232,14 +232,24 @@ func main() {
 	args, opts := Parse()
 
 	// Basic log-writer and verbose-log-writer.
-	var lw io.Writer
+	var (
+		lw  io.Writer
+		vlw io.Writer
+	)
 	if !opts.Console {
-		f := RotateLogfile(opts.LogOutput)
-		defer f.Close()
-		lw = f
+		{
+			f := RotateLogfile(opts.LogOutput)
+			defer f.Close()
+			lw = f
+		}
+		{
+			vf := RotateLogfile(opts.LogOutput + ".verbose")
+			defer vf.Close()
+			vlw = vf
+		}
 	} else {
 		lw = os.Stdout
-		//vlw = os.Stdout
+		vlw = os.Stdout
 		//lw = io.MultiWriter(f, os.Stdout)
 	}
 	log.SetFlags(log.Flags() | log.LUTC | log.Lmsgprefix)
@@ -283,5 +293,5 @@ func main() {
 	if len(args) > 0 {
 		log.Fatalf("Unused args: %v", args)
 	}
-	listen(opts.Port, lw)
+	listen(opts.Port, lw, vlw)
 }
