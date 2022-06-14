@@ -217,7 +217,8 @@ func main() {
 	// Basic log-writer and verbose-log-writer.
 	var (
 		lw  io.Writer
-		vlw io.Writer
+		vlw io.Writer // verbose
+		dlw io.Writer // double
 	)
 	if !opts.Console {
 		{
@@ -230,14 +231,15 @@ func main() {
 			defer vf.Close()
 			vlw = vf
 		}
+		dlw = io.MultiWriter(lw, vlw)
 	} else {
 		lw = os.Stdout
 		vlw = os.Stdout
-		//lw = io.MultiWriter(f, os.Stdout)
+		dlw = os.Stdout
 	}
 	log.SetFlags(log.Flags() | log.LUTC | log.Lmsgprefix)
 	log.SetPrefix(log.Prefix() + "Z ")
-	log.SetOutput(lw)
+	log.SetOutput(dlw)
 	log.Println(strings.Join(os.Args[:], " "))
 	log.Printf("version=%s\n", config.Version)
 	log.Printf("port='%v'\n", opts.Port)
@@ -276,5 +278,7 @@ func main() {
 	if len(args) > 0 {
 		log.Fatalf("Unused args: %v", args)
 	}
+	log.Println("Further logging (beyond Gin webserver) goes only to logverbose.")
+	log.SetOutput(vlw)
 	listen(opts.Port, lw, vlw)
 }
