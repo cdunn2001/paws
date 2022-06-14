@@ -3,15 +3,12 @@ package main
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"github.com/jessevdk/go-flags"
 	"io"
-	"io/fs"
 	"io/ioutil"
 	"log" // log.Fatal()
 	"net/http"
-	"path/filepath"
 	"sync/atomic"
 	//"net/http/httputil"
 	"os"
@@ -183,39 +180,6 @@ func listen(port int, lw, vlw io.Writer) {
 	log.Fatal(router.Run(portStr)) // logger maybe not needed, but does not seem to hurt
 }
 
-// If a file of this name exists, then move it to something that does not.
-// If this is actually a symlink, remove the symlink.
-func MoveExistingLogfile(specified string) {
-	fi, err := os.Lstat(specified)
-	if err == nil {
-		if fi.Mode()&os.ModeSymlink == os.ModeSymlink {
-			// This is a symlink, so remove just the symlink.
-			err := os.Remove(specified)
-			if err != nil {
-				fmt.Printf("FATAL: Could not remove symlink of logfile %q: %+v\n",
-					specified, err)
-				check(err)
-			}
-		} else {
-			// Not a symlink. Must have been created by older version of paws.
-			fmt.Printf("ERROR: Old version of paws? Renaming logfile from %q\n",
-				specified)
-			// Choose a new name and move this file to it.
-			newname := web.ChooseLoggerFilenameLegacy(specified)
-			err := os.Rename(specified, newname)
-			if err != nil {
-				fmt.Printf("ERROR: Could not rename logfile from %q to %q: %+v\nLost old logfile.\n",
-					specified, newname, err)
-			}
-		}
-	} else if errors.Is(err, fs.ErrNotExist) {
-		// No problem.
-	} else {
-		fmt.Printf("FATAL: Unexpected error testing logfile %q: %+v\n",
-			specified, err)
-		check(err)
-	}
-}
 func ShowVersionAndExit() {
 	fmt.Println(config.Version)
 	os.Exit(0)
@@ -247,22 +211,6 @@ func Parse() ([]string, Opts) {
 	return args, opts
 }
 
-// Caller must eventually call 'result.Close()'.
-func RotateLogfile(userfn string) (result *os.File) {
-	MoveExistingLogfile(userfn)
-	fn := web.ChooseLoggerFilename(userfn)
-	{
-		err := os.Symlink(filepath.Base(fn), userfn)
-		if err != nil {
-			fmt.Printf("ERROR: Failed to create convenient symlink from %q to %q: %+v\nContinuing.",
-				fn, userfn, err)
-		}
-	}
-	fmt.Printf("Logging to '%s'\n", fn)
-	result, err := os.Create(fn)
-	check(err)
-	return result
-}
 func main() {
 	args, opts := Parse()
 
@@ -273,12 +221,12 @@ func main() {
 	)
 	if !opts.Console {
 		{
-			f := RotateLogfile(opts.LogOutput)
+			f := web.RotateLogfile(opts.LogOutput)
 			defer f.Close()
 			lw = f
 		}
 		{
-			vf := RotateLogfile(opts.LogOutput + ".verbose")
+			vf := web.RotateLogfile(opts.LogOutput + "verbose")
 			defer vf.Close()
 			vlw = vf
 		}
