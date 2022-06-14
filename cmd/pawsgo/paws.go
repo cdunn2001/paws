@@ -1,15 +1,14 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"github.com/jessevdk/go-flags"
 	"io"
-	"io/fs"
+	"io/ioutil"
 	"log" // log.Fatal()
 	"net/http"
-	"path/filepath"
 	"sync/atomic"
 	//"net/http/httputil"
 	"os"
@@ -40,7 +39,39 @@ func PanicHandleRecovery(c *gin.Context, err interface{}) {
 	msg := fmt.Sprintf("Panic:'%+v'\n", err)
 	c.String(http.StatusInternalServerError, msg)
 }
-func listen(port int, lw io.Writer) {
+
+type bodyLogWriter struct {
+	gin.ResponseWriter
+	body *bytes.Buffer
+}
+
+func (w bodyLogWriter) Write(b []byte) (int, error) {
+	w.body.Write(b)
+	return w.ResponseWriter.Write(b)
+}
+
+func (w bodyLogWriter) WriteString(s string) (int, error) {
+	w.body.WriteString(s)
+	return w.ResponseWriter.WriteString(s)
+}
+func ginBodyLogMiddleware(w io.Writer) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		body, _ := ioutil.ReadAll(c.Request.Body)
+		fmt.Fprintf(w, "Request: '%s %s'\nRequest body: %s\n", c.Request.Method, c.Request.URL, string(body))
+
+		// Put it back.
+		c.Request.Body = ioutil.NopCloser(bytes.NewReader(body))
+
+		// Intercept response writing.
+		blw := &bodyLogWriter{body: bytes.NewBufferString(""), ResponseWriter: c.Writer}
+		c.Writer = blw
+		c.Next()
+
+		var status int = c.Writer.Status()
+		fmt.Fprintf(w, "Response status: %d\nResponse body: %s\n", status, blw.body.String())
+	}
+}
+func listen(port int, lw, vlw io.Writer) {
 	//router := gin.Default()
 	// Or explicitly:
 	router := gin.New()
@@ -48,6 +79,7 @@ func listen(port int, lw io.Writer) {
 	gin.DefaultWriter = lw
 	//gin.ForceConsoleColor() // needed for colors w/ MultiWriter
 	router.Use(
+		ginBodyLogMiddleware(vlw),
 		SkipGETLogger(), //gin.Logger(),
 		//gin.LoggerWithWriter(gin.DefaultWriter, "/pathsNotToLog/"), // useful!
 		gin.CustomRecovery(PanicHandleRecovery),
@@ -148,37 +180,6 @@ func listen(port int, lw io.Writer) {
 	log.Fatal(router.Run(portStr)) // logger maybe not needed, but does not seem to hurt
 }
 
-// If a file of this name exists, then move it to something that does not.
-// If this is actually a symlink, remove the symlink.
-func MoveExistingLogfile(specified string) {
-	fi, err := os.Lstat(specified)
-	if err == nil {
-		if fi.Mode()&os.ModeSymlink == os.ModeSymlink {
-			// This is a symlink, so remove just the symlink.
-			err := os.Remove(specified)
-			if err != nil {
-				fmt.Printf("FATAL: Could not remove symlink of logfile %q: %+v\n",
-					specified, err)
-				check(err)
-			}
-		} else {
-			// Not a symlink. Must have been created by older version of paws.
-			// Choose a new name and move this file to it.
-			newname := web.ChooseLoggerFilenameLegacy(specified)
-			err := os.Rename(specified, newname)
-			if err != nil {
-				fmt.Printf("ERROR: Could not rename logfile from %q to %q: %+v\nLost old logfile.\n",
-					specified, newname, err)
-			}
-		}
-	} else if errors.Is(err, fs.ErrNotExist) {
-		// No problem.
-	} else {
-		fmt.Printf("FATAL: Unexpected error testing logfile %q: %+v\n",
-			specified, err)
-		check(err)
-	}
-}
 func ShowVersionAndExit() {
 	fmt.Println(config.Version)
 	os.Exit(0)
@@ -209,30 +210,36 @@ func Parse() ([]string, Opts) {
 	}
 	return args, opts
 }
+
 func main() {
 	args, opts := Parse()
 
-	var lw io.Writer
+	// Basic log-writer and verbose-log-writer.
+	var (
+		lw  io.Writer
+		vlw io.Writer // verbose
+		dlw io.Writer // double
+	)
 	if !opts.Console {
-		MoveExistingLogfile(opts.LogOutput)
-		fn := web.ChooseLoggerFilename(opts.LogOutput)
 		{
-			err := os.Symlink(filepath.Base(fn), opts.LogOutput)
-			if err != nil {
-				fmt.Printf("ERROR: Failed to create convenient symlink from %q to %q: %+v\nContinuing.",
-					fn, opts.LogOutput, err)
-			}
+			f := web.RotateLogfile(opts.LogOutput)
+			defer f.Close()
+			lw = f
 		}
-		fmt.Printf("Logging to '%s'\n", fn)
-		f, err := os.Create(fn)
-		check(err)
-		defer f.Close()
-		lw = f
+		{
+			vf := web.RotateLogfile(opts.LogOutput + "verbose")
+			defer vf.Close()
+			vlw = vf
+		}
+		dlw = io.MultiWriter(lw, vlw)
 	} else {
 		lw = os.Stdout
-		//lw = io.MultiWriter(f, os.Stdout)
+		vlw = os.Stdout
+		dlw = os.Stdout
 	}
-	log.SetOutput(lw)
+	log.SetFlags(log.Flags() | log.LUTC | log.Lmsgprefix)
+	log.SetPrefix(log.Prefix() + "Z ")
+	log.SetOutput(dlw)
 	log.Println(strings.Join(os.Args[:], " "))
 	log.Printf("version=%s\n", config.Version)
 	log.Printf("port='%v'\n", opts.Port)
@@ -271,5 +278,7 @@ func main() {
 	if len(args) > 0 {
 		log.Fatalf("Unused args: %v", args)
 	}
-	listen(opts.Port, lw)
+	log.Println("Further logging (beyond Gin webserver) goes only to logverbose.")
+	log.SetOutput(vlw)
+	listen(opts.Port, lw, vlw)
 }
