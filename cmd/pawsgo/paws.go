@@ -1,12 +1,14 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/jessevdk/go-flags"
 	"io"
 	"io/fs"
+	"io/ioutil"
 	"log" // log.Fatal()
 	"net/http"
 	"path/filepath"
@@ -40,6 +42,38 @@ func PanicHandleRecovery(c *gin.Context, err interface{}) {
 	msg := fmt.Sprintf("Panic:'%+v'\n", err)
 	c.String(http.StatusInternalServerError, msg)
 }
+
+type bodyLogWriter struct {
+	gin.ResponseWriter
+	body *bytes.Buffer
+}
+
+func (w bodyLogWriter) Write(b []byte) (int, error) {
+	w.body.Write(b)
+	return w.ResponseWriter.Write(b)
+}
+
+func (w bodyLogWriter) WriteString(s string) (int, error) {
+	w.body.WriteString(s)
+	return w.ResponseWriter.WriteString(s)
+}
+func ginBodyLogMiddleware(w io.Writer) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		body, _ := ioutil.ReadAll(c.Request.Body)
+		fmt.Fprintf(w, "Request: '%s %s'\nRequest body: %s\n", c.Request.Method, c.Request.URL, string(body))
+
+		// Put it back.
+		c.Request.Body = ioutil.NopCloser(bytes.NewReader(body))
+
+		// Intercept response writing.
+		blw := &bodyLogWriter{body: bytes.NewBufferString(""), ResponseWriter: c.Writer}
+		c.Writer = blw
+		c.Next()
+
+		var status int = c.Writer.Status()
+		fmt.Fprintf(w, "Response status: %d\nResponse body: %s\n", status, blw.body.String())
+	}
+}
 func listen(port int, lw, vlw io.Writer) {
 	//router := gin.Default()
 	// Or explicitly:
@@ -48,6 +82,7 @@ func listen(port int, lw, vlw io.Writer) {
 	gin.DefaultWriter = lw
 	//gin.ForceConsoleColor() // needed for colors w/ MultiWriter
 	router.Use(
+		ginBodyLogMiddleware(vlw),
 		SkipGETLogger(), //gin.Logger(),
 		//gin.LoggerWithWriter(gin.DefaultWriter, "/pathsNotToLog/"), // useful!
 		gin.CustomRecovery(PanicHandleRecovery),
