@@ -242,6 +242,8 @@ func main() {
 		//vlw = os.Stdout
 		//lw = io.MultiWriter(f, os.Stdout)
 	}
+	log.SetFlags(log.Flags() | log.LUTC | log.Lmsgprefix)
+	log.SetPrefix(log.Prefix() + "Z ")
 	log.SetOutput(lw)
 	log.Println(strings.Join(os.Args[:], " "))
 	log.Printf("version=%s\n", config.Version)
