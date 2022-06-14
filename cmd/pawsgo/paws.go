@@ -163,6 +163,8 @@ func MoveExistingLogfile(specified string) {
 			}
 		} else {
 			// Not a symlink. Must have been created by older version of paws.
+			fmt.Printf("ERROR: Old version of paws? Renaming logfile from %q\n",
+				specified)
 			// Choose a new name and move this file to it.
 			newname := web.ChooseLoggerFilenameLegacy(specified)
 			err := os.Rename(specified, newname)
