@@ -23,3 +23,8 @@ Release Notes
 1.0.30 - added support for NUMA node and GPU node settings
 1.0.31 - /dashboard endpoint
 1.0.32 - skip GET logging
+1.1.11 - rtmetrics; lots of features/fixes
+1.2.0  - enable multi-baz mode in baz2bam
+1.2.1  - store trace files on ICC (not NRT)
+1.2.2  - verbose logging
+1.2.3  - UTC always; better logging
