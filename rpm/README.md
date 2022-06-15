@@ -28,3 +28,4 @@ Release Notes
 1.2.1  - store trace files on ICC (not NRT)
 1.2.2  - verbose logging
 1.2.3  - UTC always; better logging
+1.2.4  - include dir-existence in /status, but cached

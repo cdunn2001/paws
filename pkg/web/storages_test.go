@@ -106,10 +106,13 @@ func TestChooseNextNrtPartition(t *testing.T) {
 func TestAcquireStorageObject(t *testing.T) {
 	// This test creates directories, so we need to use testtmpdir.
 
-	store := NewMultiDirStore(
-		filepath.Join(testtmpdir, "nrta"),
-		filepath.Join(testtmpdir, "nrtb"),
-		filepath.Join(testtmpdir, "icc"))
+	nrta := filepath.Join(testtmpdir, "nrta")
+	nrtb := filepath.Join(testtmpdir, "nrtb")
+	icc := filepath.Join(testtmpdir, "icc")
+	CreatePathIfNeeded(nrta)
+	CreatePathIfNeeded(nrtb)
+	CreatePathIfNeeded(icc)
+	store := NewMultiDirStore(nrta, nrtb, icc)
 
 	try := func(expectedNrtDir, expectedPartition, mid string) {
 		so := store.AcquireStorageObject(mid)

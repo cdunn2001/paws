@@ -178,11 +178,12 @@ func WriteBasecallerBash(wr io.Writer, tc config.TopStruct, obj *SocketBasecalle
 		var outdir string
 		if DataDir != "" {
 			outdir = filepath.Join(DataDir, obj.Mid)
+			CreatePathIfNeeded(outdir) // Avoid special root-dir checking.
 		} else {
 			bazpath := TranslateUrl(so, obj.BazUrl)
 			outdir = filepath.Dir(bazpath)
+			so.CreatePathIfNeeded(outdir)
 		}
-		so.CreatePathIfNeeded(outdir)
 		config_json_fn = filepath.Join(outdir, obj.Mid+".basecaller.config.json")
 	}
 
