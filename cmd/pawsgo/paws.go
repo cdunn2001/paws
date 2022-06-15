@@ -1,5 +1,7 @@
 package main
 
+import _ "pacb.com/seq/paws/pkg/tzinit"
+
 import (
 	"bytes"
 	"encoding/json"
