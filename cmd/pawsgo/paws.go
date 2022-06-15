@@ -237,8 +237,6 @@ func main() {
 		vlw = os.Stdout
 		dlw = os.Stdout
 	}
-	log.SetFlags(log.Flags() | log.LUTC | log.Lmsgprefix)
-	log.SetPrefix(log.Prefix() + "Z ")
 	log.SetOutput(dlw)
 	log.Println(strings.Join(os.Args[:], " "))
 	log.Printf("version=%s\n", config.Version)
