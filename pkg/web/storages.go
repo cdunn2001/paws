@@ -405,6 +405,9 @@ func ChooseUrl(so *StorageObject, linuxtail string) string {
 // Register the Url if not already registered.
 // Then, return the Url
 func ChooseUrlThenRegister(so *StorageObject, Url string, loc StoragePathEnum, linuxtail string) string {
+	if Url == "discard:" {
+		return Url
+	}
 	if Url == "" {
 		Url = ChooseUrl(so, linuxtail)
 	}
