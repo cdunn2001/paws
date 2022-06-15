@@ -1,5 +1,7 @@
 package main
 
+import _ "pacb.com/seq/paws/pkg/tzinit"
+
 import (
 	"bytes"
 	"encoding/json"
@@ -77,6 +79,7 @@ func listen(port int, lw, vlw io.Writer) {
 	router := gin.New()
 	router.SetTrustedProxies(nil) // https://pkg.go.dev/github.com/gin-gonic/gin#readme-don-t-trust-all-proxies
 	gin.DefaultWriter = lw
+	gin.DefaultErrorWriter = vlw
 	//gin.ForceConsoleColor() // needed for colors w/ MultiWriter
 	router.Use(
 		ginBodyLogMiddleware(vlw),
@@ -237,8 +240,6 @@ func main() {
 		vlw = os.Stdout
 		dlw = os.Stdout
 	}
-	log.SetFlags(log.Flags() | log.LUTC | log.Lmsgprefix)
-	log.SetPrefix(log.Prefix() + "Z ")
 	log.SetOutput(dlw)
 	log.Println(strings.Join(os.Args[:], " "))
 	log.Printf("version=%s\n", config.Version)

@@ -66,7 +66,7 @@ func SkipGETLogger() gin.HandlerFunc {
 
 	return func(c *gin.Context) {
 		// Start timer
-		start := time.Now().UTC()
+		start := time.Now()
 		path := c.Request.URL.Path
 		raw := c.Request.URL.RawQuery
 
@@ -82,7 +82,7 @@ func SkipGETLogger() gin.HandlerFunc {
 			}
 
 			// Stop timer
-			param.TimeStamp = time.Now().UTC()
+			param.TimeStamp = time.Now()
 			param.Latency = param.TimeStamp.Sub(start)
 
 			param.ClientIP = c.ClientIP()

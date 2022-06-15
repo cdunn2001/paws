@@ -337,8 +337,8 @@ func StorageObjectUrlToLinuxPath(so *StorageObject, Url string) (string, error) 
 	}
 	sio, found := so.UrlPath2Item[urlpath.Path]
 	if !found {
-		msg := fmt.Sprintf("Failed to find urlpath %q (from URL %q) among registered paths. Did someone forget to call ChooseUrlThenRegister()?", urlpath.Path, Url)
-		return "/dev/null", errors.New(msg)
+		err = errors.Errorf("Failed to find urlpath %q (from URL %q) among registered paths. Did someone forget to call ChooseUrlThenRegister()?", urlpath.Path, Url)
+		return "/dev/null", err
 	}
 	return sio.LinuxPath, nil
 }
@@ -366,7 +366,7 @@ func TranslateUrl(so *StorageObject, Url string) string {
 	}
 	parsed, err := url.Parse(Url)
 	if err != nil {
-		msg := fmt.Sprintf("URL parsing error: %v", err)
+		msg := fmt.Sprintf("URL parsing error: %+v", err)
 		panic(msg)
 	}
 	if parsed.Scheme == "file" {
@@ -383,7 +383,6 @@ func TranslateUrl(so *StorageObject, Url string) string {
 	// Must be storages endpoint.
 	if !strings.HasPrefix(parsed.Path, "/storages/") {
 		msg := fmt.Sprintf("Unable to translate URL %q w/ path %q into linux path. Expected 'http://host:port/storages/path...'", Url, parsed.Path)
-		log.Printf(msg)
 		panic(msg)
 	}
 	if so == nil {
@@ -392,8 +391,7 @@ func TranslateUrl(so *StorageObject, Url string) string {
 	}
 	result, err := StorageObjectUrlToLinuxPath(so, Url)
 	if err != nil {
-		msg := fmt.Sprintf("Unable to translate URL %q into linux path via StorageObject %+v: %v", Url, so, err)
-		log.Printf(msg)
+		msg := fmt.Sprintf("Unable to translate URL %q into linux path via StorageObject %+v\n%+v", Url, so, err)
 		panic(msg)
 	}
 	return result
