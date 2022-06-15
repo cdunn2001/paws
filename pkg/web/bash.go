@@ -178,11 +178,12 @@ func WriteBasecallerBash(wr io.Writer, tc config.TopStruct, obj *SocketBasecalle
 		var outdir string
 		if DataDir != "" {
 			outdir = filepath.Join(DataDir, obj.Mid)
+			CreatePathIfNeeded(outdir) // Avoid special root-dir checking.
 		} else {
 			bazpath := TranslateUrl(so, obj.BazUrl)
 			outdir = filepath.Dir(bazpath)
+			so.CreatePathIfNeeded(outdir)
 		}
-		CreatePathIfNeeded(outdir)
 		config_json_fn = filepath.Join(outdir, obj.Mid+".basecaller.config.json")
 	}
 
@@ -545,7 +546,7 @@ func WriteBaz2bamBash(wr io.Writer, tc config.TopStruct, obj *PostprimaryObject,
 		if outdir == "" {
 			return errors.Errorf("Got empty dir for OutputPrefixUrl '%s'", outputPrefix)
 		}
-		CreatePathIfNeeded(outdir)
+		so.CreatePathIfNeeded(outdir)
 	}
 	metadata_xml := outputPrefix + ".metadata.xml"
 	HandleMetadata(metadata_xml, obj.SubreadsetMetadataXml)

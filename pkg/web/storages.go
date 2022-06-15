@@ -26,6 +26,8 @@ func listStorageMids(c *gin.Context, state *State) {
 type IStore interface {
 	Free(obj *StorageObject)
 	AcquireStorageObject(mid string) *StorageObject
+	CheckExistenceOfDirsAndCache() map[string]bool
+	CheckExistenceOfDirsCached() map[string]bool
 }
 
 func Exists(path string) bool {
@@ -56,6 +58,25 @@ func CreatePathIfNeeded(path string) {
 		panic(msg)
 	}
 }
+func (self *StorageObject) CreatePathIfNeeded(path string) {
+	m := self.Parent.CheckExistenceOfDirsAndCache()
+	var (
+		missing_keys = []string{}
+		missing      = 0
+	)
+	for k, v := range m {
+		if !v {
+			missing_keys = append(missing_keys, k)
+			missing += 1
+		}
+	}
+	if missing > 0 {
+		msg := fmt.Sprintf("Refusing to mkdir %q because %v are missing",
+			path, missing_keys)
+		panic(msg)
+	}
+	CreatePathIfNeeded(path)
+}
 func DeletePathIfExists(path string) {
 	log.Printf("DeletePathIfNeeded(%q)\n", path)
 	base := filepath.Base(path)
@@ -81,11 +102,12 @@ type NrtPartition struct {
 	Nrt            string // a|b
 }
 type MultiDirStore struct {
-	NrtaDir       string
-	NrtbDir       string
-	IccDir        string
-	NextPreferred NrtPartition // start search here
-	Nrts          map[string]*NrtState
+	NrtaDir           string
+	NrtbDir           string
+	IccDir            string
+	NextPreferred     NrtPartition // start search here
+	Nrts              map[string]*NrtState
+	DirExistenceCache map[string]bool
 }
 
 func CreateDefaultStore() *MultiDirStore {
@@ -214,15 +236,31 @@ func (self *MultiDirStore) AcquireStorageObject(mid string) *StorageObject {
 		LinuxIccPath: filepath.Join(self.IccDir, mid),
 		LinuxNrtPath: filepath.Join(nrtDir, partitionName, mid),
 		UrlPath2Item: make(map[string]*StorageItemObject),
+		Parent:       self,
 	}
 	// To start fresh. Also, we can allow debug logs to linger. But we can also drop this.
 	DeletePathIfExists(obj.LinuxIccPath)
 	DeletePathIfExists(obj.LinuxNrtPath)
 
-	CreatePathIfNeeded(obj.LinuxIccPath)
-	CreatePathIfNeeded(obj.LinuxNrtPath)
+	obj.CreatePathIfNeeded(obj.LinuxIccPath)
+	obj.CreatePathIfNeeded(obj.LinuxNrtPath)
 	self.NextPreferred = ChooseNextNrtPartition(current)
 	return obj
+}
+func (self *MultiDirStore) CheckExistenceOfDirsCached() map[string]bool {
+	return self.DirExistenceCache
+}
+func (self *MultiDirStore) CheckExistenceOfDirsAndCache() map[string]bool {
+	result := make(map[string]bool)
+	UpdateExistence := func(dirname string) {
+		_, err := os.Stat(dirname)
+		result[dirname] = !os.IsNotExist(err)
+	}
+	UpdateExistence(self.NrtaDir)
+	UpdateExistence(self.NrtbDir)
+	UpdateExistence(self.IccDir)
+	self.DirExistenceCache = result
+	return result
 }
 func (self *MultiDirStore) Free(obj *StorageObject) {
 	for _, sio := range obj.UrlPath2Item {

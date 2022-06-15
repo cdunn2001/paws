@@ -193,6 +193,9 @@ func getPawsStatusObject(state *State) PawsStatusObject {
 	bds := config.DescribeBinaries(config.Top().Binaries)
 	status.Binaries = bds
 
+	//store := state.Store.(*MultiDirStore)
+	status.DirsExist = state.Store.CheckExistenceOfDirsCached()
+
 	return status
 }
 

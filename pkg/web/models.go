@@ -130,6 +130,9 @@ type PawsStatusObject struct {
 
 	// Purely informational. Discovered at program start-up.
 	Binaries config.BinaryDescriptions
+
+	// Internal use only. Informational.
+	DirsExist map[string]bool
 }
 type LogLevelEnum string
 
@@ -647,6 +650,9 @@ type StorageObject struct {
 	//LinuxPath2Item map[string]*StorageItemObject `json:"linuxPath2Item"`
 	Space         []StorageDiskReportObject `json:"space"`
 	ProcessStatus ProcessStatusObject       `json:"processStatus"`
+
+	// Internal use only
+	Parent IStore
 }
 
 func CreateSocketBasecallerObject() (result *SocketBasecallerObject) {
