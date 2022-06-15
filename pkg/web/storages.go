@@ -405,6 +405,9 @@ func ChooseUrl(so *StorageObject, linuxtail string) string {
 // Register the Url if not already registered.
 // Then, return the Url
 func ChooseUrlThenRegister(so *StorageObject, Url string, loc StoragePathEnum, linuxtail string) string {
+	if Url == "discard:" {
+		return Url
+	}
 	if Url == "" {
 		Url = ChooseUrl(so, linuxtail)
 	}
@@ -426,7 +429,7 @@ func ChooseUrlThenRegister(so *StorageObject, Url string, loc StoragePathEnum, l
 			msg := fmt.Sprintf("Unexpected StoragePathEnum %v", loc)
 			panic(msg)
 		}
-		log.Printf("linuxpath: %q from %q or %q", linuxpath, so.LinuxNrtPath, so.LinuxIccPath)
+		//log.Printf("In ChooseUrlThenRegister(), choose linuxpath=%q from NRT %q or ICC %q", linuxpath, so.LinuxNrtPath, so.LinuxIccPath)
 		item = &StorageItemObject{
 			UrlPath:   urlpath,
 			LinuxPath: linuxpath,

@@ -305,7 +305,6 @@ func getBasecallerBySocketId(c *gin.Context, state *State) {
 func startBasecallerBySocketId(c *gin.Context, state *State) {
 	payload, err := ioutil.ReadAll(c.Request.Body)
 	check(err)
-	log.Println("dump request", string(payload)) // TODO: Delete this line. Log only on JSON error.
 
 	sid := c.Param("id")
 	obj := &SocketBasecallerObject{}
@@ -384,7 +383,6 @@ func getDarkcalBySocketId(c *gin.Context, state *State) {
 func startDarkcalBySocketId(c *gin.Context, state *State) {
 	payload, err := ioutil.ReadAll(c.Request.Body)
 	check(err)
-	log.Println("dump request", string(payload)) // TODO: Delete this line. Log only on JSON error.
 
 	sid := c.Param("id")
 	obj := &SocketDarkcalObject{}
@@ -464,7 +462,6 @@ func getLoadingcalBySocketId(c *gin.Context, state *State) {
 func startLoadingcalBySocketId(c *gin.Context, state *State) {
 	payload, err := ioutil.ReadAll(c.Request.Body)
 	check(err)
-	log.Println("dump request", string(payload)) // TODO: Delete this line. Log only on JSON error.
 
 	sid := c.Param("id")
 	obj := &SocketLoadingcalObject{}
@@ -543,7 +540,6 @@ func listPostprimaryMids(c *gin.Context, state *State) {
 func startPostprimary(c *gin.Context, state *State) {
 	payload, err := ioutil.ReadAll(c.Request.Body)
 	check(err)
-	log.Println("dump request", string(payload)) // TODO: Delete this line. Log only on JSON error.
 
 	obj := &PostprimaryObject{}
 	if err := json.Unmarshal(payload, &obj); err != nil {
