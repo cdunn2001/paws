@@ -26,7 +26,8 @@ func listStorageMids(c *gin.Context, state *State) {
 type IStore interface {
 	Free(obj *StorageObject)
 	AcquireStorageObject(mid string) *StorageObject
-	CheckExistenceOfDirs() map[string]bool
+	CheckExistenceOfDirsAndCache() map[string]bool
+	CheckExistenceOfDirsCached() map[string]bool
 }
 
 func Exists(path string) bool {
@@ -58,7 +59,7 @@ func CreatePathIfNeeded(path string) {
 	}
 }
 func (self *StorageObject) CreatePathIfNeeded(path string) {
-	m := self.Parent.CheckExistenceOfDirs()
+	m := self.Parent.CheckExistenceOfDirsAndCache()
 	var (
 		missing_keys = []string{}
 		missing      = 0
@@ -101,11 +102,12 @@ type NrtPartition struct {
 	Nrt            string // a|b
 }
 type MultiDirStore struct {
-	NrtaDir       string
-	NrtbDir       string
-	IccDir        string
-	NextPreferred NrtPartition // start search here
-	Nrts          map[string]*NrtState
+	NrtaDir           string
+	NrtbDir           string
+	IccDir            string
+	NextPreferred     NrtPartition // start search here
+	Nrts              map[string]*NrtState
+	DirExistenceCache map[string]bool
 }
 
 func CreateDefaultStore() *MultiDirStore {
@@ -245,7 +247,10 @@ func (self *MultiDirStore) AcquireStorageObject(mid string) *StorageObject {
 	self.NextPreferred = ChooseNextNrtPartition(current)
 	return obj
 }
-func (self *MultiDirStore) CheckExistenceOfDirs() map[string]bool {
+func (self *MultiDirStore) CheckExistenceOfDirsCached() map[string]bool {
+	return self.DirExistenceCache
+}
+func (self *MultiDirStore) CheckExistenceOfDirsAndCache() map[string]bool {
 	result := make(map[string]bool)
 	UpdateExistence := func(dirname string) {
 		_, err := os.Stat(dirname)
@@ -254,6 +259,7 @@ func (self *MultiDirStore) CheckExistenceOfDirs() map[string]bool {
 	UpdateExistence(self.NrtaDir)
 	UpdateExistence(self.NrtbDir)
 	UpdateExistence(self.IccDir)
+	self.DirExistenceCache = result
 	return result
 }
 func (self *MultiDirStore) Free(obj *StorageObject) {
