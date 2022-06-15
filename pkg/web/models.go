@@ -130,6 +130,9 @@ type PawsStatusObject struct {
 
 	// Purely informational. Discovered at program start-up.
 	Binaries config.BinaryDescriptions
+
+	// Internal use only. Informational.
+	DirsExist map[string]bool
 }
 type LogLevelEnum string
 

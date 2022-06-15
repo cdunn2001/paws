@@ -26,6 +26,7 @@ func listStorageMids(c *gin.Context, state *State) {
 type IStore interface {
 	Free(obj *StorageObject)
 	AcquireStorageObject(mid string) *StorageObject
+	CheckExistenceOfDirs() map[string]bool
 }
 
 func Exists(path string) bool {
@@ -223,6 +224,17 @@ func (self *MultiDirStore) AcquireStorageObject(mid string) *StorageObject {
 	CreatePathIfNeeded(obj.LinuxNrtPath)
 	self.NextPreferred = ChooseNextNrtPartition(current)
 	return obj
+}
+func (self *MultiDirStore) CheckExistenceOfDirs() map[string]bool {
+	result := make(map[string]bool)
+	UpdateExistence := func(dirname string) {
+		_, err := os.Stat(dirname)
+		result[dirname] = !os.IsNotExist(err)
+	}
+	UpdateExistence(self.NrtaDir)
+	UpdateExistence(self.NrtbDir)
+	UpdateExistence(self.IccDir)
+	return result
 }
 func (self *MultiDirStore) Free(obj *StorageObject) {
 	for _, sio := range obj.UrlPath2Item {
