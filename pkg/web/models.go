@@ -650,6 +650,9 @@ type StorageObject struct {
 	//LinuxPath2Item map[string]*StorageItemObject `json:"linuxPath2Item"`
 	Space         []StorageDiskReportObject `json:"space"`
 	ProcessStatus ProcessStatusObject       `json:"processStatus"`
+
+	// Internal use only
+	Parent IStore
 }
 
 func CreateSocketBasecallerObject() (result *SocketBasecallerObject) {
